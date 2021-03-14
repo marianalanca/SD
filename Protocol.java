@@ -1,17 +1,17 @@
-import java.rmi.Remote;
+import java.io.*;
 
-/* LISTA PROTOCOLO:
-    type | find ; what | <o que procurar> ; value | <valor>
-*/
-
-public interface Protocol extends Remote {
-    /*public ArrayList<Pair<String, String>> message;
+public class Protocol implements Serializable {
+    public String text;
 
 	public Protocol(String text) {
-		//this.text = text;
+		this.text = text;
+	}
+
+	public void change_text(String text) {
+		this.text = text;
 	}
 
 	public String toString() {
-		//return text;
-	}*/
+		return text;
+	}
 }
