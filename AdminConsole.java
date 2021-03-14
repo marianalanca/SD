@@ -11,8 +11,6 @@ public class AdminConsole {
         System.out.println("2. Criar eleições");
         System.out.println("3. Gerir listas de candidatos");
         System.out.println("4. Gerir mesas de voto");
-        System.out.println("5. Gerir terminais de voto");
-        System.out.println("6. Identificar eleitor");
         System.out.println("9. Alterar propriedades de uma eleição");
         System.out.println("10. Local votou cada eleitor");
         System.out.println("11. Mostrar estado das mesas de voto");
@@ -43,9 +41,6 @@ public class AdminConsole {
                 break;
             case 4:
                 manage_tables();
-                break;
-            case 5:
-                manage_terminal();
                 break;
             default:
                 System.out.println("Invalid option");
@@ -141,10 +136,6 @@ public class AdminConsole {
     public void manage_list(){}
 
     public void manage_tables(){}
-
-    public void manage_terminal(){}
-
-    public void identify_voter(){}
 
     public void change_election(){}
 
