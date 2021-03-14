@@ -28,6 +28,7 @@ public class MulticastClient extends Thread {
         user.start();
     }
 
+    // recebe
     public void run() {
         MulticastSocket socket = null;
         try {
@@ -51,6 +52,7 @@ public class MulticastClient extends Thread {
     }
 }
 
+// envia
 class MulticastUser extends Thread {
     private String MULTICAST_ADDRESS = "224.0.224.0";
     private int PORT = 4321;
