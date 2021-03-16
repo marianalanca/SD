@@ -13,9 +13,11 @@ public class MulticastServer extends Thread {
 
     public static void main(String[] args) {
 
-        // cria 10 terminais
+        // cria terminais
         for (int i=0;i<10;i++) {
             terminals.add(new VotingTerminal());
+            terminals.get(i).run();
+            System.out.println(terminals.get(i).isAlive());
         }
 
         //System.out.println("oi");
@@ -54,6 +56,12 @@ public class MulticastServer extends Thread {
                 // type | find ; what | cc_number ; value | + message
 
                 // se encontrar, procura na lista
+                for (VotingTerminal terminal: terminals) {
+                    if (!terminal.isAlive()) {
+                        terminal.run();
+                        break;
+                    }
+                }
 
                 /*System.out.println("Received packet from " + packet.getAddress().getHostAddress() + ":" + packet.getPort() + " with message:");
                 String message1 = new String(packet.getData(), 0, packet.getLength());

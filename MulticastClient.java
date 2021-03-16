@@ -75,6 +75,7 @@ class MulticastUser extends Thread {
                 DatagramPacket packet = new DatagramPacket(buffer, buffer.length, group, PORT);
                 socket.send(packet);
             }
+            //keyboardScanner.close();
         } catch (IOException e) {
             e.printStackTrace();
         } finally {
