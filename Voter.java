@@ -1,6 +1,7 @@
+import java.io.Serializable;
 import java.util.Calendar;
 
-public class Voter {
+public class Voter implements Serializable {
 
     public String username, role, department;
     public String contact, address, cc_number;
@@ -35,6 +36,15 @@ public class Voter {
     public void setPassword(String password){ this.password = password;}
 
     public String getPassword() {return password; }
+
+    public String getUsername() {
+        return this.username;
+    }
+
+    
+    public String getCc_number() {
+        return this.cc_number;
+    }
 
     public Calendar getCc_expiring(){ return this.cc_expiring; }
 

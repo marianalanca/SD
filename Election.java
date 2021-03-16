@@ -1,32 +1,37 @@
 
+import java.io.Serializable;
 import java.util.Calendar;
 import java.util.List;
+import java.util.concurrent.CopyOnWriteArrayList;
 
 
 
 enum Type {
       STUDENT, DOCENTE, FUNCIONARIO
 }
-public class Election {
+public class Election implements Serializable {
 
       
 
+      /**
+       *
+       */
+      private static final long serialVersionUID = 1L; 
       private Calendar beggDate;
       private Calendar endDate;
       private String title;
       private List<Type> allowedVoters;
       private String department;
-      private List<Integer> candidatesList;
+      private List<Candidates> candidatesList = new CopyOnWriteArrayList<>();
       private List<Voter> usersVoted;
       
 
-      public Election(String title,Calendar beggDate,Calendar endDate,List<Type> allowedVoters,String department){
+      public Election(String title,Calendar beggDate,Calendar endDate,String department, List<Type> allowedVoters ){
             this.beggDate = beggDate;
             this.endDate = endDate;
             this.title =title;
-            this.allowedVoters = allowedVoters;
             this.department = department;
-
+            this.allowedVoters = allowedVoters;
       }
 
 
@@ -71,19 +76,24 @@ public class Election {
       }
 
 
-      public void addCandidateList(Integer candidate){
-            this.candidatesList.add(candidate);
+      public boolean addCandidateList(Candidates candidate){
+            if(searchCandidates(candidate.getName())== null){
+                  this.candidatesList.add(candidate);
+                  return true;
+            }else{
+                  return false;
+            }
       }
 
-      public void removeCandidateList(Integer candidate){
+      public void removeCandidateList(Candidates candidate){
             this.candidatesList.remove(candidate);
       }
 
-      public List<Integer> getCandidatesList() {
+      public List<Candidates> getCandidatesList() {
             return this.candidatesList;
       }
 
-      public void setCandidatesList(List<Integer> candidatesList) {
+      public void setCandidatesList(List<Candidates> candidatesList) {
             this.candidatesList = candidatesList;
       }
 
@@ -95,10 +105,51 @@ public class Election {
             this.usersVoted = usersVoted;
       }
 
-      public void results() {
-            for (Integer type : candidatesList) {
-                  System.out.println(type);
+      public Boolean addUsersVoted(Voter voter){
+            if(this.usersVoted.contains(voter)){
+                  return false;
+            }else{
+                  this.usersVoted.add(voter);
+                  return true;
             }
+      }
+
+      public void results() {
+            System.out.println("Number of Votes");
+            for (Candidates type : candidatesList) {
+                  System.out.println(type.getName() +" - "+ type.getNumberOfVotes());
+            }
+            
+      }
+
+      public Candidates searchCandidates(String name){
+            for (Candidates candidates : candidatesList) {
+                  if(candidates.getName().equals(name)){
+                        return candidates;
+                  }
+            }
+            return null;
+
+      }
+
+      public boolean vote(Voter voter,String name){
+            /**
+             * This functions is to simulate the act of voting in a particular list and add to pile of voters who already voted
+             * 
+             * @return if the vote was successful or not
+             */
+            Candidates candidates = searchCandidates(name);
+            if(candidates == null){
+                  return false;
+            }
+            Boolean isNotIn = addUsersVoted(voter);
+            if(isNotIn){
+                  candidates.addVote();
+                  return true;
+            }else{
+                  return false;
+            }
+
             
       }
 
