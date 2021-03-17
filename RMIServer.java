@@ -12,7 +12,6 @@ import java.util.List;
 import java.util.ListIterator;
 import java.util.concurrent.CopyOnWriteArrayList;
 
-import jdk.internal.misc.Signal;
 /*Por os restantes objects que podem ser passados */ 
 public class RMIServer extends UnicastRemoteObject implements RMIServer_I {
       /**
@@ -251,7 +250,7 @@ public class RMIServer extends UnicastRemoteObject implements RMIServer_I {
 
       public RMIServer() throws RemoteException{
             super();
-            voterList = new ArrayList<>();
+            voterList = new CopyOnWriteArrayList<>();
 
       }
 
@@ -310,7 +309,10 @@ public class RMIServer extends UnicastRemoteObject implements RMIServer_I {
                   Thread.currentThread().interrupt();
                         
             }catch (Exception e) {
-                  //TODO: handle exception
+                  if(rmiServer != null){
+                        rmiServer.writeElectionFile();
+                        rmiServer.writeVoterFile();
+                  }
             }
       }
 

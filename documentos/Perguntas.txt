@@ -1,3 +1,4 @@
 1- O que fazer se estiver sem candidatos a eleição
 2- escrever ficheiros
 3- thread das eleiçoes
+4- esta forma apanha ctrl C?
