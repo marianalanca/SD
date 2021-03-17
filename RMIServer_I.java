@@ -18,7 +18,7 @@ public interface RMIServer_I {
       public Election searchElection(String title) throws RemoteException;
 
       public Voter searchVoterCc(String cc_number)throws RemoteException;
-      public Voter searchUser(String username, String password) throws RemoteException
+      public Voter searchUser(String username, String password) throws RemoteException;
       //public String login(String message)throws RemoteException;
       public boolean addElection(Election election)throws RemoteException;
       public void addVoter(Voter voter)throws RemoteException;
