@@ -10,13 +10,13 @@ public class MulticastServer extends Thread {
     private int RMIPORT = 5001;  // Client Port
     private long SLEEP_TIME = 1200;
     private int VOTING_TABLES_COUNTER = 0;
-    private List<Integer> ID_TABLE = new ArrayList<Integer>();
+    private volatile List<Integer> ID_TABLE = new ArrayList<Integer>();
 
     public static void main(String[] args) {
         MulticastServer server = new MulticastServer();
         server.start();
-        //MulticastPool pool = new MulticastPool();
-        //pool.run();
+        MulticastPool pool = new MulticastPool();
+        pool.run();
     }
 
     public MulticastServer() {
@@ -40,17 +40,17 @@ public class MulticastServer extends Thread {
 
                 // receive package from RMI -> está a receber do Multicast!
                 byte[] buffer = new byte[1000];
-                //DatagramPacket reply = new DatagramPacket(buffer, buffer.length);
-                //RMISocket.receive(reply);
+                DatagramPacket reply = new DatagramPacket(buffer, buffer.length);
+                RMISocket.receive(reply);
 
                 // verificar se login ou não
 
                 // procurar por thread disponível (ter contador total de threads)
                 // ask for id
                 buffer = "type|request;value|Thread".getBytes();
-                //InetAddress groupVT = InetAddress.getByName(MULTICAST_ADDRESS);
-                //DatagramPacket packet = new DatagramPacket(buffer, buffer.length, groupVT, PORT);
-                //VTSocket.send(packet);
+                InetAddress groupVT = InetAddress.getByName(MULTICAST_ADDRESS);
+                DatagramPacket packet = new DatagramPacket(buffer, buffer.length, groupVT, PORT);
+                VTSocket.send(packet);
 
                 // wait for an answer
                 // send message to id giving necessary info
@@ -88,11 +88,9 @@ class MulticastPool extends Thread {
                 DatagramPacket packet = new DatagramPacket(buffer, buffer.length);
                 socket.receive(packet);
 
-                String message = new String(packet.getData(), 0, packet.getLength());
-                System.out.println(message);
-                //String message = new String(packet.getData(), 0, packet.getLength());
-                //if (message.equals("type|request;value|Thread")); // é o que se espera
-                // responde com i'm here
+                String newThreadID = new String(packet.getData(), 0, packet.getLength());
+                // verificar se protocolo bem
+                // add to List
             }
         } catch (IOException e) {
             e.printStackTrace();
