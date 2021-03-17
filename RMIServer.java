@@ -144,19 +144,19 @@ public class RMIServer extends UnicastRemoteObject implements RMIServer_I {
             }
 
       }
-      
+      @Override
       public List<Voter> getVoterList() throws RemoteException {
             return this.voterList;
       }
-
+      @Override
       public void setVoterList(List<Voter> voterList) throws RemoteException{
             this.voterList = voterList;
       }
-
+      @Override
       public List<Election> getElections() throws RemoteException {
             return this.elections;
       }
-
+      @Override
       public void setElections(List<Election> elections) throws RemoteException{
             this.elections = elections;
       }
@@ -301,13 +301,6 @@ public class RMIServer extends UnicastRemoteObject implements RMIServer_I {
                   LocateRegistry.createRegistry(5001).rebind("RMIServer", rmiServer);
                   System.out.println("RMIServer is on");
                   
-            }catch(InterruptedException ex){
-                  if(rmiServer != null){
-                        rmiServer.writeElectionFile();
-                        rmiServer.writeVoterFile();
-                  }
-                  Thread.currentThread().interrupt();
-                        
             }catch (Exception e) {
                   if(rmiServer != null){
                         rmiServer.writeElectionFile();
