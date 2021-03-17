@@ -138,6 +138,7 @@ public class RMIServer extends UnicastRemoteObject implements RMIServer_I {
 
       public void readVoterFile(){
             try(FileInputStream fis = new FileInputStream("voterInformation"); ObjectInputStream ois = new ObjectInputStream(fis)){
+                   
                   voterList = (CopyOnWriteArrayList<Voter>) ois.readObject();
             }catch(Exception ex){
                   ex.printStackTrace();
@@ -248,9 +249,13 @@ public class RMIServer extends UnicastRemoteObject implements RMIServer_I {
             return false;
       }
 
+      public boolean createCandidate(List<Voter> members, String name,String title) throws RemoteException{
+            Candidates candidates = new Candidates(members, name);
+            return addCandidate(title, candidates);
+      }
+
       public RMIServer() throws RemoteException{
             super();
-            voterList = new CopyOnWriteArrayList<>();
 
       }
 
@@ -302,6 +307,7 @@ public class RMIServer extends UnicastRemoteObject implements RMIServer_I {
                   System.out.println("RMIServer is on");
                   
             }catch (Exception e) {
+                  System.out.println(e);
                   if(rmiServer != null){
                         rmiServer.writeElectionFile();
                         rmiServer.writeVoterFile();

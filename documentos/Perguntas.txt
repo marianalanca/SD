@@ -2,3 +2,5 @@
 2- escrever ficheiros
 3- thread das eleiçoes
 4- esta forma apanha ctrl C?
+5- Pode se candidate no rmi ou também fora
+6- Candidatos é preciso lista de membros?
