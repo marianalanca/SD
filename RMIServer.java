@@ -11,6 +11,8 @@ import java.util.Calendar;
 import java.util.List;
 import java.util.ListIterator;
 import java.util.concurrent.CopyOnWriteArrayList;
+
+import jdk.internal.misc.Signal;
 /*Por os restantes objects que podem ser passados */ 
 public class RMIServer extends UnicastRemoteObject implements RMIServer_I {
       /**
@@ -144,7 +146,21 @@ public class RMIServer extends UnicastRemoteObject implements RMIServer_I {
 
       }
       
+      public List<Voter> getVoterList() throws RemoteException {
+            return this.voterList;
+      }
 
+      public void setVoterList(List<Voter> voterList) throws RemoteException{
+            this.voterList = voterList;
+      }
+
+      public List<Election> getElections() throws RemoteException {
+            return this.elections;
+      }
+
+      public void setElections(List<Election> elections) throws RemoteException{
+            this.elections = elections;
+      }
       /*
       public String login(String message)  throws RemoteException{
             String username= null, password=null;
@@ -279,15 +295,22 @@ public class RMIServer extends UnicastRemoteObject implements RMIServer_I {
             System.out.println(beggDate.getTimeInMillis() < Calendar.getInstance().getTimeInMillis());
             Election election = new Election("Ola", beggDate, eCalendar, "Date", allowedVoters);
             */
-
             
+            RMIServer rmiServer = null;
             try{
-                  RMIServer rmiServer = new RMIServer();
+                  rmiServer = new RMIServer();
                   LocateRegistry.createRegistry(5001).rebind("RMIServer", rmiServer);
                   System.out.println("RMIServer is on");
-            } catch (Exception e) {
+                  
+            }catch(InterruptedException ex){
+                  if(rmiServer != null){
+                        rmiServer.writeElectionFile();
+                        rmiServer.writeVoterFile();
+                  }
+                  Thread.currentThread().interrupt();
+                        
+            }catch (Exception e) {
                   //TODO: handle exception
-                  System.out.println("Exception in RMIServer.java(main) " + e);
             }
       }
 
