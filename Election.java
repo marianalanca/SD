@@ -30,7 +30,7 @@ public class Election implements Serializable {
       private List<Type> allowedVoters = new CopyOnWriteArrayList<>();
       private String department;
       private List<Candidates> candidatesList = new CopyOnWriteArrayList<>();
-      private List<Voter> usersVoted = new CopyOnWriteArrayList<>();
+      private List<AlreadyVoted> usersVoted = new CopyOnWriteArrayList<>();
       private int whiteVote;
       private int nullVote;
       private State state;
@@ -67,7 +67,6 @@ public class Election implements Serializable {
                               try {
                                     Thread.sleep(1000);
                               } catch (InterruptedException e) {
-                                    // TODO Auto-generated catch block
                                     e.printStackTrace();
                                     Thread.currentThread().interrupt();
                               }
@@ -160,15 +159,15 @@ public class Election implements Serializable {
             this.candidatesList = candidatesList;
       }
 
-      public List<Voter> getUsersVoted() {
+      public List<AlreadyVoted> getUsersVoted() {
             return this.usersVoted;
       }
 
-      public void setUsersVoted(List<Voter> usersVoted) {
+      public void setUsersVoted(List<AlreadyVoted> usersVoted) {
             this.usersVoted = usersVoted;
       }
 
-      public Boolean addUsersVoted(Voter voter){
+      public Boolean addUsersVoted(AlreadyVoted voter){
             if(this.usersVoted.contains(voter)){
                   return false;
             }else{
@@ -195,16 +194,17 @@ public class Election implements Serializable {
 
       }
 
-      public boolean vote(Voter voter,String name){
+      public boolean vote(Voter vote,String name, String voteLocal){
             /**
              * This functions is to simulate the act of voting in a particular list and add to pile of voters who already voted
              * 
              * @return if the vote was successful or not
              */
+            Calendar timeOfVote = Calendar.getInstance();
             Candidates candidates = searchCandidates(name);
-            
+            AlreadyVoted voter = new AlreadyVoted(vote, timeOfVote, voteLocal);
             Boolean isNotIn = addUsersVoted(voter);
-            if(isNotIn){
+            if(Boolean.TRUE.equals(isNotIn)){
                   if(name.isEmpty()){
                         whiteVote++;
                   }else if(candidates == null){

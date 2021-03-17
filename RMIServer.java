@@ -81,15 +81,16 @@ public class RMIServer extends UnicastRemoteObject implements RMIServer_I {
             return null;
       }
 
-      
       public boolean addCandidate(String title,Candidates candidate){
             ListIterator<Election> iterator = elections.listIterator();
             while(iterator.hasNext()){
                   if(iterator.next().getTitle().equals(title)){
-                        return iterator.next().addCandidateList(candidate);
+                        boolean flag = iterator.next().addCandidateList(candidate);
+                        writeElectionFile();
+                        return flag;
                   }
             }
-
+            
             return false;
       }
 
@@ -98,7 +99,9 @@ public class RMIServer extends UnicastRemoteObject implements RMIServer_I {
             ListIterator<Election> iterator = elections.listIterator();
             while(iterator.hasNext()){
                   if(iterator.next().getTitle().equals(title)){
-                        return iterator.next().removeCandidateList(candidateName);
+                        boolean flag = iterator.next().removeCandidateList(candidateName);
+                        writeElectionFile();
+                        return flag;
                   }
             }
             return false;
@@ -174,6 +177,7 @@ public class RMIServer extends UnicastRemoteObject implements RMIServer_I {
       public boolean addElection(Election election)  throws RemoteException{
             if(searchElection(election.getTitle())==null){
                   elections.add(election);
+                  writeElectionFile();
                   return true;
             }else{
                   return false;
@@ -181,9 +185,10 @@ public class RMIServer extends UnicastRemoteObject implements RMIServer_I {
       }
 
       @Override
-      public void addVoter(Voter voter)  throws RemoteException{
+      public void addVoter(Voter voter)  throws RemoteException{                  
             voterList.add(voter);
 
+            
       }
 
       @Override
@@ -191,21 +196,25 @@ public class RMIServer extends UnicastRemoteObject implements RMIServer_I {
             if(searchVoter(username) == null && searchVoterCc(cc_number)==null){
                   Voter voter = new Voter(username, role, department, contact, address, cc_number, cc_expiring, password);
                   addVoter(voter);
+                  writeVoterFile();
                   return true;
             }
             return false;
       }
 
       @Override
-      public boolean voterVotes(String username,String title, String candidateName)  throws RemoteException{
+      public boolean voterVotes(String username,String title, String candidateName, String voteLocal)  throws RemoteException{
             /**
              * It receives the voter username, the title of the election and the candidate that is going to vote for
              * returns if there was a problem in the voting
+             * Server e admins
              */
             Voter voter = searchVoter(username);
             Election election = searchElection(title);
             if(voter != null || election != null){
-                  return election.vote(voter, candidateName);
+                  boolean flag =election.vote(voter, candidateName, voteLocal);
+                  writeElectionFile();
+                  return flag;
                   
             }
             return false;
@@ -213,6 +222,9 @@ public class RMIServer extends UnicastRemoteObject implements RMIServer_I {
 
       @Override
       public boolean createElection(String title,Calendar beggDate,Calendar endDate,String department, List<Type> allowedVoters)  throws RemoteException{
+            /**
+             * Consola admin
+             */
             if(searchElection(title) == null){
                   Election election = new Election(title, beggDate, endDate, department, allowedVoters);
                   addElection(election);
@@ -268,7 +280,7 @@ public class RMIServer extends UnicastRemoteObject implements RMIServer_I {
             Election election = new Election("Ola", beggDate, eCalendar, "Date", allowedVoters);
             */
 
-            /*
+            
             try{
                   RMIServer rmiServer = new RMIServer();
                   LocateRegistry.createRegistry(5001).rebind("RMIServer", rmiServer);
@@ -276,7 +288,7 @@ public class RMIServer extends UnicastRemoteObject implements RMIServer_I {
             } catch (Exception e) {
                   //TODO: handle exception
                   System.out.println("Exception in RMIServer.java(main) " + e);
-            }*/
+            }
       }
 
       

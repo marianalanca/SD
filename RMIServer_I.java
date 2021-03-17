@@ -7,7 +7,7 @@ import java.util.Calendar;
 import java.util.List;
 
 
-public interface RMIServer_I {
+public interface RMIServer_I extends Remote {
 
       public Voter searchVoter(String username) throws RemoteException;
 
@@ -23,7 +23,7 @@ public interface RMIServer_I {
       public boolean addElection(Election election)throws RemoteException;
       public void addVoter(Voter voter)throws RemoteException;
       public boolean createVoter(String username, String role, String department, String contact, String address, String cc_number, Calendar cc_expiring, String password)throws RemoteException;
-      public boolean voterVotes(String username,String title, String candidateName)throws RemoteException;
+      public boolean voterVotes(String username,String title, String candidateName, String voteLocal)  throws RemoteException;
 
       public boolean createElection(String title,Calendar beggDate,Calendar endDate,String department, List<Type> allowedVoters)throws RemoteException;
       
