@@ -3,14 +3,13 @@ import java.util.List;
 import java.util.ArrayList;
 import java.net.*;
 import java.io.*;
+import java.util.Scanner;
+import java.rmi.*;
 
 public class MulticastServer extends Thread {
     private String MULTICAST_ADDRESS = "224.0.224.0";
     private int PORT = 4321;  // Client Port
-    private int RMIPORT = 5001;  // Client Port
     private long SLEEP_TIME = 1200;
-    private int VOTING_TABLES_COUNTER = 0;
-    private volatile List<Integer> ID_TABLE = new ArrayList<Integer>();
 
     public static void main(String[] args) {
         MulticastServer server = new MulticastServer();
@@ -25,45 +24,68 @@ public class MulticastServer extends Thread {
 
     public void run() {
 
-        DatagramSocket RMISocket = null;
-
-        MulticastSocket VTSocket = null;
+        MulticastSocket socket = null;
         System.out.println(this.getName() + " running...");
         try {
-            // fazer conexão com RMI (UDP)
-            RMISocket = new DatagramSocket(RMIPORT);
-
             // Conection voting terminal
-            VTSocket = new MulticastSocket(PORT);  // create socket for communication with voting terminal
+            socket = new MulticastSocket(PORT);  // create socket for communication with voting terminal
+
+            RMIServer_I RMI = (RMIServer_I) Naming.lookup("rmi://localhost:5001/RMIServer");
+
+            Scanner keyboardScanner = new Scanner(System.in);
 
             while (true) {
 
-                // receive package from RMI -> está a receber do Multicast!
-                byte[] buffer = new byte[1000];
-                DatagramPacket reply = new DatagramPacket(buffer, buffer.length);
-                RMISocket.receive(reply);
+                String readKeyboard = keyboardScanner.nextLine();
+
+                String[] tokens = readKeyboard.split(";");
+
+                for (String string : tokens) {
+                    String[] token = string.split("\\|");
+
+                    if (token[0].equals("cc")) {
+                        // chamar RMI
+                        if(RMI.searchVoterCc(token[1])!=null){
+                            byte[] buffer = "request".getBytes();  // TO DO PROTOCOL
+                            InetAddress group = InetAddress.getByName(MULTICAST_ADDRESS);
+                            DatagramPacket packet = new DatagramPacket(buffer, buffer.length, group, PORT);
+                            socket.send(packet);
+
+                            // receives answer from a thread
+                            buffer = new byte[256];
+                            packet = new DatagramPacket(buffer, buffer.length);
+                            socket.receive(packet);
+
+                            // sendes confirmation with id
+                            String message = new String(packet.getData(), 0, packet.getLength());
+                            buffer = message.getBytes();
+                            packet = new DatagramPacket(buffer, buffer.length, group, PORT);
+                            socket.send(packet);
+                        } else {
+                            System.out.println("Wrong format");
+                        }
+                    }
+                }
+                // no multicast server server chamar search user
+                // chamar pool
 
                 // verificar se login ou não
 
-                // procurar por thread disponível (ter contador total de threads)
+                // search for available thread
                 // ask for id
-                buffer = "type|request;value|Thread".getBytes();
-                InetAddress groupVT = InetAddress.getByName(MULTICAST_ADDRESS);
-                DatagramPacket packet = new DatagramPacket(buffer, buffer.length, groupVT, PORT);
-                VTSocket.send(packet);
-
-                // wait for an answer
-                // send message to id giving necessary info
-                // espera por resposta dos disponíveis
 
 
-                try { sleep((long) (Math.random() * SLEEP_TIME)); } catch (InterruptedException e) { }
+
+
+                //try { sleep((long) (Math.random() * SLEEP_TIME)); } catch (InterruptedException e) { }
             }
         } catch (IOException e) {
             e.printStackTrace();
+        } catch (Exception e) {
+			System.out.println("Exception in main: " + e);
+			e.printStackTrace();
         } finally {
-            RMISocket.close();
-            VTSocket.close();
+            socket.close();
         }
     }
 }
@@ -89,8 +111,26 @@ class MulticastPool extends Thread {
                 socket.receive(packet);
 
                 String newThreadID = new String(packet.getData(), 0, packet.getLength());
-                // verificar se protocolo bem
-                // add to List
+
+                String[] tokens = newThreadID.split(";");
+                int operation = 0;
+                // if operation = 1 -> JOIN
+
+                for (String string : tokens) {
+                    String[] token = string.split("\\|");
+
+                    if (operation != 0) {
+                        if (operation == 1) { // join
+                            if (token[0].equals("ThreadID")) {
+                                System.out.println("Thread " + token[1] + " has joined.");
+                            }
+                        }
+                    } else {
+                        if(token[0].equals("type") && token[1].equals("Join")){
+                            operation = 1;
+                        }
+                    }
+                }
             }
         } catch (IOException e) {
             e.printStackTrace();

@@ -21,6 +21,7 @@ public class MulticastClient extends Thread {
     private String MULTICAST_ADDRESS = "224.0.224.0";
     private int PORT = 4321;
     private String ID;
+    private int TIMEOUT = 120000;
 
     public static void main(String[] args) {
         MulticastClient client = new MulticastClient();
@@ -37,11 +38,7 @@ public class MulticastClient extends Thread {
             InetAddress group = InetAddress.getByName(MULTICAST_ADDRESS);
             socket.joinGroup(group);
 
-
-
-            while (true) {
-
-                byte[] buffer = new byte[256];
+            byte[] buffer = new byte[256];
                 DatagramPacket packet = new DatagramPacket(buffer, buffer.length);
                 socket.receive(packet);
 
@@ -51,6 +48,7 @@ public class MulticastClient extends Thread {
                 // se do tipo join, guardar thread ID
                 String message = new String(packet.getData(), 0, packet.getLength());
 
+                // MUDAR PARA TER VERIFICAÇÃO
                 String[] tokens = message.split(";");
                 int operation = 0;
                 // if operation = 1 -> JOIN
@@ -68,6 +66,41 @@ public class MulticastClient extends Thread {
                         if(token[0].equals("type") && token[1].equals("Join")){
                             operation = 1;
                         }
+                    }
+                }
+
+
+
+            while (true) {
+
+                buffer = new byte[256];
+                packet = new DatagramPacket(buffer, buffer.length);
+                socket.receive(packet);
+
+                // fazer parse da mensagem
+                // se do tipo join, guardar thread ID
+                message = new String(packet.getData(), 0, packet.getLength());
+
+                if (message.equals("request")) {
+                    buffer = ID.getBytes();
+                    packet = new DatagramPacket(buffer, buffer.length, group, PORT);
+                    socket.send(packet);
+
+                    buffer = new byte[256];
+                    packet = new DatagramPacket(buffer, buffer.length);
+                    socket.receive(packet);
+
+                    message = new String(packet.getData(), 0, packet.getLength());
+
+                    if (message.equals(ID)) {
+                        // colocar timeout de 120 segundos
+                        socket.setSoTimeout(TIMEOUT);
+
+                        // autentintication
+                        // enumeração das listas
+                        // 
+                        System.out.println("Chosen <3");
+                        try { sleep((long) (Math.random() * 10000)); } catch (InterruptedException e) { }
                     }
                 }
             }
