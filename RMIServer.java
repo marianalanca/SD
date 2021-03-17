@@ -1,10 +1,16 @@
 // É o servidor central (replicado) que armazena todos os dados da aplicação, suportando por essa razão todas as operações necessárias através demétodos remotos usando Java RMI
+import java.io.FileInputStream;
+import java.io.FileOutputStream;
+import java.io.ObjectInputStream;
+import java.io.ObjectOutputStream;
 import java.rmi.*;
 import java.rmi.registry.LocateRegistry;
 import java.rmi.server.UnicastRemoteObject;
 import java.util.ArrayList;
 import java.util.Calendar;
 import java.util.List;
+import java.util.ListIterator;
+import java.util.concurrent.CopyOnWriteArrayList;
 /*Por os restantes objects que podem ser passados */ 
 public class RMIServer extends UnicastRemoteObject implements RMIServer_I {
       /**
@@ -12,10 +18,10 @@ public class RMIServer extends UnicastRemoteObject implements RMIServer_I {
        */
       private static final long serialVersionUID = -7161055300561474003L;
       
-      private List<Voter> voterList = new ArrayList<>();
-      private List<Election> elections;
-      static List<AdminConsole> admins;
-      static List<MulticastServer> servers;
+      private List<Voter> voterList = new CopyOnWriteArrayList<>();
+      private List<Election> elections = new CopyOnWriteArrayList<>();
+      private static List<AdminConsole> admins = new CopyOnWriteArrayList<>();
+      private static List<MulticastServer> servers = new CopyOnWriteArrayList<>();
 
       @Override
       public Voter searchVoter(String username)throws RemoteException{
@@ -63,6 +69,80 @@ public class RMIServer extends UnicastRemoteObject implements RMIServer_I {
       }
 
       @Override
+      public Voter searchUser(String username, String password) throws RemoteException{
+
+
+            for (Voter voter : voterList) {
+                  if(voter.getUsername().equals(username) && voter.getPassword().equals(password)){
+                        return voter;
+                  }
+                  
+            }
+            return null;
+      }
+
+      
+      public boolean addCandidate(String title,Candidates candidate){
+            ListIterator<Election> iterator = elections.listIterator();
+            while(iterator.hasNext()){
+                  if(iterator.next().getTitle().equals(title)){
+                        return iterator.next().addCandidateList(candidate);
+                  }
+            }
+
+            return false;
+      }
+
+
+      public boolean removeCandidate(String title, String candidateName){
+            ListIterator<Election> iterator = elections.listIterator();
+            while(iterator.hasNext()){
+                  if(iterator.next().getTitle().equals(title)){
+                        return iterator.next().removeCandidateList(candidateName);
+                  }
+            }
+            return false;
+      }
+
+      public void writeElectionFile(){
+            try(FileOutputStream fos = new FileOutputStream("electionInformation"); ObjectOutputStream oos = new ObjectOutputStream(fos)){
+                  oos.writeObject(elections);
+                  
+            }catch(Exception ex){
+                  ex.printStackTrace();
+            }
+
+      }
+
+      public void writeVoterFile(){
+            try(FileOutputStream fos = new FileOutputStream("voterInformation"); ObjectOutputStream oos = new ObjectOutputStream(fos)){
+                  oos.writeObject(voterList);
+            }catch(Exception ex){
+                  ex.printStackTrace();
+            }
+
+      }
+
+      public void readElectionFile(){
+            try(FileInputStream fis = new FileInputStream("electionInformation"); ObjectInputStream ois = new ObjectInputStream(fis)){
+                  elections = (CopyOnWriteArrayList<Election>) ois.readObject();
+            }catch(Exception ex){
+                  ex.printStackTrace();
+            }
+
+      }
+
+      public void readVoterFile(){
+            try(FileInputStream fis = new FileInputStream("voterInformation"); ObjectInputStream ois = new ObjectInputStream(fis)){
+                  voterList = (CopyOnWriteArrayList<Voter>) ois.readObject();
+            }catch(Exception ex){
+                  ex.printStackTrace();
+            }
+
+      }
+      
+
+      /*
       public String login(String message)  throws RemoteException{
             String username= null, password=null;
             Voter voter = null;
@@ -88,7 +168,7 @@ public class RMIServer extends UnicastRemoteObject implements RMIServer_I {
             }else{
                   return "type|status;logged|on;msg|Fail-username or password wrong";
             }
-      }
+      }*/
 
       @Override
       public boolean addElection(Election election)  throws RemoteException{
@@ -166,8 +246,29 @@ public class RMIServer extends UnicastRemoteObject implements RMIServer_I {
                   System.out.println("HI");
             }
             */
+            /*
+            Calendar beggDate = Calendar.getInstance();
+            beggDate.set(Calendar.YEAR,2021);
+            beggDate.set(Calendar.MONTH, Calendar.MARCH);
+            beggDate.set(Calendar.DATE,17);
+            beggDate.set(Calendar.HOUR_OF_DAY,18);
+            beggDate.set(Calendar.MINUTE,41);
             
-            
+
+            Calendar eCalendar = Calendar.getInstance();
+            eCalendar.set(Calendar.YEAR,2021);
+            eCalendar.set(Calendar.MONTH, Calendar.MARCH);
+            eCalendar.set(Calendar.DATE,17);
+            eCalendar.set(Calendar.HOUR,18);
+            eCalendar.set(Calendar.MINUTE,42);
+            List<Type> allowedVoters = new CopyOnWriteArrayList<>();
+            allowedVoters.add(Type.STUDENT);
+            System.out.println(Calendar.getInstance().getTimeInMillis());
+            System.out.println(beggDate.getTimeInMillis() < Calendar.getInstance().getTimeInMillis());
+            Election election = new Election("Ola", beggDate, eCalendar, "Date", allowedVoters);
+            */
+
+            /*
             try{
                   RMIServer rmiServer = new RMIServer();
                   LocateRegistry.createRegistry(5001).rebind("RMIServer", rmiServer);
@@ -175,7 +276,7 @@ public class RMIServer extends UnicastRemoteObject implements RMIServer_I {
             } catch (Exception e) {
                   //TODO: handle exception
                   System.out.println("Exception in RMIServer.java(main) " + e);
-            }
+            }*/
       }
 
       

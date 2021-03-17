@@ -6,8 +6,14 @@ import java.util.concurrent.CopyOnWriteArrayList;
 
 
 
+
+
 enum Type {
       STUDENT, DOCENTE, FUNCIONARIO
+}
+
+enum State {
+      WAITING, OPEN, CLOSED
 }
 public class Election implements Serializable {
 
@@ -16,15 +22,21 @@ public class Election implements Serializable {
       /**
        *
        */
+      
       private static final long serialVersionUID = 1L; 
       private Calendar beggDate;
       private Calendar endDate;
       private String title;
-      private List<Type> allowedVoters;
+      private List<Type> allowedVoters = new CopyOnWriteArrayList<>();
       private String department;
       private List<Candidates> candidatesList = new CopyOnWriteArrayList<>();
-      private List<Voter> usersVoted;
+      private List<Voter> usersVoted = new CopyOnWriteArrayList<>();
+      private int whiteVote;
+      private int nullVote;
+      private State state;
+
       
+       
 
       public Election(String title,Calendar beggDate,Calendar endDate,String department, List<Type> allowedVoters ){
             this.beggDate = beggDate;
@@ -32,8 +44,50 @@ public class Election implements Serializable {
             this.title =title;
             this.department = department;
             this.allowedVoters = allowedVoters;
+            whiteVote = 0;
+            nullVote = 0;
+            this.state = State.WAITING;
+            new Thread(new Runnable(){
+                  @Override
+                  public void run(){
+                        System.out.println("Here");
+                        while ( beggDate.getTimeInMillis() > Calendar.getInstance().getTimeInMillis()) {
+                              try {
+                                    Thread.sleep(1000);
+                              } catch (InterruptedException e) {
+                                    // TODO Auto-generated catch block
+                                    e.printStackTrace();
+                                    Thread.currentThread().interrupt();
+                              }
+                              
+                        }
+                        System.out.println("Here");
+                        setState(State.OPEN);
+                        while (Calendar.getInstance().getTimeInMillis() > endDate.getTimeInMillis()) {
+                              try {
+                                    Thread.sleep(1000);
+                              } catch (InterruptedException e) {
+                                    // TODO Auto-generated catch block
+                                    e.printStackTrace();
+                                    Thread.currentThread().interrupt();
+                              }
+                        }
+                        setState(State.CLOSED);
+                        System.out.println("Acabou");
+
+                  }
+            },"Something").start();
+            
       }
 
+
+      public State getState() {
+            return this.state;
+      }
+
+      public void setState(State state) {
+            this.state = state;
+      }
 
       public Calendar getBeggDate() {
             return this.beggDate;
@@ -83,6 +137,15 @@ public class Election implements Serializable {
             }else{
                   return false;
             }
+      }
+
+      public boolean removeCandidateList(String candidateName){
+            Candidates candidates = searchCandidates(candidateName);
+            if(candidates != null){
+                  candidatesList.remove(candidates);
+                  return true;
+            }
+            return false;
       }
 
       public void removeCandidateList(Candidates candidate){
@@ -139,12 +202,16 @@ public class Election implements Serializable {
              * @return if the vote was successful or not
              */
             Candidates candidates = searchCandidates(name);
-            if(candidates == null){
-                  return false;
-            }
+            
             Boolean isNotIn = addUsersVoted(voter);
             if(isNotIn){
-                  candidates.addVote();
+                  if(name.isEmpty()){
+                        whiteVote++;
+                  }else if(candidates == null){
+                        nullVote++;     
+                  }else{
+                        candidates.addVote();
+                  }
                   return true;
             }else{
                   return false;
@@ -152,6 +219,22 @@ public class Election implements Serializable {
 
             
       }
+
+      public int getWhiteVote() {
+            return this.whiteVote;
+      }
+
+      public void setWhiteVote(int whiteVote) {
+            this.whiteVote = whiteVote;
+      }
+
+      public int getNullVote() {
+            return this.nullVote;
+      }
+
+      public void setNullVote(int nullVote) {
+            this.nullVote = nullVote;
+      }     
 
       public static void main(String[] args) {
             System.out.println("Created");
