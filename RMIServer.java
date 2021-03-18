@@ -254,6 +254,7 @@ public class RMIServer extends UnicastRemoteObject implements RMIServer_I {
             if(searchElection(title) == null){
                   Election election = new Election(title, beggDate, endDate, department, allowedVoters);
                   addElection(election);
+                  writeElectionFile();
                   return true;
             }
             return false;
@@ -349,7 +350,7 @@ public class RMIServer extends UnicastRemoteObject implements RMIServer_I {
 				      DatagramPacket reply = new DatagramPacket(r, r.length);
                               aSocket.receive(reply);
                               byte[] datas = request.getData();
-                              int len = request.getLength();
+                              
                               ByteArrayInputStream bis=new ByteArrayInputStream(datas);
                               DataInputStream dis=new DataInputStream(new BufferedInputStream(bis));
                               flag = dis.readBoolean();
