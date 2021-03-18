@@ -218,9 +218,9 @@ public class RMIServer extends UnicastRemoteObject implements RMIServer_I {
       }
 
       @Override
-      public boolean createVoter(String username, String role, String department, String contact, String address, String cc_number, Calendar cc_expiring, String password,Type type)  throws RemoteException{
+      public boolean createVoter(String username, String department, String contact, String address, String cc_number, Calendar cc_expiring, String password,Type type)  throws RemoteException{
             if(searchVoter(username) == null && searchVoterCc(cc_number)==null){
-                  Voter voter = new Voter(username, role, department, contact, address, cc_number, cc_expiring, password,type);
+                  Voter voter = new Voter(username, department, contact, address, cc_number, cc_expiring, password,type);
                   addVoter(voter);
                   writeVoterFile();
                   return true;

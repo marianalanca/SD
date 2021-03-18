@@ -77,33 +77,38 @@ public class AdminConsole {
         return s;
     }
 
-    private String check_role(){
+    private Type check_role(){
 
         Scanner myObj = new Scanner(System.in);
-        int flag = 0;
         String s;
 
         do{
             s = myObj.nextLine();
 
-            if(s.equalsIgnoreCase("STUDENT") || s.equalsIgnoreCase("DOCENTE") || s.equalsIgnoreCase("FUNCIONARIO")){
-                System.out.println("Invalid role");
-                flag = 1;
+            if(s.equalsIgnoreCase("STUDENT")){
+                myObj.close();
+                return Type.STUDENT;
+            }
+            else if(s.equalsIgnoreCase("DOCENTE")){
+                myObj.close();
+                return Type.DOCENTE;
+            }
+            else if(s.equalsIgnoreCase("FUNCIONARIO")){
+                myObj.close();
+                return Type.FUNCIONARIO;
             }
             else{
-                flag = 0;
+                System.out.println("Invalid role");
             }
 
-        }while(flag == 1);
+        }while(true);
 
-        myObj.close();
-
-        return s;
     }
 
     public void register_voter(){
 
-        String name, role, department, contact, address, cc_number, password;
+        String name, department, contact, address, cc_number, password;
+        Type role;
         Calendar cc_expiring;
         int day, month, year;
 
@@ -147,7 +152,7 @@ public class AdminConsole {
             password = check_string();
 
             //voter = new Voter(name, role, department, contact, address, cc_number, cc_expiring, password);
-            rmi.createVoter(name, role, department, contact, address, cc_number, cc_expiring, password);
+            rmi.createVoter(name, department, contact, address, cc_number, cc_expiring, password, role);
 
         } catch (Exception e){
             System.out.println("Exception in RMIServer.java(main) " + e);
@@ -171,6 +176,11 @@ public class AdminConsole {
 
     }
 
+    /**
+     * prints all the lists in a election
+     * @param c list of candidates
+     * @return number of candidates
+     */
     private int printListInElection(List<Candidates> c){
 
         int size = c.size();
@@ -183,8 +193,6 @@ public class AdminConsole {
     }
 
     public void manage_list(){
-
-        //recolher lista de elecoes
 
         try{
 
@@ -221,7 +229,7 @@ public class AdminConsole {
                     case 1:
                         System.out.println ("Insert list's name: ");
                         nameList = check_string();
-                        rmi.createCandidate(null, nameList, election.getTitle());
+                        //rmi.createCandidate(null, nameList, election.getTitle());
                         break;
 
                     case 2:
@@ -229,7 +237,7 @@ public class AdminConsole {
                         size = printListInElection(cand);
                         option = myObj.nextInt();
                         if(option > 0 && option < size){
-                            rmi.removeCandidate(election.getTitle(), cand.get(option).getName());
+                            //rmi.removeCandidate(election.getTitle(), cand.get(option).getName());
                         }
                         else{
                             System.out.println ("Invalid option");
@@ -316,7 +324,7 @@ public class AdminConsole {
                 break;
             case 2:
                 System.out.println("Enter new role: ");
-                voter.setRole(check_string());
+                voter.setType(check_role());
                 break;
             case 3:
                 System.out.println("Enter new department: ");

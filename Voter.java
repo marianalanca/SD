@@ -3,16 +3,15 @@ import java.util.Calendar;
 
 public class Voter implements Serializable {
 
-    public String username, role, department;
+    public String username, department;
     public String contact, address, cc_number;
     public Calendar cc_expiring;
     private String password;
     private Type type;
 
     
-    public Voter (String username, String role, String department, String contact, String address, String cc_number, Calendar cc_expiring, String password, Type type) {
+    public Voter (String username, String department, String contact, String address, String cc_number, Calendar cc_expiring, String password, Type type) {
         this.username = username;
-        this.role = role;
         this.department = department;
         this.contact = contact;
         this.address = address;
@@ -23,8 +22,6 @@ public class Voter implements Serializable {
     }
 
     public void setUsername(String username){ this.username = username; }
-
-    public void setRole(String role){ this.role = role; }
 
     public void setDepartment(String department){ this.department = department; }
 
