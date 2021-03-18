@@ -7,11 +7,6 @@ import java.util.concurrent.CopyOnWriteArrayList;
 
 
 
-
-enum Type {
-      STUDENT, DOCENTE, FUNCIONARIO
-}
-
 enum State {
       WAITING, OPEN, CLOSED
 }
@@ -50,7 +45,7 @@ public class Election implements Serializable {
             new Thread(new Runnable(){
                   @Override
                   public void run(){
-                        System.out.println("Here");
+                        
                         while ( beggDate.getTimeInMillis() > Calendar.getInstance().getTimeInMillis()) {
                               try {
                                     Thread.sleep(1000);
@@ -61,14 +56,16 @@ public class Election implements Serializable {
                               }
                               
                         }
-                        System.out.println("Here");
+                        
                         setState(State.OPEN);
-                        while (Calendar.getInstance().getTimeInMillis() > endDate.getTimeInMillis()) {
-                              try {
-                                    Thread.sleep(1000);
-                              } catch (InterruptedException e) {
-                                    e.printStackTrace();
-                                    Thread.currentThread().interrupt();
+                        if(!candidatesList.isEmpty()){
+                              while (Calendar.getInstance().getTimeInMillis() > endDate.getTimeInMillis()) {
+                                    try {
+                                          Thread.sleep(1000);
+                                    } catch (InterruptedException e) {
+                                          e.printStackTrace();
+                                          Thread.currentThread().interrupt();
+                                    }
                               }
                         }
                         setState(State.CLOSED);
@@ -200,22 +197,24 @@ public class Election implements Serializable {
              * 
              * @return if the vote was successful or not
              */
-            Calendar timeOfVote = Calendar.getInstance();
-            Candidates candidates = searchCandidates(name);
-            AlreadyVoted voter = new AlreadyVoted(vote, timeOfVote, voteLocal);
-            Boolean isNotIn = addUsersVoted(voter);
-            if(Boolean.TRUE.equals(isNotIn)){
-                  if(name.isEmpty()){
-                        whiteVote++;
-                  }else if(candidates == null){
-                        nullVote++;     
-                  }else{
-                        candidates.addVote();
+            if(this.getDepartment().equals(vote.getDepartment()) && this.getAllowedVoters().contains(vote.getType())){
+                  Calendar timeOfVote = Calendar.getInstance();
+                  Candidates candidates = searchCandidates(name);
+                  AlreadyVoted voter = new AlreadyVoted(vote, timeOfVote, voteLocal);
+                  Boolean isNotIn = addUsersVoted(voter);
+                  if(Boolean.TRUE.equals(isNotIn)){
+                        if(name.isEmpty()){
+                              whiteVote++;
+                        }else if(candidates == null){
+                              nullVote++;     
+                        }else{
+                              candidates.addVote();
+                        }
+                        return true;
                   }
-                  return true;
-            }else{
-                  return false;
             }
+            return false;
+            
 
             
       }

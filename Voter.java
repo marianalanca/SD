@@ -7,8 +7,10 @@ public class Voter implements Serializable {
     public String contact, address, cc_number;
     public Calendar cc_expiring;
     private String password;
+    private Type type;
 
-    public Voter (String username, String role, String department, String contact, String address, String cc_number, Calendar cc_expiring, String password) {
+    
+    public Voter (String username, String role, String department, String contact, String address, String cc_number, Calendar cc_expiring, String password, Type type) {
         this.username = username;
         this.role = role;
         this.department = department;
@@ -17,6 +19,7 @@ public class Voter implements Serializable {
         this.cc_number = cc_number;
         this.cc_expiring = cc_expiring;
         this.password = password;
+        this.type = type;
     }
 
     public void setUsername(String username){ this.username = username; }
@@ -41,11 +44,20 @@ public class Voter implements Serializable {
         return this.username;
     }
 
+    public String getDepartment(){ return this.department; }
     
     public String getCc_number() {
         return this.cc_number;
     }
 
     public Calendar getCc_expiring(){ return this.cc_expiring; }
+
+    public Type getType() {
+        return this.type;
+    }
+
+    public void setType(Type type) {
+        this.type = type;
+    }
 
 }

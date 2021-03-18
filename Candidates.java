@@ -10,12 +10,14 @@ public class Candidates implements Serializable {
       private List<Voter> members;
       private int numberOfVotes;
       private String name;
+      private Type type;
 
 
-      public Candidates(List<Voter> members, String name){
+      public Candidates(List<Voter> members, String name, Type type){
             this.members = members;
             this.numberOfVotes = 0;
             this.name = name;
+            this.type = type;
       }
       public void addVote(){
             this.numberOfVotes++;
@@ -47,6 +49,14 @@ public class Candidates implements Serializable {
 
       public void setName(String name) {
             this.name = name;
+      }
+
+      public Type getType() {
+            return this.type;
+      }
+
+      public void setType(Type type) {
+            this.type = type;
       }
 
 }

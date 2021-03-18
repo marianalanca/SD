@@ -1,10 +1,20 @@
 // É o servidor central (replicado) que armazena todos os dados da aplicação, suportando por essa razão todas as operações necessárias através demétodos remotos usando Java RMI
+import java.io.BufferedInputStream;
+import java.io.ByteArrayInputStream;
+import java.io.DataInputStream;
 import java.io.FileInputStream;
 import java.io.FileOutputStream;
+import java.io.IOException;
 import java.io.ObjectInputStream;
 import java.io.ObjectOutputStream;
+import java.net.DatagramPacket;
+import java.net.DatagramSocket;
+import java.net.InetAddress;
+import java.net.SocketException;
+import java.net.SocketTimeoutException;
 import java.rmi.*;
 import java.rmi.registry.LocateRegistry;
+import java.rmi.server.ExportException;
 import java.rmi.server.UnicastRemoteObject;
 import java.util.ArrayList;
 import java.util.Calendar;
@@ -23,7 +33,7 @@ public class RMIServer extends UnicastRemoteObject implements RMIServer_I {
       private List<Election> elections = new CopyOnWriteArrayList<>();
       private static List<AdminConsole> admins = new CopyOnWriteArrayList<>();
       private static List<MulticastServer> servers = new CopyOnWriteArrayList<>();
-
+      private static int port = 6789;
       @Override
       public Voter searchVoter(String username)throws RemoteException{
             for (Voter voter : voterList) {
@@ -208,9 +218,9 @@ public class RMIServer extends UnicastRemoteObject implements RMIServer_I {
       }
 
       @Override
-      public boolean createVoter(String username, String role, String department, String contact, String address, String cc_number, Calendar cc_expiring, String password)  throws RemoteException{
+      public boolean createVoter(String username, String role, String department, String contact, String address, String cc_number, Calendar cc_expiring, String password,Type type)  throws RemoteException{
             if(searchVoter(username) == null && searchVoterCc(cc_number)==null){
-                  Voter voter = new Voter(username, role, department, contact, address, cc_number, cc_expiring, password);
+                  Voter voter = new Voter(username, role, department, contact, address, cc_number, cc_expiring, password,type);
                   addVoter(voter);
                   writeVoterFile();
                   return true;
@@ -248,9 +258,9 @@ public class RMIServer extends UnicastRemoteObject implements RMIServer_I {
             }
             return false;
       }
-
-      public boolean createCandidate(List<Voter> members, String name,String title) throws RemoteException{
-            Candidates candidates = new Candidates(members, name);
+      @Override
+      public boolean createCandidate(List<Voter> members, String name,String title,Type type) throws RemoteException{
+            Candidates candidates = new Candidates(members, name,type);
             return addCandidate(title, candidates);
       }
 
@@ -301,16 +311,89 @@ public class RMIServer extends UnicastRemoteObject implements RMIServer_I {
             */
             
             RMIServer rmiServer = null;
+            boolean flag = true;
+            DatagramSocket aSocket = null;
             try{
                   rmiServer = new RMIServer();
                   LocateRegistry.createRegistry(5001).rebind("RMIServer", rmiServer);
                   System.out.println("RMIServer is on");
                   
+                  aSocket = new DatagramSocket(6789);
+                  while (flag) {
+                        byte[] buffer = new byte[1];
+                        DatagramPacket request = new DatagramPacket(buffer, buffer.length);
+                        aSocket.receive(request);
+                        byte[] datas = request.getData();
+                        int len = request.getLength();
+                        ByteArrayInputStream bis=new ByteArrayInputStream(datas);
+                        DataInputStream dis=new DataInputStream(new BufferedInputStream(bis));
+                        flag = dis.readBoolean();
+                        System.out.println("Recebeu ping");
+                        DatagramPacket reply = new DatagramPacket(request.getData(), request.getLength(),request.getAddress(),request.getPort());
+                        aSocket.send(reply);
+                        dis.close();
+                        bis.close();
+                  }
+                  aSocket.close();
+                  
+            }catch(ExportException ex){
+                  try{
+                        aSocket = new DatagramSocket(port+1);
+                        aSocket.setSoTimeout(10000);
+                        while (flag) {
+                              byte[]  m = new byte[]{(byte)(flag?1:0)};
+                              InetAddress aHost = InetAddress.getByName("localhost");
+                              DatagramPacket request = new DatagramPacket(m, 1, aHost, port);
+                              aSocket.send(request);
+                              byte[] r = new byte[1];
+				      DatagramPacket reply = new DatagramPacket(r, r.length);
+                              aSocket.receive(reply);
+                              byte[] datas = request.getData();
+                              int len = request.getLength();
+                              ByteArrayInputStream bis=new ByteArrayInputStream(datas);
+                              DataInputStream dis=new DataInputStream(new BufferedInputStream(bis));
+                              flag = dis.readBoolean();
+                              dis.close();
+                              bis.close();
+                              Thread.sleep(10000);
+                        }
+                        aSocket.close();
+                  }catch (SocketTimeoutException e) {
+                        // timeout exception.
+                        if(aSocket != null){
+                              aSocket.close();
+                        }
+                        System.out.println("Primary Dead !!!! " + e);
+                        main(args);
+                  }catch (SocketException e){
+                        System.out.println("Socket: " + e.getMessage());
+                  }catch (IOException e) {
+                        System.out.println("IO: " + e.getMessage());
+                  } catch (InterruptedException e) {
+                        // TODO Auto-generated catch block
+                        e.printStackTrace();
+                  }finally{
+                        if(aSocket != null){
+                              aSocket.close();
+                        }
+                  }
+                 
+
+            }catch (SocketException e){
+                  System.out.println("Socket: " + e.getMessage());
+            }catch (IOException e) {
+                  System.out.println("IO: " + e.getMessage());
             }catch (Exception e) {
-                  System.out.println(e);
+                  if(aSocket != null){
+                        aSocket.close();
+                  }
                   if(rmiServer != null){
                         rmiServer.writeElectionFile();
                         rmiServer.writeVoterFile();
+                  }
+            }finally{
+                  if(aSocket != null){
+                        aSocket.close();
                   }
             }
       }
