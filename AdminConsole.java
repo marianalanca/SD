@@ -315,9 +315,9 @@ public class AdminConsole {
 
             option = myObj.nextInt();
 
-            if(option > 0 && option < elections.size()){
+            if(option >= 0 && option < elections.size()){
 
-                election = elections.get(option-1);
+                election = elections.get(option);
 
                 System.out.println ("1. Create a new list");
                 System.out.println ("2. Delete a existing list");  //existente escreve-se assim?
@@ -403,7 +403,87 @@ public class AdminConsole {
 
     public void manage_tables(){}
 
-    public void change_election(){}
+    public void change_election(){
+
+        try{
+
+            RMIServer_I rmi = (RMIServer_I) Naming.lookup("RMIServer");
+            Scanner myObj = new Scanner(System.in);
+
+            Calendar date = Calendar.getInstance();
+            List<Election> elections;
+            Election election;
+            String aux;
+            int option, day, month, year;
+
+            elections = rmi.getElections();
+
+            System.out.println("Pick a election:");
+            for(int i =0; i < elections.size() ; i++){
+                System.out.println(i + ". " + elections.get(i));
+            }
+
+            option = myObj.nextInt();
+
+            if(option >= 0 && option < elections.size()){
+
+                election = elections.get(option);
+
+                System.out.println("Change "+ election.getTitle() +" properties\n1.Change title\n2.Change description\n3.Beginning date\n4.End date");
+
+                option = myObj.nextInt();
+
+                myObj.close();
+                
+                if(option == 1){
+                    System.out.println("Insert title: ");
+                    aux = check_string();
+                    election.setTitle(aux);
+                }
+                else if(option == 2){
+                    System.out.println("Insert description: ");
+                    //adicionar descrição na election
+                }
+                else if(option == 3 || option == 4){
+                    myObj = new Scanner(System.in);
+                    System.out.println("Insert new date:\nDay:");
+                    day = myObj.nextInt();
+                    System.out.println("Month:");
+                    month = myObj.nextInt();
+                    System.out.println("Year:");
+                    year = myObj.nextInt();
+                    date.set(year, month, day);
+
+                    myObj.close();
+                        
+                    System.out.println("Hour:");
+                    date.set(Calendar.HOUR_OF_DAY, check_hour());
+                    System.out.println("Minute:");
+                    date.set(Calendar.MINUTE, check_minutes());
+
+                    if(option == 3){
+                        //date B
+                    }
+                    else{ 
+                        //date E
+                    }
+                }
+                else{
+                    System.out.println("Invalid option!");
+                }  
+            }
+            else{
+                System.out.println("Invalid option!");
+            }
+
+            
+
+        } catch (Exception e){
+            System.out.println("Exception in RMIServer.java(main) " + e);
+        }
+
+
+    }
 
     public void see_voters_local(){}
 
