@@ -92,7 +92,7 @@ public class RMIServer extends UnicastRemoteObject implements RMIServer_I {
             return null;
       }
 
-      public boolean addCandidate(String title,Candidates candidate){
+      public boolean addCandidate(String title,Candidates candidate) throws RemoteException{
             ListIterator<Election> iterator = elections.listIterator();
             while(iterator.hasNext()){
                   if(iterator.next().getTitle().equals(title)){
@@ -106,7 +106,7 @@ public class RMIServer extends UnicastRemoteObject implements RMIServer_I {
       }
 
 
-      public boolean removeCandidate(String title, String candidateName){
+      public boolean removeCandidate(String title, String candidateName) throws RemoteException{
             ListIterator<Election> iterator = elections.listIterator();
             while(iterator.hasNext()){
                   if(iterator.next().getTitle().equals(title)){
@@ -237,6 +237,7 @@ public class RMIServer extends UnicastRemoteObject implements RMIServer_I {
              */
             Voter voter = searchVoter(username);
             Election election = searchElection(title);
+            
             if(voter != null || election != null){
                   boolean flag =election.vote(voter, candidateName, voteLocal);
                   writeElectionFile();
@@ -337,7 +338,7 @@ public class RMIServer extends UnicastRemoteObject implements RMIServer_I {
                   }
                   aSocket.close();
                   
-            }catch(ExportException ex){
+            }/*catch(ExportException ex){
                   try{
                         aSocket = new DatagramSocket(port+1);
                         aSocket.setSoTimeout(10000);
@@ -380,7 +381,7 @@ public class RMIServer extends UnicastRemoteObject implements RMIServer_I {
                   }
                  
 
-            }catch (SocketException e){
+            }*/catch (SocketException e){
                   System.out.println("Socket: " + e.getMessage());
             }catch (IOException e) {
                   System.out.println("IO: " + e.getMessage());
