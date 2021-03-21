@@ -17,16 +17,58 @@ import java.util.Scanner;
  * @author Raul Barbosa
  * @version 1.0
  */
-public class MulticastClient extends Thread {
+
+class Data extends Thread{
     private String MULTICAST_ADDRESS = "224.0.224.0";
-    private int PORT = 4321;
-    private String ID;
+    private int PORT = 4321;  // Client Port
+    private String department;
+    public String ID;
     private int TIMEOUT = 120000;
 
+    public Data(String department) {
+        ID = Long.toString((long) (Math.random() * 1000));
+        this.department = department;
+    }
+
+    public int getPORT() {
+        return PORT;
+    }
+
+    public void setID(String ID) {
+        this.ID = ID;
+    }
+
+    public int getTIMEOUT() {
+        return TIMEOUT;
+    }
+
+    public String getDepartment() {
+        return department;
+    }
+
+    public String getMULTICAST_ADDRESS() {
+        return MULTICAST_ADDRESS;
+    }
+
+    public String receivedMessage(Protocol protocol) {
+        // test if id is the correct; if so -> return
+        return null;
+    }
+}
+
+public class MulticastClient extends Thread {
+    private static Data data;
+
     public static void main(String[] args) {
+        if (args.length == 0) {
+            System.out.println("java MulticastClient department");
+            System.exit(0); // termina
+        }
+        data = new Data(args[0]);
+
         MulticastClient client = new MulticastClient();
         client.start();
-        MulticastUser user = new MulticastUser();
+        MulticastUser user = new MulticastUser(data);
         user.start();
     }
 
@@ -34,42 +76,14 @@ public class MulticastClient extends Thread {
     public void run() {
         MulticastSocket socket = null;
         try {
-            socket = new MulticastSocket(PORT);  // create socket and bind it
-            InetAddress group = InetAddress.getByName(MULTICAST_ADDRESS);
+            socket = new MulticastSocket(data.getPORT());  // create socket and bind it
+            InetAddress group = InetAddress.getByName(data.getMULTICAST_ADDRESS());
             socket.joinGroup(group);
 
+            //System.out.println("#DEBUG MULTICASTCLIENT ID = "+ data.ID);
             byte[] buffer = new byte[256];
-                DatagramPacket packet = new DatagramPacket(buffer, buffer.length);
-                socket.receive(packet);
-
-                System.out.println("Received packet from " + packet.getAddress().getHostAddress() + ":" + packet.getPort() + " with message:");
-
-                // fazer parse da mensagem
-                // se do tipo join, guardar thread ID
-                String message = new String(packet.getData(), 0, packet.getLength());
-
-                // MUDAR PARA TER VERIFICAÇÃO
-                String[] tokens = message.split(";");
-                int operation = 0;
-                // if operation = 1 -> JOIN
-
-                for (String string : tokens) {
-                    String[] token = string.split("\\|");
-
-                    if (operation != 0) {
-                        if (operation == 1) { // join
-                            if (token[0].equals("ThreadID")) {
-                                ID = token[1];
-                            }
-                        }
-                    } else {
-                        if(token[0].equals("type") && token[1].equals("Join")){
-                            operation = 1;
-                        }
-                    }
-                }
-
-
+            DatagramPacket packet = new DatagramPacket(buffer, buffer.length);
+            socket.receive(packet);
 
             while (true) {
 
@@ -79,11 +93,11 @@ public class MulticastClient extends Thread {
 
                 // fazer parse da mensagem
                 // se do tipo join, guardar thread ID
-                message = new String(packet.getData(), 0, packet.getLength());
+                String message = new String(packet.getData(), 0, packet.getLength());
 
-                if (message.equals("request")) {
-                    buffer = ID.getBytes();
-                    packet = new DatagramPacket(buffer, buffer.length, group, PORT);
+                if (message.equals("request|"+data.getDepartment())) {
+                    buffer = data.ID.getBytes();
+                    packet = new DatagramPacket(buffer, buffer.length, group, data.getPORT());
                     socket.send(packet);
 
                     buffer = new byte[256];
@@ -92,15 +106,26 @@ public class MulticastClient extends Thread {
 
                     message = new String(packet.getData(), 0, packet.getLength());
 
-                    if (message.equals(ID)) {
-                        // colocar timeout de 120 segundos
-                        socket.setSoTimeout(TIMEOUT);
+                    if (message.equals(data.ID)) {
+                        // timeout = 120 seconds
+                        socket.setSoTimeout(data.getTIMEOUT());
 
-                        // autentintication
+                        // receives login data
+                        buffer = new byte[256];
+                        packet = new DatagramPacket(buffer, buffer.length);
+                        socket.receive(packet);
+                        message = new String(packet.getData(), 0, packet.getLength());
+                        System.out.println(message);
+
+
+                        // autentication
+                        String username, password;
+
                         // enumeração das listas
-                        // 
-                        System.out.println("Chosen <3");
-                        try { sleep((long) (Math.random() * 10000)); } catch (InterruptedException e) { }
+                        System.out.println("Insert username: ");
+
+                        // enviar mensagem a dizer que login feito e que precisa da lista
+
                     }
                 }
             }
@@ -114,13 +139,11 @@ public class MulticastClient extends Thread {
 
 // envia
 class MulticastUser extends Thread {
-    private String MULTICAST_ADDRESS = "224.0.224.0";
-    private int PORT = 4321;
-    private String ID;
+    private Data data;
 
-    public MulticastUser() {
+    public MulticastUser(Data data) {
         super();
-        ID = Long.toString((long) (Math.random() * 1000));
+        this.data = data;
     }
 
     public void run() {
@@ -128,22 +151,17 @@ class MulticastUser extends Thread {
         try {
             socket = new MulticastSocket();  // create socket without binding it (only for sending)
 
-            byte[] buffer = ("type|Join;ThreadID|"+ID).getBytes();
-
-            InetAddress group = InetAddress.getByName(MULTICAST_ADDRESS);
-            DatagramPacket packet = new DatagramPacket(buffer, buffer.length, group, PORT);
-            socket.send(packet);
+            //System.out.println("#DEBUG MULTICASTUSER ID = "+ data.ID);
 
             Scanner keyboardScanner = new Scanner(System.in);
             while (true) {
                 String readKeyboard = keyboardScanner.nextLine();
-                buffer = readKeyboard.getBytes();
+                byte[] buffer = readKeyboard.getBytes();
 
-                group = InetAddress.getByName(MULTICAST_ADDRESS);
-                packet = new DatagramPacket(buffer, buffer.length, group, PORT);
+                InetAddress group = InetAddress.getByName(data.getMULTICAST_ADDRESS());
+                DatagramPacket packet = new DatagramPacket(buffer, buffer.length, group, data.getPORT());
                 socket.send(packet);
             }
-            //keyboardScanner.close();
         } catch (IOException e) {
             e.printStackTrace();
         } finally {
