@@ -40,6 +40,8 @@ public class MulticastServer extends Thread implements Serializable {
         try {
             // Conection voting terminal
             socket = new MulticastSocket(q.getPORT());  // create socket for communication with voting terminal
+            InetAddress group = InetAddress.getByName(q.getMULTICAST_ADDRESS());
+            socket.joinGroup(group);
 
             RMIServer_I RMI = (RMIServer_I) Naming.lookup("rmi://localhost:5001/RMIServer");
             RMI.loginMulticastServer(this);
@@ -63,9 +65,24 @@ public class MulticastServer extends Thread implements Serializable {
                     q.requestTerminal(socket);
 
                     byte[] buffer = new Protocol().login(q.ID, voter.username, voter.getPassword()).getBytes();
-                    InetAddress group = InetAddress.getByName(q.getMULTICAST_ADDRESS());
                     DatagramPacket packet = new DatagramPacket(buffer, buffer.length, group, q.getPORT());
                     socket.send(packet);
+
+                    boolean flag = true;
+                    do {
+                        packet = new DatagramPacket(buffer, buffer.length);
+                        socket.receive(packet);
+                        Protocol protocol = new Protocol().parse(new String(packet.getData(), 0, packet.getLength()));
+                        System.out.print(protocol.id+'\t'+q.ID);
+                        if (protocol!=null && protocol.id!=null && protocol.id.equals(q.ID)) {
+                            flag=false;
+                            System.out.println("oi");
+                        }
+                        // if for o certo, vai
+                        //System.out.println(message);
+
+                    } while (flag);
+
 
                     // receives message saying that
                     // waits for login info
@@ -93,11 +110,18 @@ public class MulticastServer extends Thread implements Serializable {
         return tableMembers;
     }
 
+    public void addTableMembers(Voter voter) {
+        tableMembers.add(voter);
+    }
+
+    public void removeTableMembers(Voter voter) {
+        tableMembers.remove(voter);
+    }
+
     public void setTableMembers(List<Voter> tableMembers) {
         this.tableMembers = tableMembers;
     }
 }
-
 
 class Q_ok implements Serializable{
     private String MULTICAST_ADDRESS = "224.0.224.0";
@@ -175,6 +199,7 @@ class Q_ok implements Serializable{
             buffer = message.getBytes();
             packet = new DatagramPacket(buffer, buffer.length, group, PORT);
             socket.send(packet);
+            System.out.println("MESSAGE: "+message);
             ID = message;
             availableTerminal = true;
             notify();

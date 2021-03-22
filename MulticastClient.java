@@ -154,7 +154,10 @@ public class MulticastClient extends Thread {
                                     String password = keyboardScanner.nextLine();
                                     if (password.equals(data.getPassword())) {
                                         passwordFlag = false;
-                                        System.out.println("LOGGED IN");
+                                        buffer = (new Protocol().status(data.ID, "on")).getBytes();
+                                        packet = new DatagramPacket(buffer, buffer.length, group, data.getPORT());
+                                        socket.send(packet);
+
                                     } else {
                                         System.out.println("Wrong password");
                                     }
