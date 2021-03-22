@@ -1,3 +1,4 @@
+import java.net.MalformedURLException;
 import java.rmi.*;
 import java.util.List;
 import java.util.Scanner;
@@ -161,12 +162,28 @@ public class AdminConsole extends UnicastRemoteObject implements AdminConsole_I/
         }while(true);
     }
 
+    private Calendar date(){
+
+        int day, month, year;
+        Calendar date_aux = Calendar.getInstance(); 
+
+        System.out.print("\tDay:");
+        day = check_number();
+        System.out.print("\tMonth:");
+        month = check_number();
+        System.out.print("\tYear:");
+        year = check_number();
+        date_aux.set(year, month, day);
+
+        return date_aux; 
+
+    }
+
     public void register_voter(){
 
         String name, department, contact, address, cc_number, password;
         Type role;
         Calendar cc_expiring;
-        int day, month, year;
 
         System.out.print("Enter name: ");
         name = check_string();
@@ -187,15 +204,7 @@ public class AdminConsole extends UnicastRemoteObject implements AdminConsole_I/
         cc_number = check_string();        
         
         System.out.println("Enter cc expiring date: ");
-        cc_expiring = Calendar.getInstance();
-        
-        System.out.print("Day: ");
-        day = check_number();
-        System.out.print("Month: ");
-        month = check_number();
-        System.out.print("Year: ");
-        year = check_number();
-        cc_expiring.set(year, month, day);
+        cc_expiring = date();
 
         System.out.print("Enter password: ");
         password = check_string();
@@ -203,10 +212,42 @@ public class AdminConsole extends UnicastRemoteObject implements AdminConsole_I/
         try{
             rmi.createVoter(name, department, contact, address, cc_number, cc_expiring, password, role); 
             System.out.println("\nSuccessfully created new voter");
-        } 
-        catch(Exception e){
-            System.out.println("Error creating new voter: " + e);
         }
+        catch(ConnectException e){
+            try{
+                rmi = (RMIServer_I) Naming.lookup("rmi://localhost:5001/RMIServer");
+                Voter v = new Voter(name, department, contact, address, cc_number, cc_expiring, password, role);
+                register_backup(v);
+            }
+            catch(Exception excp){
+                System.out.println("Register_voter: Exception in RMIServer.java(main) " + excp);
+            }
+            
+            //System.out.println("Error creating new voter: " + e);
+        }
+        catch( Exception e){
+            System.out.println("Error creating new voter: " + e);
+        } 
+    }
+
+    public void register_backup(Voter vote){
+        try{
+            rmi.addVoter(vote); 
+            System.out.println("\nSuccessfully created new voter");
+        }
+        catch(ConnectException e){
+            try{
+                rmi = (RMIServer_I) Naming.lookup("rmi://localhost:5001/RMIServer");
+                register_backup(vote);
+            }
+            catch(Exception excp){
+                System.out.println("Register_backup: exception in RMIServer.java(main) " + excp);
+            }
+            //System.out.println("Error creating new voter: " + e);
+        }
+        catch( Exception e){
+            System.out.println("Error creating new voter: " + e);
+        } 
     }
 
     public void create_election(){
@@ -214,7 +255,6 @@ public class AdminConsole extends UnicastRemoteObject implements AdminConsole_I/
         Calendar dateB = Calendar.getInstance(), dateE = Calendar.getInstance();
         List<Type> electionType = new CopyOnWriteArrayList<>();
         String electionName, department = null;
-        int day, month, year;
         int option;
 
         System.out.print("Insert election's name: ");
@@ -241,35 +281,60 @@ public class AdminConsole extends UnicastRemoteObject implements AdminConsole_I/
                 break;
         }
 
-        System.out.print("Insert begin date:\nDay:");
-        day = check_number();
-        System.out.print("Month:");
-        month = check_number();
-        System.out.print("Year:");
-        year = check_number();
-        dateB.set(year, month, day);
+        System.out.println("Insert begin date:");
+        dateB = date();
 
-        System.out.print("Hour:");
+        System.out.print("\tHour:");
         dateB.set(Calendar.HOUR_OF_DAY, check_hour());
-        System.out.print("Minute:");
+        System.out.print("\tMinute:");
         dateB.set(Calendar.MINUTE, check_minutes());
 
-        System.out.print("Insert end date:\nDay:");
-        day = check_number();
-        System.out.print("Month:");
-        month = check_number();
-        System.out.print("Year:");
-        year = check_number();
-        dateE.set(year, month, day);
+        System.out.println("Insert end date:");
+        dateE = date();
 
-        System.out.print("Hour:");
+        System.out.print("\tHour:");
         dateE.set(Calendar.HOUR_OF_DAY, check_hour());
-        System.out.print("Minute:");
+        System.out.print("\tMinute:");
         dateE.set(Calendar.MINUTE, check_minutes());
 
         try{
             rmi.createElection(electionName, dateB, dateE, department, electionType);
             System.out.println("\nSuccessfully created new election");
+        }
+        catch(ConnectException e){
+            try{
+                rmi = (RMIServer_I) Naming.lookup("rmi://localhost:5001/RMIServer");
+                Election elect = new Election(electionName, dateB, dateE, department, electionType);
+                create_election_backup(elect);
+            }
+            catch(Exception excp){
+                System.out.println("Create_election: exception in RMIServer.java(main) " + excp);
+            }
+            
+            //System.out.println("Error creating new voter: " + e);
+        } 
+        catch (Exception e){
+            System.out.println("Error creating new election: " + e);
+        }
+
+    }
+
+    public void create_election_backup(Election elect){
+
+        try{
+            rmi.addElection(elect);
+            System.out.println("\nSuccessfully created new election");
+        }
+        catch(ConnectException e){
+            try{
+                rmi = (RMIServer_I) Naming.lookup("rmi://localhost:5001/RMIServer");
+                create_election_backup(elect);
+            }
+            catch(Exception excp){
+                System.out.println("Create_election_backup: exception in RMIServer.java(main) " + excp);
+            }
+            
+            //System.out.println("Error creating new voter: " + e);
         } 
         catch (Exception e){
             System.out.println("Error creating new election: " + e);
@@ -389,7 +454,7 @@ public class AdminConsole extends UnicastRemoteObject implements AdminConsole_I/
             }
 
         } catch (Exception e){
-            System.out.println("Exception in RMIServer.java(main) " + e);
+            System.out.println("Manage_list : exception in RMIServer.java(main) " + e);
         }
     }
 
@@ -399,11 +464,11 @@ public class AdminConsole extends UnicastRemoteObject implements AdminConsole_I/
 
         try{
 
-            Calendar date = Calendar.getInstance();
+            Calendar date;
             List<Election> elections;
             Election election = null;
             String aux;
-            int option, day, month, year;
+            int option;
 
             elections = rmi.getElections();
 
@@ -432,17 +497,12 @@ public class AdminConsole extends UnicastRemoteObject implements AdminConsole_I/
                     //adicionar descrição na election
                 }
                 else if(option == 3 || option == 4){
-                    System.out.print("Insert new date:\nDay:");
-                    day = check_number();
-                    System.out.print("Month:");
-                    month = check_number();
-                    System.out.print("Year:");
-                    year = check_number();
-                    date.set(year, month, day);
+                    System.out.print("Insert new date:");
+                    date = date();
                         
-                    System.out.print("Hour:");
+                    System.out.print("\tHour:");
                     date.set(Calendar.HOUR_OF_DAY, check_hour());
-                    System.out.print("Minute:");
+                    System.out.print("\tMinute:");
                     date.set(Calendar.MINUTE, check_minutes());
 
                     if(option == 3){
@@ -469,7 +529,7 @@ public class AdminConsole extends UnicastRemoteObject implements AdminConsole_I/
             }
 
         } catch (Exception e){
-            System.out.println("Exception in RMIServer.java(main) " + e);
+            System.out.println("Change_eletion: Exception in RMIServer.java(main) " + e);
         }
 
 
@@ -521,8 +581,8 @@ public class AdminConsole extends UnicastRemoteObject implements AdminConsole_I/
     public void change_voter_data(Voter voter){
 
         Voter new_voter = voter;
-        int option, day, month, year;
-        Calendar aux = Calendar.getInstance();
+        Calendar aux;
+        int option;
         
         System.out.println("1. Change name");
         System.out.println("2. Change role");
@@ -562,16 +622,7 @@ public class AdminConsole extends UnicastRemoteObject implements AdminConsole_I/
                 break;
             case 7:
                 System.out.println("Enter new date: ");
-                System.out.print("Day: ");
-                day = check_number();
-
-                System.out.print("Month: ");
-                month = check_number();
-
-                System.out.print("Year: ");
-                year = check_number();
-
-                aux.set(year, month, day);
+                aux = date();
                 new_voter.setCc_expiring(aux);
 
                 break;
@@ -596,8 +647,6 @@ public class AdminConsole extends UnicastRemoteObject implements AdminConsole_I/
 
     public void manage_table_members(){}
 
-    public void general_council_elections(){}
-
     
     public static void main(String args[]) {
 
@@ -620,7 +669,7 @@ public class AdminConsole extends UnicastRemoteObject implements AdminConsole_I/
 
         }
         catch (Exception e){
-            System.out.println("Exception in RMIServer.java(main) " + e);
+            System.out.println("Main: Exception in RMIServer.java(main) " + e);
         }
 
     }
