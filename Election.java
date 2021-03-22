@@ -26,6 +26,7 @@ public class Election implements Serializable {
       private String department;
       private List<Candidates> candidatesList = new CopyOnWriteArrayList<>();
       private List<AlreadyVoted> usersVoted = new CopyOnWriteArrayList<>();
+      private List<MulticastServer> tables = new CopyOnWriteArrayList<>();
       private int whiteVote;
       private int nullVote;
       private State state;
@@ -76,6 +77,12 @@ public class Election implements Serializable {
             
       }
 
+      public List<MulticastServer> getTables() {
+            return tables;
+      }
+      public void setTables(List<MulticastServer> tables) {
+            this.tables = tables;
+      }
 
       public State getState() {
             return this.state;
@@ -113,6 +120,28 @@ public class Election implements Serializable {
             return this.allowedVoters;
       }
 
+      public boolean addMemberToLista(String nome, Voter member){
+            for (Candidates candidates : candidatesList) {
+                  if(candidates.getName().equals(nome)){
+                        int index = candidatesList.indexOf(candidates);
+                        candidatesList.get(index).addCandidateList(member);
+                        return true;
+                  }
+            }
+            return false;
+      }
+
+      public boolean removeMemberToLista(String nome, Voter member){
+            for (Candidates candidates : candidatesList) {
+                  if(candidates.getName().equals(nome)){
+                        int index = candidatesList.indexOf(candidates);
+                        candidatesList.get(index).removeCandidateList(member);
+                        return true;
+                  }
+            }
+            return false;
+      }
+
       public void setAllowedVoters(List<Type> allowedVoters) {
             this.allowedVoters = allowedVoters;
       }
@@ -125,6 +154,23 @@ public class Election implements Serializable {
             this.department = department;
       }
 
+      public boolean addTable(MulticastServer server){
+            if(!tables.contains(server)){
+                  tables.add(server);
+                  return true;
+            }
+            return false;
+
+      }
+
+      public boolean removeTable(MulticastServer server){
+            if(tables.contains(server)){
+                  tables.remove(server);
+                  return true;
+            }
+            return false;
+
+      }
 
       public boolean addCandidateList(Candidates candidate){
             if(searchCandidates(candidate.getName())== null){
