@@ -6,31 +6,47 @@ import java.util.List;
 import java.util.Scanner;
 import java.util.Calendar;
 import java.util.concurrent.CopyOnWriteArrayList;
+import java.rmi.server.UnicastRemoteObject;
 
-public class AdminConsole {   
+public class AdminConsole extends UnicastRemoteObject implements AdminConsole_I {   
+
+    /**
+     *
+     */
+    //private static final long serialVersionUID = 1L;
+
+    RMIServer_I rmi;
+
+    private AdminConsole(RMIServer_I rmi) throws RemoteException {
+        //super();
+        this.rmi = rmi;
+    }
 
     public void menu(){
-        System.out.println("1. Registar pessoas");
-        System.out.println("2. Criar eleições");
-        System.out.println("3. Gerir listas de candidatos");
-        System.out.println("4. Gerir mesas de voto");
-        System.out.println("9. Alterar propriedades de uma eleição");
-        System.out.println("10. Local votou cada eleitor");
-        System.out.println("11. Mostrar estado das mesas de voto");
-        System.out.println("12. Mostram eleitores em tempo real");
-        System.out.println("13. -- ??");
-        System.out.println("14. Consultar resultados detalhados de eleições passadas");
-        System.out.println("15. Voto antecipado");
-        System.out.println("16. Alterar dados pessoais");
-        System.out.println("17. Gerir membros de cada mesa de voto");
-        System.out.println("18. Eleições para conselho geral -- ??");
+        System.out.println("1. Register people");                       //done
+        System.out.println("2. Create elections");                         //done
+        System.out.println("3. Manage candidate lists");             //quase done
+        System.out.println("4. Manage polling stations");                    //nop
+        System.out.println("5. Change an election's properties");    //quase done
+        System.out.println("6. Local voted each voter");               //nop
+        System.out.println("7. Show polling station status");       //nop
+        System.out.println("8. Show voters in real time");        //nop
+        System.out.println("9. Fechar election- sitio errado ??");       //aqui?
+        System.out.println("10. See detailed results of past elections"); //done?
+        System.out.println("11. Early vote");                      //nop
+        System.out.println("12. Change personal data");               //done
+        System.out.println("13. Manage members of each polling station");   //nop
+        System.out.println("14. General Council Elections -- ??\n");   //??
 
         options_menu();
     }
 
     public void options_menu(){
+
         Scanner myObj = new Scanner(System.in);
         int option = myObj.nextInt();
+        
+        myObj.close();
 
         switch(option){
             case 1:
@@ -45,12 +61,23 @@ public class AdminConsole {
             case 4:
                 manage_tables();
                 break;
+            case 5:
+                change_election();
+                break;
+            case 6:
+                see_voters_local();
+                break;
+            case 7:
+                table_state();
+                break;
             default:
-                System.out.println("Invalid option. Try again");
+                System.out.println("Invalid option. Try again\n");
                 break;
         }
 
-        myObj.close();
+        //Runtime.getRuntime().exec("cls");
+        menu();
+        
     }
 
     private String check_string(){
@@ -148,129 +175,121 @@ public class AdminConsole {
         Calendar cc_expiring;
         int day, month, year;
 
-        try{
-            RMIServer_I rmi = (RMIServer_I) Naming.lookup("RMIServer");
+        System.out.println("Enter name: ");
+        name = check_string();
 
-            System.out.println("Enter name: ");
-            name = check_string();
+        System.out.println("Enter role: ");
+        role = check_role();
 
-            System.out.println("Enter role: ");
-            role = check_role();
+        System.out.println("Enter department: ");
+        department = check_string();
 
-            System.out.println("Enter department: ");
-            department = check_string();
+        System.out.println("Enter contact: ");
+        contact = check_string();
 
-            System.out.println("Enter contact: ");
-            contact = check_string();
-
-            System.out.println("Enter address: ");
-            address = check_string();
-            
-            System.out.println("Enter cc number: ");
-            cc_number = check_string();
-            
-            Scanner myObj = new Scanner(System.in);
-            
-            System.out.println("Enter cc expiring date: ");
-            cc_expiring = Calendar.getInstance();
-            
-            System.out.println("Day: ");
-            day = myObj.nextInt();
-            System.out.println("Month: ");
-            month = myObj.nextInt();
-            System.out.println("Year: ");
-            year = myObj.nextInt();
-            cc_expiring.set(year, month, day);
-
-            myObj.close();
-
-            System.out.println("Enter password: ");
-            password = check_string();
-
-            //voter = new Voter(name, role, department, contact, address, cc_number, cc_expiring, password);
-            rmi.createVoter(name, department, contact, address, cc_number, cc_expiring, password, role);
-
-        } catch (Exception e){
-            System.out.println("Exception in RMIServer.java(main) " + e);
-        }
+        System.out.println("Enter address: ");
+        address = check_string();
         
+        System.out.println("Enter cc number: ");
+        cc_number = check_string();
+        
+        Scanner myObj = new Scanner(System.in);
+        
+        System.out.println("Enter cc expiring date: ");
+        cc_expiring = Calendar.getInstance();
+        
+        System.out.println("Day: ");
+        day = myObj.nextInt();
+        System.out.println("Month: ");
+        month = myObj.nextInt();
+        System.out.println("Year: ");
+        year = myObj.nextInt();
+        cc_expiring.set(year, month, day);
 
+        myObj.close();
+
+        System.out.println("Enter password: ");
+        password = check_string();
+
+        //voter = new Voter(name, role, department, contact, address, cc_number, cc_expiring, password);
+        try{
+            rmi.createVoter(name, department, contact, address, cc_number, cc_expiring, password, role); 
+        } 
+        catch(Exception e){
+            //algo
+        }
     }
 
     public void create_election(){
 
+        Calendar dateB = Calendar.getInstance(), dateE = Calendar.getInstance();
+        List<Type> electionType = new CopyOnWriteArrayList<>();
+        String electionName, department = null;
+        int day, month, year;
+        int option;
+
+        System.out.println("Insert election's name: ");
+        electionName = check_string();
+
+        Scanner myObj = new Scanner(System.in);
+        System.out.println("1. General council election\n2. Simple election");
+        
+        option = myObj.nextInt();
+
+        switch(option){
+            case 1:
+                electionType.add(Type.STUDENT);
+                electionType.add(Type.DOCENTE);
+                electionType.add(Type.FUNCIONARIO);
+                break;
+            case 2:
+                System.out.println("Insert election's type");
+                electionType.add(check_role());
+                System.out.println("Insert department");
+                department = check_string();
+                break;
+            default:
+                System.out.println("Invalid option.");
+                break;
+        }
+
+        System.out.println("Insert begin date:\nDay:");
+        day = myObj.nextInt();
+        System.out.println("Month:");
+        month = myObj.nextInt();
+        System.out.println("Year:");
+        year = myObj.nextInt();
+        dateB.set(year, month, day);
+        System.out.println("Hour:");
+
+        myObj.close();
+
+        dateB.set(Calendar.HOUR_OF_DAY, check_hour());
+        System.out.println("Minute:");
+        dateB.set(Calendar.MINUTE, check_minutes());
+
+        myObj = new Scanner(System.in); 
+
+        System.out.println("Insert end date:\nDay:");
+        day = myObj.nextInt();
+        System.out.println("Month:");
+        month = myObj.nextInt();
+        System.out.println("Year:");
+        year = myObj.nextInt();
+        dateE.set(year, month, day);
+
+        myObj.close();
+
+        System.out.println("Hour:");
+        dateE.set(Calendar.HOUR_OF_DAY, check_hour());
+        System.out.println("Minute:");
+        dateE.set(Calendar.MINUTE, check_minutes());
+
         try{
-
-            RMIServer_I rmi = (RMIServer_I) Naming.lookup("RMIServer");
-
-            Calendar dateB = Calendar.getInstance(), dateE = Calendar.getInstance();
-            List<Type> electionType = new CopyOnWriteArrayList<>();
-            String electionName, department = null;
-            int day, month, year;
-            int option;
-
-            System.out.println("Insert election's name: ");
-            electionName = check_string();
-
-            Scanner myObj = new Scanner(System.in);
-            System.out.println("1. General council election\n2. Simple election");
-            
-            option = myObj.nextInt();
-
-            switch(option){
-                case 1:
-                    electionType.add(Type.STUDENT);
-                    electionType.add(Type.DOCENTE);
-                    electionType.add(Type.FUNCIONARIO);
-                    break;
-                case 2:
-                    System.out.println("Insert election's type");
-                    electionType.add(check_role());
-                    System.out.println("Insert department");
-                    department = check_string();
-                    break;
-                default:
-                    System.out.println("Invalid option.");
-                    break;
-            }
-
-            System.out.println("Insert begin date:\nDay:");
-            day = myObj.nextInt();
-            System.out.println("Month:");
-            month = myObj.nextInt();
-            System.out.println("Year:");
-            year = myObj.nextInt();
-            dateB.set(year, month, day);
-            System.out.println("Hour:");
-
-            myObj.close();
-
-            dateB.set(Calendar.HOUR_OF_DAY, check_hour());
-            System.out.println("Minute:");
-            dateB.set(Calendar.MINUTE, check_minutes());
-
-            myObj = new Scanner(System.in); 
-
-            System.out.println("Insert end date:\nDay:");
-            day = myObj.nextInt();
-            System.out.println("Month:");
-            month = myObj.nextInt();
-            System.out.println("Year:");
-            year = myObj.nextInt();
-            dateE.set(year, month, day);
-
-            myObj.close();
-
-            System.out.println("Hour:");
-            dateE.set(Calendar.HOUR_OF_DAY, check_hour());
-            System.out.println("Minute:");
-            dateE.set(Calendar.MINUTE, check_minutes());
-
             rmi.createElection(electionName, dateB, dateE, department, electionType);
-
-
-        } catch (Exception e){
-            System.out.println("Exception in RMIServer.java(main) " + e);
+        } 
+        catch (Exception e){
+            //cenas
         }
 
     }
@@ -293,20 +312,20 @@ public class AdminConsole {
 
     public void manage_list(){ //falta 2 casos aqui: 3 e 4 - adicionar/remover membros
 
+        List<Election> elections;
+        List<Candidates> cand;
+        List<Type> allowed;
+        Election election;
+        int option, size;
+        String nameList; 
+        Type typeList;
+        Scanner myObj;
+
         try{
 
-            RMIServer_I rmi = (RMIServer_I) Naming.lookup("RMIServer");
-            Scanner myObj = new Scanner(System.in);
-
-            List<Election> elections;
-            List<Candidates> cand;
-            List<Type> allowed;
-            Election election;
-            int option, size;
-            String nameList; 
-            Type typeList;
-
             elections = rmi.getElections();
+
+            myObj = new Scanner(System.in);
 
             System.out.println("Pick a election:");
             for(int i =0; i < elections.size() ; i++){
@@ -320,7 +339,7 @@ public class AdminConsole {
                 election = elections.get(option);
 
                 System.out.println ("1. Create a new list");
-                System.out.println ("2. Delete a existing list");  //existente escreve-se assim?
+                System.out.println ("2. Delete a existing list"); 
                 System.out.println ("3. Insert a candidate in a list");   
                 System.out.println ("4. Delete a candidate in a list");         
                 
@@ -407,7 +426,6 @@ public class AdminConsole {
 
         try{
 
-            RMIServer_I rmi = (RMIServer_I) Naming.lookup("RMIServer");
             Scanner myObj = new Scanner(System.in);
 
             Calendar date = Calendar.getInstance();
@@ -493,7 +511,66 @@ public class AdminConsole {
 
     public void count_results(){}
 
-    public void see_results(){}
+    /*
+    public void printElectionResult( Election e){
+
+        List<Candidates> c = new CopyOnWriteArrayList<>();
+        Candidates cand;
+        int white, vote_null;
+        
+        white = e.getWhiteVote();
+
+        vote_null = e.getNullVote();
+        System.out.println("White: " + white + "\nNull: " + vote_null);
+
+        c = e.getCandidatesList();
+
+        for(int i = 0; i < c.size(); i++){
+            cand = c.get(i);
+            System.out.println(cand.getName() + ": " + cand.getNumberOfVotes() );
+        }
+
+    }*/
+
+    public void see_results(){
+
+        try{
+
+            Scanner myObj = new Scanner(System.in);
+
+            List<Election> elections;
+            Election election;
+            int option;
+
+            elections = rmi.getElections();
+
+            
+            System.out.println("Pick a election:");
+            for(int i =0; i < elections.size() ; i++){
+                System.out.println(i + ". " + elections.get(i));
+            }
+
+            option = myObj.nextInt();
+
+            if(option >= 0 && option < elections.size()){
+                election = elections.get(option);
+                System.out.println("Result " + election.getTitle() + ": ");
+                election.results();
+            }
+            else{
+                System.out.println("Invalid option! ");
+            }
+
+            myObj.close();
+
+
+        }
+        catch(Exception e){
+
+        }        
+
+
+    }
 
     public void early_vote(){} 
 
@@ -573,5 +650,32 @@ public class AdminConsole {
     public void manage_table_members(){}
 
     public void general_council_elections(){}
+
+    
+    public static void main(String args[]) {
+
+        //System.getProperties().put("java.security.policy", "policy.all");
+		//System.setSecurityManager(new RMISecurityManager()); //???
+        try{
+            
+            RMIServer_I rmi = (RMIServer_I) Naming.lookup("rmi://localhost:5001/RMIServer");
+            AdminConsole admin = new AdminConsole(rmi);
+
+            try{
+                rmi.loginAdmin(admin);
+            }
+            catch(Exception e ){
+                //argument type mismatch
+                System.out.println("Ups loginAdim deu merda :) " + e);
+            }
+
+            admin.menu();
+
+        }
+        catch (Exception e){
+            System.out.println("Exception in RMIServer.java(main) " + e);
+        }
+
+    }
 
 }
