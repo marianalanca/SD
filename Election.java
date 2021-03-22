@@ -77,6 +77,12 @@ public class Election implements Serializable {
             
       }
 
+      public List<MulticastServer> getTables() {
+            return tables;
+      }
+      public void setTables(List<MulticastServer> tables) {
+            this.tables = tables;
+      }
 
       public State getState() {
             return this.state;
