@@ -10,6 +10,8 @@ import java.rmi.*;
 
 public class MulticastServer extends Thread implements Serializable {
     Q_ok q;
+    private String tableID;
+    private List<Voter> tableMembers = new CopyOnWriteArrayList<Voter>();
 
     public static void main(String[] args) {
         // recebe departamento da consola?
@@ -40,7 +42,7 @@ public class MulticastServer extends Thread implements Serializable {
             socket = new MulticastSocket(q.getPORT());  // create socket for communication with voting terminal
 
             RMIServer_I RMI = (RMIServer_I) Naming.lookup("rmi://localhost:5001/RMIServer");
-            new Table(this);
+            RMI.loginMulticastServer(this);
 
             Scanner keyboardScanner = new Scanner(System.in);
 
@@ -79,46 +81,23 @@ public class MulticastServer extends Thread implements Serializable {
         }
     }
 
-}
-
-class Table implements Table_I {
-    MulticastServer server;
-    private String tableID;
-    private List<Voter> tableMembers = new CopyOnWriteArrayList<Voter>();
-
-    public Table(MulticastServer server) {
-        this.server = server;
-        try {
-            RMIServer_I RMI = (RMIServer_I) Naming.lookup("rmi://localhost:5001/RMIServer");
-            //RMI.loginMulticastServer(this);
-        } catch (IOException e) {
-            e.printStackTrace();
-        } catch (Exception e) {
-			System.out.println("Exception in main: " + e);
-			e.printStackTrace();
-        }
-	}
-
-    @Override
     public String getTableID() {
         return tableID;
     }
 
-    @Override
     public void setTableID(String tableID) {
         this.tableID = tableID;
     }
 
-    @Override
     public List<Voter> getTableMembers() {
         return tableMembers;
     }
 
-    @Override
     public void setTableMembers(List<Voter> tableMembers) {
         this.tableMembers = tableMembers;
     }
 }
+
 
 class Q_ok implements Serializable{
     private String MULTICAST_ADDRESS = "224.0.224.0";

@@ -52,7 +52,6 @@ public class RMIServer extends UnicastRemoteObject implements RMIServer_I{
       @Override
       public void loginAdmin(AdminConsole admin) throws RemoteException{
             System.out.println("Admin Console logged in");
-            admin.connected();
             admins.add(admin);
       }
 
