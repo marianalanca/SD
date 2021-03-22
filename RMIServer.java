@@ -66,9 +66,35 @@ public class RMIServer extends UnicastRemoteObject implements RMIServer_I{
             for(Election election: elections){
                   if(election.getTitle().equals(title)){
                         return election;
+                        
                   }
             }
             return null;
+      }
+      @Override
+      public boolean addTableElection(MulticastServer table, Election election)throws RemoteException{
+            int index1 = elections.indexOf(election);
+            if(index1 != -1 && servers.contains(table)){
+                  elections.get(index1).addTable(table);
+                  return true;
+            }
+            return false;
+      }
+      @Override
+      public boolean removeTableElection(MulticastServer table, Election election)throws RemoteException{
+            int index1 = elections.indexOf(election);
+            if(index1 != -1 && servers.contains(table)){
+                  elections.get(index1).removeTable(table);
+                  return true;
+            }
+            return false;
+      }
+
+      public boolean addVoterTable(MulticastServer table, Voter member){
+            int index = servers.indexOf(table);
+            if(index != -1){
+                  servers.get(index)
+            }
       }
 
       @Override

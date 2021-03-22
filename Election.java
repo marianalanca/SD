@@ -26,6 +26,7 @@ public class Election implements Serializable {
       private String department;
       private List<Candidates> candidatesList = new CopyOnWriteArrayList<>();
       private List<AlreadyVoted> usersVoted = new CopyOnWriteArrayList<>();
+      private List<MulticastServer> tables = new CopyOnWriteArrayList<>();
       private int whiteVote;
       private int nullVote;
       private State state;
@@ -125,6 +126,23 @@ public class Election implements Serializable {
             this.department = department;
       }
 
+      public boolean addTable(MulticastServer server){
+            if(!tables.contains(server)){
+                  tables.add(server);
+                  return true;
+            }
+            return false;
+
+      }
+
+      public boolean removeTable(MulticastServer server){
+            if(tables.contains(server)){
+                  tables.remove(server);
+                  return true;
+            }
+            return false;
+
+      }
 
       public boolean addCandidateList(Candidates candidate){
             if(searchCandidates(candidate.getName())== null){
