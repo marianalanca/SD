@@ -21,7 +21,8 @@ import java.util.Scanner;
 class Data extends Thread{
     private String MULTICAST_ADDRESS = "224.0.224.0";
     private int PORT = 4321;  // Client Port
-    private String department;
+    private int RESULT_PORT = 4322;  // RESULT Port
+    private String department, username, password;
     public String ID;
     private int TIMEOUT = 120000;
 
@@ -30,8 +31,28 @@ class Data extends Thread{
         this.department = department;
     }
 
+    public void setPassword(String password) {
+        this.password = password;
+    }
+
+    public String getPassword() {
+        return password;
+    }
+
+    public void setUsername(String username) {
+        this.username = username;
+    }
+
+    public String getUsername() {
+        return username;
+    }
+
     public int getPORT() {
         return PORT;
+    }
+
+    public int getRESULT_PORT() {
+        return RESULT_PORT;
     }
 
     public void setID(String ID) {
@@ -49,11 +70,6 @@ class Data extends Thread{
     public String getMULTICAST_ADDRESS() {
         return MULTICAST_ADDRESS;
     }
-
-    public String receivedMessage(Protocol protocol) {
-        // test if id is the correct; if so -> return
-        return null;
-    }
 }
 
 public class MulticastClient extends Thread {
@@ -62,7 +78,7 @@ public class MulticastClient extends Thread {
     public static void main(String[] args) {
         if (args.length == 0) {
             System.out.println("java MulticastClient department");
-            System.exit(0); // termina
+            System.exit(0);
         }
         data = new Data(args[0]);
 
@@ -79,10 +95,12 @@ public class MulticastClient extends Thread {
             socket = new MulticastSocket(data.getPORT());  // create socket and bind it
             InetAddress group = InetAddress.getByName(data.getMULTICAST_ADDRESS());
             socket.joinGroup(group);
+            Scanner keyboardScanner = new Scanner(System.in);
 
             //System.out.println("#DEBUG MULTICASTCLIENT ID = "+ data.ID);
             byte[] buffer = new byte[256];
             DatagramPacket packet = new DatagramPacket(buffer, buffer.length);
+            // fazer while packet != request e id for o errado -> fazer isto em todos os receives
             socket.receive(packet);
 
             while (true) {
@@ -94,6 +112,7 @@ public class MulticastClient extends Thread {
                 // fazer parse da mensagem
                 // se do tipo join, guardar thread ID
                 String message = new String(packet.getData(), 0, packet.getLength());
+                System.out.println(message);
 
                 if (message.equals("request|"+data.getDepartment())) {
                     buffer = data.ID.getBytes();
@@ -115,15 +134,38 @@ public class MulticastClient extends Thread {
                         packet = new DatagramPacket(buffer, buffer.length);
                         socket.receive(packet);
                         message = new String(packet.getData(), 0, packet.getLength());
-                        System.out.println(message);
-
-
+                        Protocol login = new Protocol();
+                        login.parse(message);
                         // autentication
-                        String username, password;
+                        data.setUsername(login.username);
+                        data.setPassword(login.password);
+
+                        System.out.println(data.getUsername() + '\t'+ data.getPassword());
 
                         // enumeração das listas
-                        System.out.println("Insert username: ");
+                        boolean usernameFlag = true, passwordFlag = true;
+                        do {
+                            System.out.print("Insert username: ");
+                            String username = keyboardScanner.nextLine();
+                            if (username.equals(data.getUsername())) {
+                                do {
+                                    usernameFlag = false;
+                                    System.out.print("Insert Password: ");
+                                    String password = keyboardScanner.nextLine();
+                                    if (password.equals(data.getPassword())) {
+                                        passwordFlag = false;
+                                        System.out.println("LOGGED IN");
+                                    } else {
+                                        System.out.println("Wrong password");
+                                    }
 
+                                } while (passwordFlag);
+                            }else {
+                                System.out.println("Wrong username");
+                            }
+
+
+                        } while (usernameFlag);
                         // enviar mensagem a dizer que login feito e que precisa da lista
 
                     }
@@ -137,7 +179,7 @@ public class MulticastClient extends Thread {
     }
 }
 
-// envia
+// sends result
 class MulticastUser extends Thread {
     private Data data;
 
@@ -149,21 +191,18 @@ class MulticastUser extends Thread {
     public void run() {
         MulticastSocket socket = null;
         try {
-            socket = new MulticastSocket();  // create socket without binding it (only for sending)
+            socket = new MulticastSocket(data.getRESULT_PORT());  // create socket and bind it
+            InetAddress group = InetAddress.getByName(data.getMULTICAST_ADDRESS());
+            socket.joinGroup(group);
 
-            //System.out.println("#DEBUG MULTICASTUSER ID = "+ data.ID);
-
-            Scanner keyboardScanner = new Scanner(System.in);
             while (true) {
-                String readKeyboard = keyboardScanner.nextLine();
-                byte[] buffer = readKeyboard.getBytes();
-
-                InetAddress group = InetAddress.getByName(data.getMULTICAST_ADDRESS());
-                DatagramPacket packet = new DatagramPacket(buffer, buffer.length, group, data.getPORT());
-                socket.send(packet);
+                // when voter has voted, send
             }
         } catch (IOException e) {
             e.printStackTrace();
+        } catch (Exception e) {
+			System.out.println("Exception in Multicast Client: " + e);
+			e.printStackTrace();
         } finally {
             socket.close();
         }
