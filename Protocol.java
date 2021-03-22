@@ -11,14 +11,14 @@ public class Protocol implements Serializable {
 	public String login(String id, String username, String password) {
 		return "type|login;id|"+id+";username|"+username+";password|"+password;
 	}
-	public String status(String logged, String msg) {
-		return "type|stattus;logged|"+logged+";msg|"+msg;
+	public String status(String id, String logged, String msg) {
+		return "type|status;id|"+id+";logged|"+logged+";msg|"+msg;
 	}
-	public String status(String logged) {
-		return "type|stattus;logged|"+logged;
+	public String status(String id, String logged) {
+		return "type|status;id|"+id+";logged|"+logged;
 	}
 
-	public void parse(String message) {
+	public Protocol parse(String message) {
 		String[] tokens = message.split(";");
 
 		for (String string : tokens) {
@@ -37,7 +37,7 @@ public class Protocol implements Serializable {
 							username = token[1];
 						else {
 							System.out.println("Wrong format");
-							return;
+							return null;
 						}
 						break;
 					case "password":
@@ -45,7 +45,7 @@ public class Protocol implements Serializable {
 							password = token[1];
 						else {
 							System.out.println("Wrong format");
-							return;
+							return null;
 						}
 						break;
 					case "logged":
@@ -53,7 +53,7 @@ public class Protocol implements Serializable {
 							logged = token[1];
 						else {
 							System.out.println("Wrong format");
-							return;
+							return null;
 						}
 						break;
 					case "msg":
@@ -61,7 +61,7 @@ public class Protocol implements Serializable {
 							msg = token[1];
 						else {
 							System.out.println("Wrong format");
-							return;
+							return null;
 						}
 						break;
 					case "item_count":
@@ -71,9 +71,10 @@ public class Protocol implements Serializable {
 					//case "item_0_name"
 				}
 			} catch (ArrayIndexOutOfBoundsException e) {
-				return;
+				return null;
 			}
 		}
+		return this;
 	}
 
 }
