@@ -90,7 +90,7 @@ class Table implements Table_I {
         this.server = server;
         try {
             RMIServer_I RMI = (RMIServer_I) Naming.lookup("rmi://localhost:5001/RMIServer");
-            RMI.loginMulticastServer(server);
+            //RMI.loginMulticastServer(this);
         } catch (IOException e) {
             e.printStackTrace();
         } catch (Exception e) {
