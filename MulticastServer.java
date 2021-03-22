@@ -6,14 +6,18 @@ import java.io.*;
 import java.util.Scanner;
 import java.rmi.*;
 
-public class MulticastServer extends Thread{
+//public interface CalculatorInterface extends Remote {
+
+public class MulticastServer extends Thread implements Serializable {
     Q_ok q;
+
     public static void main(String[] args) {
         // recebe departamento da consola?
         if (args.length == 0) {
             System.out.println("java MulticastServer department");
             System.exit(0); // termina
         }
+        //Table table = new Table(this);
         Q_ok q = new Q_ok(args[0]);
         MulticastServer server = new MulticastServer(q);
         server.start();
@@ -36,7 +40,7 @@ public class MulticastServer extends Thread{
             socket = new MulticastSocket(q.getPORT());  // create socket for communication with voting terminal
 
             RMIServer_I RMI = (RMIServer_I) Naming.lookup("rmi://localhost:5001/RMIServer");
-            RMI.loginMulticastServer(this);
+            new Table(this);
 
             Scanner keyboardScanner = new Scanner(System.in);
 
@@ -61,7 +65,7 @@ public class MulticastServer extends Thread{
                     DatagramPacket packet = new DatagramPacket(buffer, buffer.length, group, q.getPORT());
                     socket.send(packet);
 
-                    // receives message saying that 
+                    // receives message saying that
                     // waits for login info
                 }
             }
@@ -77,13 +81,50 @@ public class MulticastServer extends Thread{
 
 }
 
-class Q_ok extends Thread{
+class Table implements Table_I {
+    MulticastServer server;
+    private String tableID;
+    private List<Voter> tableMembers = new CopyOnWriteArrayList<Voter>();
+
+    public Table(MulticastServer server) {
+        this.server = server;
+        try {
+            RMIServer_I RMI = (RMIServer_I) Naming.lookup("rmi://localhost:5001/RMIServer");
+            RMI.loginMulticastServer(server);
+        } catch (IOException e) {
+            e.printStackTrace();
+        } catch (Exception e) {
+			System.out.println("Exception in main: " + e);
+			e.printStackTrace();
+        }
+	}
+
+    @Override
+    public String getTableID() {
+        return tableID;
+    }
+
+    @Override
+    public void setTableID(String tableID) {
+        this.tableID = tableID;
+    }
+
+    @Override
+    public List<Voter> getTableMembers() {
+        return tableMembers;
+    }
+
+    @Override
+    public void setTableMembers(List<Voter> tableMembers) {
+        this.tableMembers = tableMembers;
+    }
+}
+
+class Q_ok implements Serializable{
     private String MULTICAST_ADDRESS = "224.0.224.0";
     private int PORT = 4321;  // Client Port
     private int RESULT_PORT = 4322;  // RESULT Port
     private String department;
-    private String tableID;
-    private List<Voter> tableMembers = new CopyOnWriteArrayList<Voter>();
     private List<Voter> voting = new CopyOnWriteArrayList<Voter>();
     public String ID;
     public boolean availableTerminal = false;
@@ -169,20 +210,10 @@ class Q_ok extends Thread{
         }
     }
 
-    public String getTableID() {
-        return tableID;
-    }
-
-    public List<Voter> getTableMembers() {
-        return tableMembers;
-    }
-
-    public void setTableMembers(List<Voter> tableMembers) {
-        this.tableMembers = tableMembers;
-    }
+    
 }
 
-class Multicast extends Thread implements Runnable {
+class Multicast extends Thread implements Serializable {
     Q_ok q;
 
     public Multicast(Q_ok q) {
@@ -213,7 +244,7 @@ class Multicast extends Thread implements Runnable {
 
 }
 // waits for new threads and contacts with them
-class MulticastPool extends Thread {
+class MulticastPool extends Thread implements Serializable {
     Q_ok q;
 
     public MulticastPool(Q_ok q) {
