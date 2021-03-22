@@ -18,22 +18,25 @@ import java.rmi.server.ExportException;
 import java.rmi.server.UnicastRemoteObject;
 import java.util.ArrayList;
 import java.util.Calendar;
+import java.util.Iterator;
 import java.util.List;
 import java.util.ListIterator;
 import java.util.concurrent.CopyOnWriteArrayList;
 
 /*Por os restantes objects que podem ser passados */ 
-public class RMIServer extends UnicastRemoteObject implements RMIServer_I {
+public class RMIServer extends UnicastRemoteObject implements RMIServer_I{
       /**
-       *
+       *adicionar remover eleições as mesas de voto 
+       *adicionar membros
        */
       private static final long serialVersionUID = -7161055300561474003L;
       
       private List<Voter> voterList = new CopyOnWriteArrayList<>();
       private List<Election> elections = new CopyOnWriteArrayList<>();
-      private static List<AdminConsole> admins = new CopyOnWriteArrayList<>();
+      private List<AdminConsole> admins = new CopyOnWriteArrayList<>();
       private static List<MulticastServer> servers = new CopyOnWriteArrayList<>();
       private static int port = 6789;
+      private int id;
       @Override
       public Voter searchVoter(String username)throws RemoteException{
             for (Voter voter : voterList) {
@@ -49,6 +52,7 @@ public class RMIServer extends UnicastRemoteObject implements RMIServer_I {
       @Override
       public void loginAdmin(AdminConsole admin) throws RemoteException{
             System.out.println("Admin Console logged in");
+            admin.connected();
             admins.add(admin);
       }
 
@@ -266,10 +270,37 @@ public class RMIServer extends UnicastRemoteObject implements RMIServer_I {
             return addCandidate(title, candidates);
       }
 
+      @Override
+      public boolean switchElection(Election oriElection, Election newInfo) throws RemoteException{
+            if(elections.contains(oriElection)){
+                  int i = elections.indexOf(oriElection);
+                  if(oriElection.getState() == State.WAITING){
+                        elections.set(i, newInfo);
+                  }else{
+                        return false;
+                  }
+            }else{
+                  return false;
+            }
+            return true;
+      }
+
+      @Override
+      public boolean switchUser(Voter oriVoter, Voter newInfo) throws RemoteException{
+            if(voterList.contains(oriVoter)){
+                  int i = voterList.indexOf(oriVoter);
+                  voterList.set(i, newInfo);
+            }else{
+                  return false;
+            }
+            return true;
+      }
+
       public RMIServer() throws RemoteException{
             super();
 
       }
+
 
 
 
@@ -326,7 +357,7 @@ public class RMIServer extends UnicastRemoteObject implements RMIServer_I {
                         DatagramPacket request = new DatagramPacket(buffer, buffer.length);
                         aSocket.receive(request);
                         byte[] datas = request.getData();
-                        int len = request.getLength();
+                        
                         ByteArrayInputStream bis=new ByteArrayInputStream(datas);
                         DataInputStream dis=new DataInputStream(new BufferedInputStream(bis));
                         flag = dis.readBoolean();
@@ -338,7 +369,7 @@ public class RMIServer extends UnicastRemoteObject implements RMIServer_I {
                   }
                   aSocket.close();
                   
-            }/*catch(ExportException ex){
+            }catch(ExportException ex){
                   try{
                         aSocket = new DatagramSocket(port+1);
                         aSocket.setSoTimeout(10000);
@@ -381,7 +412,7 @@ public class RMIServer extends UnicastRemoteObject implements RMIServer_I {
                   }
                  
 
-            }*/catch (SocketException e){
+            }catch (SocketException e){
                   System.out.println("Socket: " + e.getMessage());
             }catch (IOException e) {
                   System.out.println("IO: " + e.getMessage());
