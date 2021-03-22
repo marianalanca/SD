@@ -32,4 +32,6 @@ public interface RMIServer_I extends Remote {
       public boolean createCandidate(List<Voter> members, String name,String title,Type type) throws RemoteException;
       public boolean removeCandidate(String title, String candidateName) throws RemoteException;
       public boolean addCandidate(String title,Candidates candidate) throws RemoteException;
+      public boolean switchElection(Election oriElection, Election newInfo) throws RemoteException;
+      public boolean switchUser(Voter oriVoter, Voter newInfo) throws RemoteException;
 }
