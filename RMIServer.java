@@ -2,7 +2,9 @@
 import java.io.BufferedInputStream;
 import java.io.ByteArrayInputStream;
 import java.io.DataInputStream;
+import java.io.File;
 import java.io.FileInputStream;
+import java.io.FileNotFoundException;
 import java.io.FileOutputStream;
 import java.io.IOException;
 import java.io.ObjectInputStream;
@@ -204,6 +206,18 @@ public class RMIServer extends UnicastRemoteObject implements RMIServer_I{
                   for (Election election : elections) {
                         election.setTables(new CopyOnWriteArrayList<>());
                   }
+            }catch(FileNotFoundException e){
+                  try {
+                        File myObj = new File("electionInformation");
+                        if (myObj.createNewFile()) {
+                          System.out.println("File created: " + myObj.getName());
+                        } else {
+                          System.out.println("File already exists.");
+                        }
+                      } catch (IOException ex) {
+                        System.out.println("An error occurred.");
+                        e.printStackTrace();
+                      }
             }catch(Exception ex){
                   ex.printStackTrace();
             }
@@ -214,6 +228,18 @@ public class RMIServer extends UnicastRemoteObject implements RMIServer_I{
             try(FileInputStream fis = new FileInputStream("voterInformation"); ObjectInputStream ois = new ObjectInputStream(fis)){
                    
                   voterList = (CopyOnWriteArrayList<Voter>) ois.readObject();
+            }catch(FileNotFoundException e){
+                  try {
+                        File myObj = new File("voterInformation");
+                        if (myObj.createNewFile()) {
+                          System.out.println("File created: " + myObj.getName());
+                        } else {
+                          System.out.println("File already exists.");
+                        }
+                      } catch (IOException ex) {
+                        System.out.println("An error occurred.");
+                        e.printStackTrace();
+                      }
             }catch(Exception ex){
                   ex.printStackTrace();
             }
