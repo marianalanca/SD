@@ -27,6 +27,10 @@ public class Candidates implements Serializable {
             members.add(candidate);
       }
 
+      public void removeCandidateList(Voter candidate){
+            members.remove(candidate);
+      }
+
       public List<Voter> getMembers() {
             return this.members;
       }

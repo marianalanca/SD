@@ -278,6 +278,24 @@ public class RMIServer extends UnicastRemoteObject implements RMIServer_I{
       public void addVoter(Voter voter)  throws RemoteException{                  
             voterList.add(voter);
       }
+      @Override
+      public boolean addMembroToLista(Election election, String nome,Voter member) throws RemoteException{
+            int index = elections.indexOf(election);
+            if(index != -1){
+                  return elections.get(index).addMemberToLista(nome, member);
+            }
+
+            return false;
+      }
+      @Override
+      public boolean removeMembroToLista(Election election, String nome,Voter member) throws RemoteException{
+            int index = elections.indexOf(election);
+            if(index != -1){
+                  return elections.get(index).removeMemberToLista(nome, member);
+            }
+
+            return false;
+      }
 
       @Override
       public boolean createVoter(String username, String department, String contact, String address, String cc_number, Calendar cc_expiring, String password,Type type)  throws RemoteException{

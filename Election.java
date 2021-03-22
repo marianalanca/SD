@@ -120,6 +120,28 @@ public class Election implements Serializable {
             return this.allowedVoters;
       }
 
+      public boolean addMemberToLista(String nome, Voter member){
+            for (Candidates candidates : candidatesList) {
+                  if(candidates.getName().equals(nome)){
+                        int index = candidatesList.indexOf(candidates);
+                        candidatesList.get(index).addCandidateList(member);
+                        return true;
+                  }
+            }
+            return false;
+      }
+
+      public boolean removeMemberToLista(String nome, Voter member){
+            for (Candidates candidates : candidatesList) {
+                  if(candidates.getName().equals(nome)){
+                        int index = candidatesList.indexOf(candidates);
+                        candidatesList.get(index).removeCandidateList(member);
+                        return true;
+                  }
+            }
+            return false;
+      }
+
       public void setAllowedVoters(List<Type> allowedVoters) {
             this.allowedVoters = allowedVoters;
       }
