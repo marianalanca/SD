@@ -6,7 +6,6 @@ import java.io.*;
 import java.util.Scanner;
 import java.rmi.*;
 
-
 public class MulticastServer extends Thread{
     Q_ok q;
     public static void main(String[] args) {
@@ -37,6 +36,7 @@ public class MulticastServer extends Thread{
             socket = new MulticastSocket(q.getPORT());  // create socket for communication with voting terminal
 
             RMIServer_I RMI = (RMIServer_I) Naming.lookup("rmi://localhost:5001/RMIServer");
+            RMI.loginMulticastServer(this);
 
             Scanner keyboardScanner = new Scanner(System.in);
 
@@ -47,19 +47,21 @@ public class MulticastServer extends Thread{
                 String readKeyboard = keyboardScanner.nextLine();
 
                 //Voter voter = RMI.searchVoterCc(readKeyboard);
-                // TEST
-                Voter voter = new Voter("test", "inform", "987654123","morada", "123456789",null,"pass", null);
+                // DEBUG
+                Voter voter = new Voter("test", "Info", "987654123","morada", "123456789",null,"pass", null);
                 if((voter!=null && voter.department.equals(q.getDepartment()))){
+                    // add to voting list
+                    q.addVoting(voter);
 
                     // Send request for threads
-                    System.out.println("#DEBUG notify");
                     q.requestTerminal(socket);
 
-                    byte[] buffer = ("type|login;id|"+q.ID+";username|"+voter.username+";password|"+voter.getPassword()).getBytes();  // TO DO PROTOCOL
+                    byte[] buffer = new Protocol().login(q.ID, voter.username, voter.getPassword()).getBytes();
                     InetAddress group = InetAddress.getByName(q.getMULTICAST_ADDRESS());
                     DatagramPacket packet = new DatagramPacket(buffer, buffer.length, group, q.getPORT());
                     socket.send(packet);
 
+                    // receives message saying that 
                     // waits for login info
                 }
             }
@@ -78,8 +80,11 @@ public class MulticastServer extends Thread{
 class Q_ok extends Thread{
     private String MULTICAST_ADDRESS = "224.0.224.0";
     private int PORT = 4321;  // Client Port
+    private int RESULT_PORT = 4322;  // RESULT Port
     private String department;
-    private List<Voter> members = new CopyOnWriteArrayList<Voter>();
+    private String tableID;
+    private List<Voter> tableMembers = new CopyOnWriteArrayList<Voter>();
+    private List<Voter> voting = new CopyOnWriteArrayList<Voter>();
     public String ID;
     public boolean availableTerminal = false;
 
@@ -91,8 +96,28 @@ class Q_ok extends Thread{
         return PORT;
     }
 
+    public int getRESULT_PORT() {
+        return RESULT_PORT;
+    }
+
     public String getDepartment() {
         return department;
+    }
+
+    public void addVoting(Voter voter) {
+        voting.add(voter);
+    }
+
+    public void removeVoting(String username) {
+        // search for cc
+        // remove from voting
+        for (Voter voter: voting) {
+            if (voter.getUsername().equals(username)) {
+                voting.remove(voter);
+                return;
+            }
+        }
+        return;
     }
 
     public String getMULTICAST_ADDRESS() {
@@ -143,6 +168,18 @@ class Q_ok extends Thread{
             e.printStackTrace();
         }
     }
+
+    public String getTableID() {
+        return tableID;
+    }
+
+    public List<Voter> getTableMembers() {
+        return tableMembers;
+    }
+
+    public void setTableMembers(List<Voter> tableMembers) {
+        this.tableMembers = tableMembers;
+    }
 }
 
 class Multicast extends Thread implements Runnable {
@@ -153,12 +190,28 @@ class Multicast extends Thread implements Runnable {
     }
 
     synchronized public void run() {
-        // recebe resultados dos votos!
-        // multicast próprio!
+        MulticastSocket socket = null;
+        try {
+            socket = new MulticastSocket(q.getRESULT_PORT());  // create socket and bind it
+            InetAddress group = InetAddress.getByName(q.getMULTICAST_ADDRESS());
+            socket.joinGroup(group);
+
+            while (true) {
+                // waits for results of the voting
+                // q.removeVoting(username);
+            }
+        } catch (IOException e) {
+            e.printStackTrace();
+        } catch (Exception e) {
+			System.out.println("Exception in main: " + e);
+			e.printStackTrace();
+        //}catch (SocketTimeoutException) {}
+        } finally {
+            socket.close();
+        }
     }
 
 }
-
 // waits for new threads and contacts with them
 class MulticastPool extends Thread {
     Q_ok q;
