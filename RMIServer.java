@@ -303,7 +303,7 @@ public class RMIServer extends UnicastRemoteObject implements RMIServer_I{
       public boolean addElection(Election election)  throws RemoteException{
             if(searchElection(election.getTitle())==null){
                   elections.add(election);
-                  writeElectionFile();
+                  
                   return true;
             }else{
                   return false;
