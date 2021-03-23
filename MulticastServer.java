@@ -43,8 +43,8 @@ public class MulticastServer extends Thread implements Serializable {
             InetAddress group = InetAddress.getByName(q.getMULTICAST_ADDRESS());
             socket.joinGroup(group);
 
-            RMIServer_I RMI = (RMIServer_I) Naming.lookup("rmi://localhost:5001/RMIServer");
-            RMI.loginMulticastServer(this);
+            //RMIServer_I RMI = (RMIServer_I) Naming.lookup("rmi://localhost:5001/RMIServer");
+            //RMI.loginMulticastServer(this);
 
             Scanner keyboardScanner = new Scanner(System.in);
 
@@ -63,29 +63,33 @@ public class MulticastServer extends Thread implements Serializable {
 
                     // Send request for threads
                     q.requestTerminal(socket);
+                    if (!q.full) {
+                        // send voter data to terminal
+                        byte[] buffer = new Protocol().login(q.ID, voter.username, voter.getPassword()).getBytes();
+                        DatagramPacket packet = new DatagramPacket(buffer, buffer.length, group, q.getPORT());
+                        socket.send(packet);
 
-                    byte[] buffer = new Protocol().login(q.ID, voter.username, voter.getPassword()).getBytes();
-                    DatagramPacket packet = new DatagramPacket(buffer, buffer.length, group, q.getPORT());
-                    socket.send(packet);
+                        // receives logged in confirmation
+                        boolean flag = true;
+                        do {
+                            packet = new DatagramPacket(buffer, buffer.length);
+                            socket.receive(packet);
+                            Protocol protocol = new Protocol().parse(new String(packet.getData(), 0, packet.getLength()));
+                            if (protocol!=null && protocol.id!=null && protocol.id.equals(q.ID) && protocol.type.equals("status") && protocol.logged.equals("on")) {
+                                flag=false;
+                            }
+                        } while (flag);
 
-                    boolean flag = true;
-                    do {
-                        packet = new DatagramPacket(buffer, buffer.length);
-                        socket.receive(packet);
-                        Protocol protocol = new Protocol().parse(new String(packet.getData(), 0, packet.getLength()));
-                        System.out.print(protocol.id+'\t'+q.ID);
-                        if (protocol!=null && protocol.id!=null && protocol.id.equals(q.ID)) {
-                            flag=false;
-                            System.out.println("oi");
-                        }
-                        // if for o certo, vai
-                        //System.out.println(message);
+                        // sends candidates list
+                        // fazer verificação do role com o candidate para só apresentar o que se quer
+                        //RMI.searchElection("title");
+                        buffer = new Protocol().item_list(q.ID, 0, new CopyOnWriteArrayList<String>()).getBytes();
+                        packet = new DatagramPacket(buffer, buffer.length, group, q.getPORT());
+                        socket.send(packet);
+                        q.availableTerminal = false;
+                    }
 
-                    } while (flag);
-
-
-                    // receives message saying that
-                    // waits for login info
+                    // available for another request
                 }
             }
         } catch (IOException e) {
@@ -128,9 +132,10 @@ class Q_ok implements Serializable{
     private int PORT = 4321;  // Client Port
     private int RESULT_PORT = 4322;  // RESULT Port
     private String department;
-    private List<Voter> voting = new CopyOnWriteArrayList<Voter>();
+    private List<Voter> voting = new CopyOnWriteArrayList<Voter>(); // stores all voting members in case a terminal fails
     public String ID;
-    public boolean availableTerminal = false;
+    public boolean availableTerminal = false; //tests whether a terminal has been found for the request
+    public boolean full = false;
 
     public Q_ok(String department) {
         this.department = department;
@@ -170,9 +175,12 @@ class Q_ok implements Serializable{
 
     synchronized void requestTerminal(MulticastSocket socket) {
         try {
+            //System.out.println("BREAKPOINT 1.1");
             notify();
-            while(!availableTerminal)
+            while(!availableTerminal) {
                 wait();
+            }
+            //System.out.println("BREAKPOINT 1.2");
         } catch(InterruptedException e) {
             System.out.println("interruptedException caught");
         } catch (Exception e) {
@@ -183,27 +191,40 @@ class Q_ok implements Serializable{
 
     synchronized void findTerminal(MulticastSocket socket, InetAddress group) {
         try {
+            //System.out.println("BREAKPOINT 2.1");
             wait();
 
-            byte[] buffer = ("request|"+department).getBytes();  // TO DO PROTOCOL
+            byte[] buffer = (new Protocol().request(department)).getBytes();  // TO DO PROTOCOL
             DatagramPacket packet = new DatagramPacket(buffer, buffer.length, group, PORT);
             socket.send(packet);
+            boolean flag = true;
 
             // receives answer from thread
-            buffer = new byte[256];
-            packet = new DatagramPacket(buffer, buffer.length);
-            socket.receive(packet);
-
+            socket.setSoTimeout(150);
+            do {
+                buffer = new byte[256];
+                packet = new DatagramPacket(buffer, buffer.length);
+                socket.receive(packet);
+                Protocol protocol = new Protocol().parse(new String(packet.getData(), 0, packet.getLength()));
+                System.out.println(protocol.type);
+                if (protocol!=null && protocol.type!=null && protocol.type.equals("response") && protocol.id!=null) {
+                    flag=false;
+                    ID = protocol.id;
+                }
+            } while (flag);
             // sendes confirmation with id
-            String message = new String(packet.getData(), 0, packet.getLength());
-            buffer = message.getBytes();
+            buffer = (new Protocol().accepted(ID)).getBytes();
             packet = new DatagramPacket(buffer, buffer.length, group, PORT);
             socket.send(packet);
-            System.out.println("MESSAGE: "+message);
-            ID = message;
+            //System.out.println("BREAKPOINT 2.6");
+
             availableTerminal = true;
             notify();
+            //System.out.println("BREAKPOINT 2.7");
 
+        } catch (SocketTimeoutException e) {
+            System.out.println("There are no available terminals");
+            full =true;
         } catch(InterruptedException e) {
             System.out.println("interruptedException caught");
         } catch (IOException e) {
@@ -213,10 +234,9 @@ class Q_ok implements Serializable{
             e.printStackTrace();
         }
     }
-
-    
 }
 
+// receives vote info
 class Multicast extends Thread implements Serializable {
     Q_ok q;
 
@@ -226,14 +246,39 @@ class Multicast extends Thread implements Serializable {
 
     synchronized public void run() {
         MulticastSocket socket = null;
+        MulticastSocket socketACK = null;
         try {
             socket = new MulticastSocket(q.getRESULT_PORT());  // create socket and bind it
             InetAddress group = InetAddress.getByName(q.getMULTICAST_ADDRESS());
             socket.joinGroup(group);
 
+            socketACK = new MulticastSocket(q.getPORT());  // create socket and bind it
+            InetAddress groupACK = InetAddress.getByName(q.getMULTICAST_ADDRESS());
+            byte[] buffer;
+            DatagramPacket packet;
+            Protocol protocol;
+
             while (true) {
-                // waits for results of the voting
-                // q.removeVoting(username);
+                do {
+                    buffer = new byte[256];
+                    packet = new DatagramPacket(buffer, buffer.length);
+                    socket.receive(packet);
+                    protocol = new Protocol().parse(new String(packet.getData(), 0, packet.getLength()));
+                } while (protocol!=null && protocol.type!=null && !protocol.type.equals("vote"));
+                System.out.println(protocol.candidate);
+                q.removeVoting(protocol.username);
+
+                System.out.println(protocol.id);
+
+                buffer = new Protocol().status(protocol.id, "off").getBytes();
+                packet = new DatagramPacket(buffer, buffer.length, groupACK, q.getPORT());
+                socketACK.send(packet);
+
+                /*buffer = new Protocol().status(protocol.id, "off").getBytes();
+                packet = new DatagramPacket(buffer, buffer.length, groupACK, q.getPORT());
+                socketACK.send(packet);
+                System.out.println("Sent");*/
+                //q.full = false;
             }
         } catch (IOException e) {
             e.printStackTrace();
@@ -256,7 +301,7 @@ class MulticastPool extends Thread implements Serializable {
         this.q = q;
     }
 
-    // recebe
+    // requests new terminals
     synchronized public void run() {
         MulticastSocket socket = null;
         try {
