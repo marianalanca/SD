@@ -24,6 +24,7 @@ public interface RMIServer_I extends Remote {
       public void addVoter(Voter voter)throws RemoteException;
       public boolean createVoter(String username, String department, String contact, String address, String cc_number, Calendar cc_expiring, String password,Type type)  throws RemoteException;
       public boolean voterVotes(String username,String title, String candidateName, String voteLocal)  throws RemoteException;
+      public boolean voterVotesAdmin(String username,String title, String candidateName, String voteLocal)  throws RemoteException;
       public void setElections(List<Election> elections) throws RemoteException;
       public boolean createElection(String title,Calendar beggDate,Calendar endDate,String department, List<Type> allowedVoters)throws RemoteException;
       public List<Election> getElections() throws RemoteException;

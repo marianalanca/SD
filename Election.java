@@ -7,9 +7,7 @@ import java.util.concurrent.CopyOnWriteArrayList;
 
 
 
-enum State {
-      WAITING, OPEN, CLOSED
-}
+
 public class Election implements Serializable {
 
       
