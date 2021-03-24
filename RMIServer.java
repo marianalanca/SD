@@ -24,14 +24,11 @@ import java.util.Calendar;
 import java.util.Iterator;
 import java.util.List;
 import java.util.ListIterator;
+import java.util.Scanner;
 import java.util.concurrent.CopyOnWriteArrayList;
 
 /*Por os restantes objects que podem ser passados */ 
 public class RMIServer extends UnicastRemoteObject implements RMIServer_I{
-      /**
-       *adicionar remover eleições as mesas de voto 
-       *adicionar membros
-       */
       private static final long serialVersionUID = -7161055300561474003L;
       
       private List<Voter> voterList = new CopyOnWriteArrayList<>();
@@ -40,6 +37,8 @@ public class RMIServer extends UnicastRemoteObject implements RMIServer_I{
       private static List<MulticastServer> servers = new CopyOnWriteArrayList<>();
       private static int port = 6789;
       private Integer id = 0;
+      private static String electionFile;
+      private static String voterFile;
       @Override
       public Voter searchVoter(String username)throws RemoteException{
             for (Voter voter : voterList) {
@@ -208,7 +207,7 @@ public class RMIServer extends UnicastRemoteObject implements RMIServer_I{
       }
 
       public void writeElectionFile(){
-            try(FileOutputStream fos = new FileOutputStream("electionInformation"); ObjectOutputStream oos = new ObjectOutputStream(fos)){
+            try(FileOutputStream fos = new FileOutputStream(electionFile); ObjectOutputStream oos = new ObjectOutputStream(fos)){
                   oos.writeObject(elections);
                   
             }catch(Exception ex){
@@ -218,7 +217,7 @@ public class RMIServer extends UnicastRemoteObject implements RMIServer_I{
       }
 
       public void writeVoterFile(){
-            try(FileOutputStream fos = new FileOutputStream("voterInformation"); ObjectOutputStream oos = new ObjectOutputStream(fos)){
+            try(FileOutputStream fos = new FileOutputStream(voterFile); ObjectOutputStream oos = new ObjectOutputStream(fos)){
                   oos.writeObject(voterList);
             }catch(Exception ex){
                   ex.printStackTrace();
@@ -227,14 +226,14 @@ public class RMIServer extends UnicastRemoteObject implements RMIServer_I{
       }
 
       public void readElectionFile(){
-            try(FileInputStream fis = new FileInputStream("electionInformation"); ObjectInputStream ois = new ObjectInputStream(fis)){
+            try(FileInputStream fis = new FileInputStream(electionFile); ObjectInputStream ois = new ObjectInputStream(fis)){
                   elections = (CopyOnWriteArrayList<Election>) ois.readObject();
                   for (Election election : elections) {
                         election.setTables(new CopyOnWriteArrayList<>());
                   }
             }catch(FileNotFoundException e){
                   try {
-                        File myObj = new File("electionInformation");
+                        File myObj = new File(electionFile);
                         if (myObj.createNewFile()) {
                           System.out.println("File created: " + myObj.getName());
                         } else {
@@ -253,12 +252,12 @@ public class RMIServer extends UnicastRemoteObject implements RMIServer_I{
       }
 
       public void readVoterFile(){
-            try(FileInputStream fis = new FileInputStream("voterInformation"); ObjectInputStream ois = new ObjectInputStream(fis)){
+            try(FileInputStream fis = new FileInputStream(voterFile); ObjectInputStream ois = new ObjectInputStream(fis)){
                    
                   voterList = (CopyOnWriteArrayList<Voter>) ois.readObject();
             }catch(FileNotFoundException e){
                   try {
-                        File myObj = new File("voterInformation");
+                        File myObj = new File(voterFile);
                         if (myObj.createNewFile()) {
                           System.out.println("File created: " + myObj.getName());
                         } else {
@@ -415,7 +414,6 @@ public class RMIServer extends UnicastRemoteObject implements RMIServer_I{
             return false;
       }
 
-
       @Override
       public boolean createElection(String title,Calendar beggDate,Calendar endDate,String department, List<Type> allowedVoters)  throws RemoteException{
             /**
@@ -472,58 +470,36 @@ public class RMIServer extends UnicastRemoteObject implements RMIServer_I{
 
       }
 
+      public static void readConfig(){
+            try {
+                  File myObj = new File("config.txt");
+                  Scanner myRScanner = new Scanner(myObj);
+                  port = Integer.parseInt(myRScanner.nextLine());
+                  voterFile = myRScanner.nextLine();
+                  electionFile = myRScanner.nextLine();
+                  myRScanner.close();
+            } catch (Exception e) {
+                  port = 5001;
+                  voterFile = "voterInformation";
+                  electionFile = "electionInformation";
+
+            }
+      }
 
 
 
       public static void main(String[] args) {
-            /*
-            Calendar cc_expiring = Calendar.getInstance();
-            cc_expiring.set(Calendar.YEAR, 2020);
-            cc_expiring.set(Calendar.MONTH, 2);
-            cc_expiring.set(Calendar.DAY_OF_MONTH, 5);
-            Voter voter = new Voter("goncalo", "role", "department", "913802608", "address", "123", cc_expiring, "coelho");
-
-            try{
-            RMIServer rmiServer = new RMIServer();
-            rmiServer.addVoter(voter);
-            System.out.println( rmiServer.login("username|goncalo;password|coelho"));
-            System.out.println( rmiServer.searchVoter("1234"));
-            }catch(Exception e){
-                  System.out.println("HI");
-            }
-            */
-            /*
-            Calendar beggDate = Calendar.getInstance();
-            beggDate.set(Calendar.YEAR,2021);
-            beggDate.set(Calendar.MONTH, Calendar.MARCH);
-            beggDate.set(Calendar.DATE,17);
-            beggDate.set(Calendar.HOUR_OF_DAY,18);
-            beggDate.set(Calendar.MINUTE,41);
-            
-
-            Calendar eCalendar = Calendar.getInstance();
-            eCalendar.set(Calendar.YEAR,2021);
-            eCalendar.set(Calendar.MONTH, Calendar.MARCH);
-            eCalendar.set(Calendar.DATE,17);
-            eCalendar.set(Calendar.HOUR,18);
-            eCalendar.set(Calendar.MINUTE,42);
-            List<Type> allowedVoters = new CopyOnWriteArrayList<>();
-            allowedVoters.add(Type.STUDENT);
-            System.out.println(Calendar.getInstance().getTimeInMillis());
-            System.out.println(beggDate.getTimeInMillis() < Calendar.getInstance().getTimeInMillis());
-            Election election = new Election("Ola", beggDate, eCalendar, "Date", allowedVoters);
-            */
-            
             RMIServer rmiServer = null;
             boolean flag = true;
             DatagramSocket aSocket = null;
+            readConfig();
             try{
                   rmiServer = new RMIServer();
-                  LocateRegistry.createRegistry(5001).rebind("RMIServer", rmiServer);
+                  LocateRegistry.createRegistry(port).rebind("RMIServer", rmiServer);
                   System.out.println("RMIServer is on");
                   rmiServer.readElectionFile();
                   rmiServer.readVoterFile();
-                  aSocket = new DatagramSocket(6789);
+                  aSocket = new DatagramSocket(port+1);
                   while (flag) {
                         byte[] buffer = new byte[1];
                         DatagramPacket request = new DatagramPacket(buffer, buffer.length);
@@ -543,12 +519,12 @@ public class RMIServer extends UnicastRemoteObject implements RMIServer_I{
                   
             }catch(ExportException ex){
                   try{
-                        aSocket = new DatagramSocket(port+1);
+                        aSocket = new DatagramSocket(port+2);
                         aSocket.setSoTimeout(5000);
                         while (flag) {
                               byte[]  m = new byte[]{(byte)(flag?1:0)};
                               InetAddress aHost = InetAddress.getByName("localhost");
-                              DatagramPacket request = new DatagramPacket(m, 1, aHost, port);
+                              DatagramPacket request = new DatagramPacket(m, 1, aHost, port+1);
                               aSocket.send(request);
                               byte[] r = new byte[1];
 				      DatagramPacket reply = new DatagramPacket(r, r.length);
