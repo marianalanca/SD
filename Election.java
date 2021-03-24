@@ -251,10 +251,14 @@ public class Election implements Serializable {
                               whiteVote++;
                         }else if(candidates == null){
                               nullVote++;     
-                        }else{
+                        }else if(candidates.getType().equals(vote.getType())){
                               candidates.addVote();
+                              return true;
+                        }else{
+                              nullVote++; 
+                              return false;
                         }
-                        return true;
+                        
                   }
             }
             return false;
