@@ -2,7 +2,9 @@ import java.net.MulticastSocket;
 import java.net.SocketTimeoutException;
 import java.net.DatagramPacket;
 import java.net.InetAddress;
+import java.io.BufferedReader;
 import java.io.IOException;
+import java.io.InputStreamReader;
 import java.util.Date;
 import java.util.NoSuchElementException;
 import java.util.Scanner;
@@ -89,6 +91,7 @@ public class MulticastClient extends Thread {
             socketResult.joinGroup(groupResult);
 
             Scanner keyboardScanner = new Scanner(System.in);
+            BufferedReader in = new BufferedReader(new InputStreamReader(System.in));
 
             byte[] buffer;
             DatagramPacket packet;
@@ -136,80 +139,89 @@ public class MulticastClient extends Thread {
                                 data.setUsername(protocol.username);
                                 data.setPassword(protocol.password);
 
+                                System.out.println("Welcome to eVoting");
+
                                 // enumeração das listas
                                 boolean usernameFlag = true, passwordFlag = true;
+                                String username;
+                                String password;
                                 do {
+                                    long startTime = System.currentTimeMillis();
                                     System.out.print("Insert username: ");
-                                    String username = keyboardScanner.nextLine();
-                                    if (username.equals(data.getUsername())) {
-                                        do {
-                                            usernameFlag = false;
-                                            System.out.print("Insert Password: ");
-                                            String password = keyboardScanner.nextLine();
-                                            if (password.equals(data.getPassword())) {
-                                                passwordFlag = false;
-                                                // send confirmation
-                                                buffer = (new Protocol().status(data.ID, "on")).getBytes();
-                                                packet = new DatagramPacket(buffer, buffer.length, group, data.getPORT());
-                                                socket.send(packet);
 
-                                                // wait for list
-                                                do {
-                                                    buffer = new byte[256];
-                                                    packet = new DatagramPacket(buffer, buffer.length);
-                                                    socket.receive(packet);
-                                                    protocol = new Protocol().parse(new String(packet.getData(), 0, packet.getLength()));
-                                                } while (protocol==null || (protocol!=null && protocol.id!=null && protocol.item_name!=null && !protocol.type.equals("item_list") && protocol.id.equals(data.ID)));
-
-                                                System.out.println("ELECTION NAME");
-                                                System.out.println("LIST OF CANDIDATES");
-                                                for (String candidate: protocol.item_name){
-                                                    System.out.println(candidate);
+                                    while ((System.currentTimeMillis() - startTime) < 60000 && !in.ready()) {}
+                                    if (in.ready()) {
+                                        username = in.readLine();
+                                        if (username.equals(data.getUsername())) {
+                                            do {
+                                                usernameFlag = false;
+                                                System.out.print("Insert Password: ");
+                                                while ((System.currentTimeMillis() - startTime) < 60000 && !in.ready()) {}
+                                                if (in.ready()) {
+                                                    password = in.readLine();
+                                                    if (password.equals(data.getPassword())) {
+                                                        passwordFlag = false;
+                                                        // send confirmation
+                                                        buffer = (new Protocol().status(data.ID, "on")).getBytes();
+                                                        packet = new DatagramPacket(buffer, buffer.length, group, data.getPORT());
+                                                        socket.send(packet);
+        
+                                                        // wait for list
+                                                        do {
+                                                            buffer = new byte[256];
+                                                            packet = new DatagramPacket(buffer, buffer.length);
+                                                            socket.receive(packet);
+                                                            protocol = new Protocol().parse(new String(packet.getData(), 0, packet.getLength()));
+                                                        } while (protocol==null || (protocol!=null && protocol.id!=null && protocol.item_name!=null && !protocol.type.equals("item_list") && protocol.id.equals(data.ID)));
+        
+                                                        System.out.println("ELECTION NAME");
+                                                        System.out.println("LIST OF CANDIDATES");
+                                                        for (String candidate: protocol.item_name){
+                                                            System.out.println(candidate);
+                                                        }
+                                                        //System.out.println("White");
+        
+                                                        boolean flag = true;
+                                                        int selection = protocol.item_count; // white
+                                                        do {
+                                                            try {
+                                                                System.out.println("Select one candidate from the list");
+                                                                selection = Integer.valueOf(keyboardScanner.nextLine());
+                                                                if (selection <= protocol.item_count && selection >= 0) // change to > 0
+                                                                    flag = false;
+                                                            } catch (NoSuchElementException e) {}
+                                                        } while(flag);
+        
+                                                        // send vote to MultiCast Server
+                                                        buffer = (new Protocol().vote(data.ID, username, "election"/*protocol.item_name.get(selection-1)*/)).getBytes();
+                                                        packet = new DatagramPacket(buffer, buffer.length, groupResult, data.getRESULT_PORT());
+                                                        socketResult.send(packet);
+        
+                                                        do {
+                                                            buffer = new byte[256];
+                                                            packet = new DatagramPacket(buffer, buffer.length);
+                                                            socket.receive(packet);
+                                                            protocol = new Protocol().parse(new String(packet.getData(), 0, packet.getLength()));
+                                                        } while (protocol==null || (protocol!=null && protocol.id!=null && !protocol.type.equals("status") && !protocol.logged.equals("off") && protocol.id.equals(data.ID)));
+                                                        System.out.println("ACKNOWLEDGED");
+        
+                                                    } else {
+                                                        System.out.println("Wrong password");
+                                                    }
+                                                } else {
+                                                    System.out.println("\nThe terminal has been block for inaction");
+                                                    usernameFlag = false;
+                                                    passwordFlag = false;
                                                 }
-                                                //System.out.println("White");
-
-                                                boolean flag = true;
-                                                int selection = protocol.item_count; // white
-                                                do {
-                                                    try {
-                                                        System.out.println("Select one candidate from the list");
-                                                        selection = keyboardScanner.nextInt();
-                                                        if (selection <= protocol.item_count && selection >= 0) // change to > 0
-                                                            flag = false;
-                                                            // enviar pelo multicast server para ter uma mensagem
-                                                    } catch (NoSuchElementException e) {}
-                                                } while(flag);
-
-                                                // send vote to MultiCast Server
-                                                buffer = (new Protocol().vote(data.ID, username, "election"/*protocol.item_name.get(selection-1)*/)).getBytes();
-                                                packet = new DatagramPacket(buffer, buffer.length, groupResult, data.getRESULT_PORT());
-                                                socketResult.send(packet);
-
-                                                do {
-                                                    buffer = new byte[256];
-                                                    packet = new DatagramPacket(buffer, buffer.length);
-                                                    socket.receive(packet);
-                                                    protocol = new Protocol().parse(new String(packet.getData(), 0, packet.getLength()));
-                                                } while (protocol==null || (protocol!=null && protocol.id!=null && !protocol.type.equals("status") && !protocol.logged.equals("off") && protocol.id.equals(data.ID)));
-                                                System.out.println("ACKNOWLEDGED");
-
-                                                // receber ack de finish
-                                                /*do {
-                                                    buffer = new byte[256];
-                                                    packet = new DatagramPacket(buffer, buffer.length);
-                                                    socket.receive(packet);
-                                                    protocol = new Protocol().parse(new String(packet.getData(), 0, packet.getLength()));
-                                                    System.out.println(protocol.type);
-                                                } while (protocol==null || !(protocol.type.equals("status") && protocol.logged.equals("off") && protocol.id.equals(data.ID)));
-                                                data.available = true;
-                                                */
-
-                                            } else {
-                                                System.out.println("Wrong password");
-                                            }
-                                        } while (passwordFlag);
-                                    }else {
-                                        System.out.println("Wrong username");
+                                            } while (passwordFlag);
+                                        } else if (username.equals("\n")) {}
+                                        else {
+                                            System.out.println("Wrong username");
+                                        }
+                                    } else {
+                                        System.out.println("\nThe terminal has been block for inaction");
+                                        usernameFlag = false;
+                                        passwordFlag = false;
                                     }
                                 } while (usernameFlag);
                                 // enviar mensagem a dizer que login feito e que precisa da lista
