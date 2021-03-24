@@ -61,11 +61,10 @@ public class RMIServer extends UnicastRemoteObject implements RMIServer_I{
       @Override
       public void loginMulticastServer(MulticastServer multicastServer) throws RemoteException{
             System.out.println("Multicast Server logged in");
-            multicastServer.setTableID(Integer.toString(id));
-            id++;
+            multicastServer.setTableID(Integer.toString(id++));
             servers.add(multicastServer);
       }
-
+      @Override
       public void logoutMulticastServer(MulticastServer multicastServer) throws RemoteException{
             servers.remove(multicastServer);
             for (Election election : elections) {
@@ -73,6 +72,27 @@ public class RMIServer extends UnicastRemoteObject implements RMIServer_I{
                         election.getTables().remove(multicastServer);
                   }
             }
+      }
+      @Override
+      public List<Election> finishedElections() throws RemoteException{
+            List<Election> res = new CopyOnWriteArrayList<>();
+            for (Election election : elections){
+                  if(election.getState().equals(State.CLOSED)){
+                        res.add(election);
+                  }
+            }
+            return res;
+      }
+      @Override
+      public List<Election> tablesElections(MulticastServer table) throws RemoteException{
+            
+            List<Election> res = new CopyOnWriteArrayList<>();
+            for (Election election : elections){
+                  if(election.getTables().contains(table)){
+                        res.add(election);
+                  }
+            }
+            return res;
       }
 
       @Override
@@ -524,7 +544,7 @@ public class RMIServer extends UnicastRemoteObject implements RMIServer_I{
             }catch(ExportException ex){
                   try{
                         aSocket = new DatagramSocket(port+1);
-                        aSocket.setSoTimeout(10000);
+                        aSocket.setSoTimeout(5000);
                         while (flag) {
                               byte[]  m = new byte[]{(byte)(flag?1:0)};
                               InetAddress aHost = InetAddress.getByName("localhost");
@@ -540,7 +560,7 @@ public class RMIServer extends UnicastRemoteObject implements RMIServer_I{
                               flag = dis.readBoolean();
                               dis.close();
                               bis.close();
-                              Thread.sleep(10000);
+                              Thread.sleep(5000);
                         }
                         aSocket.close();
                   }catch (SocketTimeoutException e) {
