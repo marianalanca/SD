@@ -161,7 +161,7 @@ public class AdminConsole extends UnicastRemoteObject implements AdminConsole_I/
         }while(true);
     }
 
-    private Calendar date(){
+    private Calendar date(int i){
 
         int day, month, year;
         Calendar date_aux = Calendar.getInstance(); 
@@ -173,6 +173,13 @@ public class AdminConsole extends UnicastRemoteObject implements AdminConsole_I/
         System.out.print("\tYear:");
         year = check_number();
         date_aux.set(year, month, day);
+
+        if(i == 1){
+            System.out.print("\tHour:");
+            date_aux.set(Calendar.HOUR_OF_DAY, check_hour());
+            System.out.print("\tMinute:");
+            date_aux.set(Calendar.MINUTE, check_minutes());
+        }
 
         return date_aux; 
 
@@ -215,7 +222,7 @@ public class AdminConsole extends UnicastRemoteObject implements AdminConsole_I/
         cc_number = check_string();        
         
         System.out.println("Enter cc expiring date: ");
-        cc_expiring = date();
+        cc_expiring = date(0);
 
         System.out.print("Enter password: ");
         password = check_string();
@@ -271,20 +278,20 @@ public class AdminConsole extends UnicastRemoteObject implements AdminConsole_I/
         }
 
         System.out.println("Insert begin date:");
-        dateB = date();
-
-        System.out.print("\tHour:");
-        dateB.set(Calendar.HOUR_OF_DAY, check_hour());
-        System.out.print("\tMinute:");
-        dateB.set(Calendar.MINUTE, check_minutes());
+        dateB = date(1);
+        
+        while(dateB.after(Calendar.getInstance())){
+            System.out.println("Invalid date - insert new begin date:");
+            dateB = date(1);
+        }
 
         System.out.println("Insert end date:");
-        dateE = date();
+        dateE = date(1);
 
-        System.out.print("\tHour:");
-        dateE.set(Calendar.HOUR_OF_DAY, check_hour());
-        System.out.print("\tMinute:");
-        dateE.set(Calendar.MINUTE, check_minutes());
+        while(dateE.before(dateB)){
+            System.out.println("Invalid date - end date must be after\nInsert new end date:");
+            dateB = date(1);
+        }
 
         try{
             rmi.createElection(electionName, dateB, dateE, department, electionType);
@@ -334,7 +341,7 @@ public class AdminConsole extends UnicastRemoteObject implements AdminConsole_I/
 
         try{
 
-            elections = rmi.getElections();
+            elections = rmi.stateElections(State.WAITING, null);
 
             System.out.println("Pick a election:");
             for(int i =0; i < elections.size() ; i++){
@@ -439,7 +446,7 @@ public class AdminConsole extends UnicastRemoteObject implements AdminConsole_I/
             String aux;
             int option;
 
-            elections = rmi.getElections();
+            elections = rmi.stateElections(State.WAITING, null);
 
             System.out.println("Pick a election:");
             for(int i =0; i < elections.size() ; i++){
@@ -467,18 +474,21 @@ public class AdminConsole extends UnicastRemoteObject implements AdminConsole_I/
                 }
                 else if(option == 3 || option == 4){
                     System.out.print("Insert new date:");
-                    date = date();
-                        
-                    System.out.print("\tHour:");
-                    date.set(Calendar.HOUR_OF_DAY, check_hour());
-                    System.out.print("\tMinute:");
-                    date.set(Calendar.MINUTE, check_minutes());
+                    date = date(1);
 
                     if(option == 3){
                         //date B
+                        while(date.after(Calendar.getInstance())){
+                            System.out.println("Invalid date - insert new begin date:");
+                            date = date(1);
+                        }
                     }
                     else{ 
                         //date E
+                        while(date.before(election.getBeggDate())){
+                            System.out.println("Invalid date - end date must be after\nInsert new end date:");
+                            date = date(1);
+                        }
                     }
                 }
                 else{
@@ -559,7 +569,76 @@ public class AdminConsole extends UnicastRemoteObject implements AdminConsole_I/
         }        
     }
 
-    public void early_vote(){} 
+    public void early_vote(){
+        try{
+
+            List<Candidates> candidates = new CopyOnWriteArrayList<>();
+            List<Election> elections = new CopyOnWriteArrayList<>();
+            String name, cand_name = null;
+            Election election;
+            int option, size;
+            Voter voter = null;
+
+
+            System.out.print("Insert name: "); //preferia fazer pelo cc_number, discutir com o goncalo!!
+            name = check_string();
+            voter = rmi.searchVoter(name);
+
+            while(voter == null){
+                System.out.print("Invalid username. Try again: ");
+                name = check_string();
+                voter = rmi.searchVoter(name);
+            }
+
+            elections = rmi.stateElections(State.WAITING, voter.getType());
+
+            System.out.println("Pick a election:");
+            for(int i =0; i < elections.size() ; i++){
+                System.out.println(i + ". " + elections.get(i));
+            }
+
+            option = check_number();
+
+            if(option >= 0 && option < elections.size()){
+                election = elections.get(option);
+
+                candidates = election.getCandidatesList();
+                System.out.println("Pick a list: ");
+                size = printListInElection(candidates);
+
+                option = check_number();
+
+                if(option >=0 && option < size){
+                    cand_name = candidates.get(option).getName();
+                }
+                try{
+                    rmi.voterVotesAdmin(name, election.getTitle(), cand_name, election.getDepartment());
+                    System.out.println("Sucess early vote");
+                }
+                catch(ConnectException e){
+                    reconnet();
+                    rmi.voterVotesAdmin(name, election.getTitle(), cand_name, election.getDepartment() );
+                    System.out.println("Sucess early vote");
+                }
+                catch(Exception e){
+                    System.out.println("Error in early vote: " + e);
+                }
+
+            }
+            else{
+                System.out.println("Invalid option!");
+            }
+
+        }
+        catch(ConnectException e){
+            reconnet();
+            early_vote();
+        }
+        catch(Exception e){
+            System.out.println("Early vote: " + e);
+        }
+
+    } 
 
     public void change_voter_data(){
 
@@ -613,7 +692,7 @@ public class AdminConsole extends UnicastRemoteObject implements AdminConsole_I/
                     break;
                 case 7:
                     System.out.println("Enter new date: ");
-                    aux = date();
+                    aux = date(0);
                     new_voter.setCc_expiring(aux);
 
                     break;

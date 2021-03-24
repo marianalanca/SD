@@ -43,6 +43,6 @@ public interface RMIServer_I extends Remote {
       public boolean addMembroToLista(Election election, String nome,Voter member) throws RemoteException;
       public boolean removeMembroToLista(Election election, String nome,Voter member) throws RemoteException;
       public void logoutMulticastServer(MulticastServer multicastServer) throws RemoteException;
-      public List<Election> stateElections(State state) throws RemoteException;
+      public List<Election> stateElections(State state, Type type) throws RemoteException;
       public List<Election> tablesElections(MulticastServer table) throws RemoteException;
 }

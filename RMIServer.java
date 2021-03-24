@@ -86,14 +86,23 @@ public class RMIServer extends UnicastRemoteObject implements RMIServer_I{
             }
       }
       @Override
-      public List<Election> stateElections(State state) throws RemoteException{
+      public List<Election> stateElections(State state, Type type) throws RemoteException{
             /**
-             * Returns a List of all the election that has that state
+             * Returns a List of all the election that has that state and the same type
+             * if the type is null, will not consider the type
              */
             List<Election> res = new CopyOnWriteArrayList<>();
             for (Election election : elections){
                   if(election.getState().equals(state)){
-                        res.add(election);
+                        if(type == null){
+                              res.add(election);
+                        }
+                        else if(election.getAllowedVoters().size() == 1 && election.getAllowedVoters().get(0) == type){
+                              res.add(election);
+                        }
+                        else if (election.getAllowedVoters().size() == 3){
+                              res.add(election);
+                        }
                   }
             }
             return res;
