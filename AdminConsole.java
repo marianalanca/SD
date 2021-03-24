@@ -1,4 +1,3 @@
-import java.net.MalformedURLException;
 import java.rmi.*;
 import java.util.List;
 import java.util.Scanner;
@@ -179,6 +178,18 @@ public class AdminConsole extends UnicastRemoteObject implements AdminConsole_I/
 
     }
 
+    public void reconnet(){
+        try{
+            rmi = (RMIServer_I) Naming.lookup("rmi://localhost:5001/RMIServer");
+        }
+        catch(ConnectException e){
+            reconnet();
+        }
+        catch(Exception e){
+            System.out.println("reconnet and I are not friends :) " + e);
+        }
+    }
+
     public void register_voter(){
 
         String name, department, contact, address, cc_number, password;
@@ -215,35 +226,13 @@ public class AdminConsole extends UnicastRemoteObject implements AdminConsole_I/
         }
         catch(ConnectException e){
             try{
-                rmi = (RMIServer_I) Naming.lookup("rmi://localhost:5001/RMIServer");
-                Voter v = new Voter(name, department, contact, address, cc_number, cc_expiring, password, role);
-                register_backup(v);
+                reconnet();
+                rmi.createVoter(name, department, contact, address, cc_number, cc_expiring, password, role); 
+                System.out.println("\nSuccessfully created new voter");
             }
             catch(Exception excp){
-                System.out.println("Register_voter: Exception in RMIServer.java(main) " + excp);
+                System.out.println("Register_voter: connecting failed " + excp);
             }
-            
-            //System.out.println("Error creating new voter: " + e);
-        }
-        catch( Exception e){
-            System.out.println("Error creating new voter: " + e);
-        } 
-    }
-
-    public void register_backup(Voter vote){
-        try{
-            rmi.addVoter(vote); 
-            System.out.println("\nSuccessfully created new voter");
-        }
-        catch(ConnectException e){
-            try{
-                rmi = (RMIServer_I) Naming.lookup("rmi://localhost:5001/RMIServer");
-                register_backup(vote);
-            }
-            catch(Exception excp){
-                System.out.println("Register_backup: exception in RMIServer.java(main) " + excp);
-            }
-            //System.out.println("Error creating new voter: " + e);
         }
         catch( Exception e){
             System.out.println("Error creating new voter: " + e);
@@ -303,38 +292,13 @@ public class AdminConsole extends UnicastRemoteObject implements AdminConsole_I/
         }
         catch(ConnectException e){
             try{
-                rmi = (RMIServer_I) Naming.lookup("rmi://localhost:5001/RMIServer");
-                Election elect = new Election(electionName, dateB, dateE, department, electionType);
-                create_election_backup(elect);
+                reconnet();
+                rmi.createElection(electionName, dateB, dateE, department, electionType);
+                System.out.println("\nSuccessfully created new election");
             }
             catch(Exception excp){
-                System.out.println("Create_election: exception in RMIServer.java(main) " + excp);
+                System.out.println("Create_election: connecting failed" + excp);
             }
-            
-            //System.out.println("Error creating new voter: " + e);
-        } 
-        catch (Exception e){
-            System.out.println("Error creating new election: " + e);
-        }
-
-    }
-
-    public void create_election_backup(Election elect){
-
-        try{
-            rmi.addElection(elect);
-            System.out.println("\nSuccessfully created new election");
-        }
-        catch(ConnectException e){
-            try{
-                rmi = (RMIServer_I) Naming.lookup("rmi://localhost:5001/RMIServer");
-                create_election_backup(elect);
-            }
-            catch(Exception excp){
-                System.out.println("Create_election_backup: exception in RMIServer.java(main) " + excp);
-            }
-            
-            //System.out.println("Error creating new voter: " + e);
         } 
         catch (Exception e){
             System.out.println("Error creating new election: " + e);
@@ -453,8 +417,13 @@ public class AdminConsole extends UnicastRemoteObject implements AdminConsole_I/
                 System.out.println ("Invalid option. Try again");
             }
 
-        } catch (Exception e){
-            System.out.println("Manage_list : exception in RMIServer.java(main) " + e);
+        } 
+        catch (ConnectException e){
+            reconnet();
+            manage_list();
+        }
+        catch (Exception e){
+            System.out.println("Manage_list : " + e);
         }
     }
 
@@ -524,11 +493,21 @@ public class AdminConsole extends UnicastRemoteObject implements AdminConsole_I/
                 rmi.switchElection(elections.get(option), election);
                 System.out.println("Sucess in updating election information");
             }
+            catch(ConnectException e){
+                reconnet();
+                rmi.switchElection(elections.get(option), election);
+                System.out.println("Sucess in updating election information");
+            }
             catch(Exception e){
                 System.out.println("Error updating election information: " + e);
             }
 
-        } catch (Exception e){
+        } 
+        catch(ConnectException e){
+            reconnet();
+            change_election();
+        }
+        catch (Exception e){
             System.out.println("Change_eletion: Exception in RMIServer.java(main) " + e);
         }
 
@@ -571,6 +550,10 @@ public class AdminConsole extends UnicastRemoteObject implements AdminConsole_I/
             }
 
         }
+        catch (ConnectException e){
+            reconnet();
+            see_results();
+        }
         catch(Exception e){
             System.out.println("Error : ");
         }        
@@ -578,70 +561,92 @@ public class AdminConsole extends UnicastRemoteObject implements AdminConsole_I/
 
     public void early_vote(){} 
 
-    public void change_voter_data(Voter voter){
-
-        Voter new_voter = voter;
-        Calendar aux;
-        int option;
-        
-        System.out.println("1. Change name");
-        System.out.println("2. Change role");
-        System.out.println("3. Change department");
-        System.out.println("4. Change contact");
-        System.out.println("5. Change address");
-        System.out.println("6. Change citizen card number");
-        System.out.println("7. Change citizen card expiring date");
-        System.out.println("8. Password\n");
-
-        option = check_number();
-
-        switch(option){
-            case 1:
-                System.out.print("Enter new name: ");
-                new_voter.setUsername(check_string());
-                break;
-            case 2:
-                System.out.print("Enter new role: ");
-                new_voter.setType(check_role());
-                break;
-            case 3:
-                System.out.print("Enter new department: ");
-                new_voter.setDepartment(check_string());
-                break;
-            case 4:
-                System.out.print("Enter name: ");
-                new_voter.setUsername(check_string());
-                break;
-            case 5:
-                System.out.print("Enter new contact: ");
-                new_voter.setContact(check_string());
-                break;
-            case 6:
-                System.out.print("Enter new citizen card number: ");
-                new_voter.setCc_number(check_string());
-                break;
-            case 7:
-                System.out.println("Enter new date: ");
-                aux = date();
-                new_voter.setCc_expiring(aux);
-
-                break;
-            case 8:
-                System.out.print("Enter new password: ");
-                new_voter.setPassword(check_string());
-                break;
-            default:
-                System.out.println("Invalid option. Try again");
-                break;
-        }
+    public void change_voter_data(){
 
         try{
-            rmi.switchUser(voter, new_voter);
-            System.out.println("Sucess in updating voter information: ");
+            Voter voter, new_voter;
+            String cc_number;
+            Calendar aux;
+            int option;
+
+            System.out.print("Insert citizen card number: ");
+            cc_number = check_string();
+
+            voter = rmi.searchVoterCc(cc_number);
+            new_voter = voter;
+            
+            System.out.println("1. Change name");
+            System.out.println("2. Change role");
+            System.out.println("3. Change department");
+            System.out.println("4. Change contact");
+            System.out.println("5. Change address");
+            System.out.println("6. Change citizen card number");
+            System.out.println("7. Change citizen card expiring date");
+            System.out.println("8. Password\n");
+
+            option = check_number();
+
+            switch(option){
+                case 1:
+                    System.out.print("Enter new name: ");
+                    new_voter.setUsername(check_string());
+                    break;
+                case 2:
+                    System.out.print("Enter new role: ");
+                    new_voter.setType(check_role());
+                    break;
+                case 3:
+                    System.out.print("Enter new department: ");
+                    new_voter.setDepartment(check_string());
+                    break;
+                case 4:
+                    System.out.print("Enter name: ");
+                    new_voter.setUsername(check_string());
+                    break;
+                case 5:
+                    System.out.print("Enter new contact: ");
+                    new_voter.setContact(check_string());
+                    break;
+                case 6:
+                    System.out.print("Enter new citizen card number: ");
+                    new_voter.setCc_number(check_string());
+                    break;
+                case 7:
+                    System.out.println("Enter new date: ");
+                    aux = date();
+                    new_voter.setCc_expiring(aux);
+
+                    break;
+                case 8:
+                    System.out.print("Enter new password: ");
+                    new_voter.setPassword(check_string());
+                    break;
+                default:
+                    System.out.println("Invalid option. Try again");
+                    break;
+            }
+
+            try{
+                rmi.switchUser(voter, new_voter);
+                System.out.println("Sucess in updating voter information. ");
+            }
+            catch(ConnectException e){
+                reconnet();
+                rmi.switchUser(voter, new_voter);
+                System.out.println("Sucess in updating voter information. ");
+            }
+            catch(Exception e){
+                System.out.println("Error updating voter information: " + e);
+            }
+        }
+        catch(ConnectException e){
+            reconnet();
+            change_voter_data();
         }
         catch(Exception e){
-            System.out.println("Error updating voter information: " + e);
+            System.out.println("Change_voter_data: " + e);
         }
+        
         
     }
 
