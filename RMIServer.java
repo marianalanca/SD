@@ -41,6 +41,10 @@ public class RMIServer extends UnicastRemoteObject implements RMIServer_I{
       private static String voterFile;
       @Override
       public Voter searchVoter(String username)throws RemoteException{
+            /**
+             * Search voter by only it's username
+             * return false if there was any problem
+             */
             for (Voter voter : voterList) {
                   if(voter.getUsername().equals(username)){
                         return voter;
@@ -53,18 +57,27 @@ public class RMIServer extends UnicastRemoteObject implements RMIServer_I{
 
       @Override
       public void loginAdmin(AdminConsole admin) throws RemoteException{
+            /**
+             * Login the Admin Console
+             */
             System.out.println("Admin Console logged in");
             admins.add(admin);
       }
 
       @Override
       public void loginMulticastServer(MulticastServer multicastServer) throws RemoteException{
+            /**
+             * Login the MulticastServer(Table)
+             */
             System.out.println("Multicast Server logged in");
             multicastServer.setTableID(Integer.toString(id++));
             servers.add(multicastServer);
       }
       @Override
       public void logoutMulticastServer(MulticastServer multicastServer) throws RemoteException{
+            /**
+             * Logout the MulticastServer(Table)
+             */
             servers.remove(multicastServer);
             for (Election election : elections) {
                   if(election.getTables().contains(multicastServer)){
@@ -73,17 +86,26 @@ public class RMIServer extends UnicastRemoteObject implements RMIServer_I{
             }
       }
       @Override
-      public List<Election> finishedElections() throws RemoteException{
+      public List<Election> stateElections(State state) throws RemoteException{
+            /**
+             * Returns a List of all the election that has that state
+             */
             List<Election> res = new CopyOnWriteArrayList<>();
             for (Election election : elections){
-                  if(election.getState().equals(State.CLOSED)){
+                  if(election.getState().equals(state)){
                         res.add(election);
                   }
             }
             return res;
       }
+
+      
+
       @Override
       public List<Election> tablesElections(MulticastServer table) throws RemoteException{
+            /**
+             * Returns the list of possible Elections that the Table can vote
+             */
             
             List<Election> res = new CopyOnWriteArrayList<>();
             for (Election election : elections){
@@ -96,6 +118,10 @@ public class RMIServer extends UnicastRemoteObject implements RMIServer_I{
 
       @Override
       public Election searchElection(String title)  throws RemoteException{
+            /**
+             * Searches the Election by the title it was given
+             * returns null if it hasnt been found
+             */
             for(Election election: elections){
                   if(election.getTitle().equals(title)){
                         return election;
@@ -106,6 +132,10 @@ public class RMIServer extends UnicastRemoteObject implements RMIServer_I{
       }
       @Override
       public boolean addTableElection(MulticastServer table, Election election)throws RemoteException{
+            /**
+             * adds the table ability vote in that election
+             * returns false if a mistake has happened
+             */
             int index1 = elections.indexOf(election);
             if(index1 != -1 && servers.contains(table)){
                   elections.get(index1).addTable(table);
@@ -116,16 +146,24 @@ public class RMIServer extends UnicastRemoteObject implements RMIServer_I{
       }
       @Override
       public boolean removeTableElection(MulticastServer table, Election election)throws RemoteException{
+            /**
+             * Removes the table ability vote in that election
+             * returns false if a mistake has happened
+             */
             int index1 = elections.indexOf(election);
             if(index1 != -1 && servers.contains(table)){
-                  elections.get(index1).removeTable(table);
+                  boolean flag = elections.get(index1).removeTable(table);
                   writeElectionFile();
-                  return true;
+                  return flag;
             }
             return false;
       }
       @Override
       public MulticastServer searchTable(String id) throws RemoteException{
+            /**
+             * It searches the table by its unique id
+             * returns null if nothing has been found
+             */
             for(MulticastServer server: servers){
                   if(server.getTableID().equals(id)){
                         return server;
@@ -136,6 +174,10 @@ public class RMIServer extends UnicastRemoteObject implements RMIServer_I{
       }
       @Override
       public boolean addVoterTable(MulticastServer table, Voter member)  throws RemoteException{
+            /**
+             * Does a callback with the table to add a member to it
+             * returns false if no such table exist in the array
+             */
             int index = servers.indexOf(table);
             if(index != -1){
                   servers.get(index).addTableMembers(member);
@@ -146,6 +188,10 @@ public class RMIServer extends UnicastRemoteObject implements RMIServer_I{
       }
       @Override
       public boolean removeVoterTable(MulticastServer table, Voter member) throws RemoteException{
+            /**
+             * Does a callback with the table to remove a member to it
+             * returns false if no such table exist in the array
+             */
             int index = servers.indexOf(table);
             if(index != -1){
                   servers.get(index).removeTableMembers(member);
@@ -157,6 +203,10 @@ public class RMIServer extends UnicastRemoteObject implements RMIServer_I{
 
       @Override
       public Voter searchVoterCc(String cc_number)  throws RemoteException{
+            /**
+             * Searches an user based by its cc_number which it should be unique
+             * returns null if it hasnt been found one with that value
+             */
             for (Voter voter : voterList) {
                   if(voter.getCc_number().equals(cc_number)){
                         return voter;
@@ -168,6 +218,10 @@ public class RMIServer extends UnicastRemoteObject implements RMIServer_I{
 
       @Override
       public Voter searchUser(String username, String password) throws RemoteException{
+            /**
+             * It will search a user based by its username and password and returns the first one
+             * returns null if it hasn't been found
+             */
 
 
             for (Voter voter : voterList) {
@@ -180,6 +234,11 @@ public class RMIServer extends UnicastRemoteObject implements RMIServer_I{
       }
 
       public boolean addCandidate(String title,Candidates candidate) throws RemoteException{
+            /**
+             * Adds a Candidate (List) from an election
+             * returns false if it can't find an election or a List
+             * 
+             */
             ListIterator<Election> iterator = elections.listIterator();
             while(iterator.hasNext()){
                   if(iterator.next().getTitle().equals(title)){
@@ -195,6 +254,11 @@ public class RMIServer extends UnicastRemoteObject implements RMIServer_I{
 
 
       public boolean removeCandidate(String title, String candidateName) throws RemoteException{
+            /**
+             * Removes a Candidate (List) from an election
+             * returns false if it can't find an election or a List
+             * 
+             */
             ListIterator<Election> iterator = elections.listIterator();
             while(iterator.hasNext()){
                   if(iterator.next().getTitle().equals(title)){
@@ -207,6 +271,9 @@ public class RMIServer extends UnicastRemoteObject implements RMIServer_I{
       }
 
       public void writeElectionFile(){
+            /**
+             * Writes an object file about the elections
+             */
             try(FileOutputStream fos = new FileOutputStream(electionFile); ObjectOutputStream oos = new ObjectOutputStream(fos)){
                   oos.writeObject(elections);
                   
@@ -217,6 +284,9 @@ public class RMIServer extends UnicastRemoteObject implements RMIServer_I{
       }
 
       public void writeVoterFile(){
+            /**
+             * Writes an object file about the elections
+             */
             try(FileOutputStream fos = new FileOutputStream(voterFile); ObjectOutputStream oos = new ObjectOutputStream(fos)){
                   oos.writeObject(voterList);
             }catch(Exception ex){
@@ -226,6 +296,9 @@ public class RMIServer extends UnicastRemoteObject implements RMIServer_I{
       }
 
       public void readElectionFile(){
+            /**
+             * Reads an object file. If it doesnt exist it will create one
+             */
             try(FileInputStream fis = new FileInputStream(electionFile); ObjectInputStream ois = new ObjectInputStream(fis)){
                   elections = (CopyOnWriteArrayList<Election>) ois.readObject();
                   for (Election election : elections) {
@@ -252,6 +325,9 @@ public class RMIServer extends UnicastRemoteObject implements RMIServer_I{
       }
 
       public void readVoterFile(){
+            /**
+             * Reads an object file. If it doesnt exist it will create one
+             */
             try(FileInputStream fis = new FileInputStream(voterFile); ObjectInputStream ois = new ObjectInputStream(fis)){
                    
                   voterList = (CopyOnWriteArrayList<Voter>) ois.readObject();
@@ -335,6 +411,10 @@ public class RMIServer extends UnicastRemoteObject implements RMIServer_I{
       }
       @Override
       public boolean addMembroToLista(Election election, String nome,Voter member) throws RemoteException{
+            /**
+             * Adds a member from an election list
+             * return false if there was an error finding the member or the list
+             */
             int index = elections.indexOf(election);
             if(index != -1){
                   boolean flag = elections.get(index).addMemberToLista(nome, member);
@@ -349,6 +429,10 @@ public class RMIServer extends UnicastRemoteObject implements RMIServer_I{
       }
       @Override
       public boolean removeMembroToLista(Election election, String nome,Voter member) throws RemoteException{
+            /**
+             * Removes a member from an election list
+             * return false if there was an error finding the member or the list
+             */
             int index = elections.indexOf(election);
             if(index != -1){
                   
@@ -364,6 +448,9 @@ public class RMIServer extends UnicastRemoteObject implements RMIServer_I{
 
       @Override
       public boolean createVoter(String username, String department, String contact, String address, String cc_number, Calendar cc_expiring, String password,Type type)  throws RemoteException{
+            /**
+             * It will create a voter
+             */
             if(searchVoter(username) == null && searchVoterCc(cc_number)==null){
                   Voter voter = new Voter(username, department, contact, address, cc_number, cc_expiring, password,type);
                   addVoter(voter);
@@ -471,6 +558,9 @@ public class RMIServer extends UnicastRemoteObject implements RMIServer_I{
       }
 
       public static void readConfig(){
+            /**
+             * Read the config file if it doesnt exist it will go to the default values
+             */
             try {
                   File myObj = new File("config.txt");
                   Scanner myRScanner = new Scanner(myObj);
@@ -494,6 +584,8 @@ public class RMIServer extends UnicastRemoteObject implements RMIServer_I{
             DatagramSocket aSocket = null;
             readConfig();
             try{
+
+                   
                   rmiServer = new RMIServer();
                   LocateRegistry.createRegistry(port).rebind("RMIServer", rmiServer);
                   System.out.println("RMIServer is on");
@@ -578,8 +670,5 @@ public class RMIServer extends UnicastRemoteObject implements RMIServer_I{
                   }
             }
       }
-
-      
-
 
 }
