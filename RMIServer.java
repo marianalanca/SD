@@ -25,20 +25,29 @@ import java.util.Iterator;
 import java.util.List;
 import java.util.ListIterator;
 import java.util.Scanner;
+import java.util.UUID;
 import java.util.concurrent.CopyOnWriteArrayList;
 
 /*Por os restantes objects que podem ser passados */ 
 public class RMIServer extends UnicastRemoteObject implements RMIServer_I{
+      /**
+       *
+       */
+      private static final String FILE_EMPTY = "File Empty";
+      private static final String AN_ERROR_OCCURRED = "An error occurred.";
+      private static final String FILE_ALREADY_EXISTS = "File already exists.";
+      private static final String FILE_CREATED = "File created: ";
+
       private static final long serialVersionUID = -7161055300561474003L;
       
       private List<Voter> voterList = new CopyOnWriteArrayList<>();
       private List<Election> elections = new CopyOnWriteArrayList<>();
       private List<AdminConsole> admins = new CopyOnWriteArrayList<>();
-      private static List<MulticastServer> servers = new CopyOnWriteArrayList<>();
+      private List<MulticastServer> servers = new CopyOnWriteArrayList<>();
       private static int port = 6789;
-      private Integer id = 0;
       private static String electionFile;
       private static String voterFile;
+      private static String tableFile;
       @Override
       public Voter searchVoter(String username)throws RemoteException{
             /**
@@ -53,6 +62,8 @@ public class RMIServer extends UnicastRemoteObject implements RMIServer_I{
             }
             return null;
       }
+
+
 
 
       @Override
@@ -70,8 +81,9 @@ public class RMIServer extends UnicastRemoteObject implements RMIServer_I{
              * Login the MulticastServer(Table)
              */
             System.out.println("Multicast Server logged in");
-            multicastServer.setTableID(Integer.toString(id++));
+            multicastServer.setTableID(UUID.randomUUID().toString());
             servers.add(multicastServer);
+            writeMulticastServerFile();
       }
       @Override
       public void logoutMulticastServer(MulticastServer multicastServer) throws RemoteException{
@@ -84,6 +96,8 @@ public class RMIServer extends UnicastRemoteObject implements RMIServer_I{
                         election.getTables().remove(multicastServer);
                   }
             }
+            writeElectionFile();
+            writeMulticastServerFile();
       }
       @Override
       public List<Election> stateElections(State state, Type type) throws RemoteException{
@@ -94,13 +108,7 @@ public class RMIServer extends UnicastRemoteObject implements RMIServer_I{
             List<Election> res = new CopyOnWriteArrayList<>();
             for (Election election : elections){
                   if(election.getState().equals(state)){
-                        if(type == null){
-                              res.add(election);
-                        }
-                        else if(election.getAllowedVoters().size() == 1 && election.getAllowedVoters().get(0) == type){
-                              res.add(election);
-                        }
-                        else if (election.getAllowedVoters().size() == 3){
+                        if(type == null || election.getAllowedVoters().contains(type)){
                               res.add(election);
                         }
                   }
@@ -317,29 +325,65 @@ public class RMIServer extends UnicastRemoteObject implements RMIServer_I{
 
       }
 
+      public void writeMulticastServerFile(){
+            /**
+             * Writes an object file about the tables
+             */
+            try(FileOutputStream fos = new FileOutputStream(tableFile); ObjectOutputStream oos = new ObjectOutputStream(fos)){
+                  oos.writeObject(voterList);
+            }catch(Exception ex){
+                  ex.printStackTrace();
+            }
+
+      }
+      public void readMulticastFile(){
+            /**
+             * Reads an object file. If it doesnt exist it will create one
+             */
+            try(FileInputStream fis = new FileInputStream(tableFile); ObjectInputStream ois = new ObjectInputStream(fis)){
+                  servers = (CopyOnWriteArrayList<MulticastServer>) ois.readObject();
+                  
+            }catch(FileNotFoundException e){
+                  try {
+                        File myObj = new File(tableFile);
+                        if (myObj.createNewFile()) {
+                          System.out.println(FILE_CREATED + myObj.getName());
+                        } else {
+                          System.out.println(FILE_ALREADY_EXISTS);
+                        }
+                      } catch (IOException ex) {
+                        System.out.println(AN_ERROR_OCCURRED);
+                        e.printStackTrace();
+                      }
+            }catch(EOFException ex){
+                  System.out.println(FILE_EMPTY);
+            }catch(Exception ex){
+                  ex.printStackTrace();
+            }
+
+      }
+
       public void readElectionFile(){
             /**
              * Reads an object file. If it doesnt exist it will create one
              */
             try(FileInputStream fis = new FileInputStream(electionFile); ObjectInputStream ois = new ObjectInputStream(fis)){
                   elections = (CopyOnWriteArrayList<Election>) ois.readObject();
-                  for (Election election : elections) {
-                        election.setTables(new CopyOnWriteArrayList<>());
-                  }
+                  
             }catch(FileNotFoundException e){
                   try {
                         File myObj = new File(electionFile);
                         if (myObj.createNewFile()) {
-                          System.out.println("File created: " + myObj.getName());
+                          System.out.println(FILE_CREATED + myObj.getName());
                         } else {
-                          System.out.println("File already exists.");
+                          System.out.println(FILE_ALREADY_EXISTS);
                         }
                       } catch (IOException ex) {
-                        System.out.println("An error occurred.");
+                        System.out.println(AN_ERROR_OCCURRED);
                         e.printStackTrace();
                       }
             }catch(EOFException ex){
-                  System.out.println("File Empty");
+                  System.out.println(FILE_EMPTY);
             }catch(Exception ex){
                   ex.printStackTrace();
             }
@@ -357,16 +401,16 @@ public class RMIServer extends UnicastRemoteObject implements RMIServer_I{
                   try {
                         File myObj = new File(voterFile);
                         if (myObj.createNewFile()) {
-                          System.out.println("File created: " + myObj.getName());
+                          System.out.println(FILE_CREATED + myObj.getName());
                         } else {
-                          System.out.println("File already exists.");
+                          System.out.println(FILE_ALREADY_EXISTS);
                         }
                       } catch (IOException ex) {
-                        System.out.println("An error occurred.");
+                        System.out.println(AN_ERROR_OCCURRED);
                         e.printStackTrace();
                       }
             }catch(EOFException ex){
-                  System.out.println("File Empty");
+                  System.out.println(FILE_EMPTY);
             }catch(Exception ex){
                   ex.printStackTrace();
             }
@@ -589,11 +633,13 @@ public class RMIServer extends UnicastRemoteObject implements RMIServer_I{
                   port = Integer.parseInt(myRScanner.nextLine());
                   voterFile = myRScanner.nextLine();
                   electionFile = myRScanner.nextLine();
+                  tableFile = myRScanner.nextLine();
                   myRScanner.close();
             } catch (Exception e) {
                   port = 5001;
                   voterFile = "voterInformation";
                   electionFile = "electionInformation";
+                  tableFile = "multicastInformation";
 
             }
       }
@@ -611,6 +657,7 @@ public class RMIServer extends UnicastRemoteObject implements RMIServer_I{
                   rmiServer = new RMIServer();
                   LocateRegistry.createRegistry(port).rebind("RMIServer", rmiServer);
                   System.out.println("RMIServer is on");
+                  rmiServer.readMulticastFile();
                   rmiServer.readElectionFile();
                   rmiServer.readVoterFile();
                   aSocket = new DatagramSocket(port+1);

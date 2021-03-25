@@ -6,6 +6,7 @@ import java.net.*;
 import java.io.*;
 import java.util.Scanner;
 import java.rmi.*;
+import java.rmi.ConnectException;
 
 public class MulticastServer extends Thread implements Serializable {
     private static final long serialVersionUID = 1L;
@@ -66,9 +67,6 @@ public class MulticastServer extends Thread implements Serializable {
                         String readKeyboard = keyboardScanner.nextLine();
                         voter = q.RMI.searchVoter(readKeyboard);
                     }
-
-                    //Voter voter = q.RMI.searchVoterCc(readKeyboard);
-                    //voter = new Voter("test", "Info", "987654123","morada", "123456789",null,"pass", null);
                     if((voter!=null && voter.department.equals(q.getDepartment()))){
                         // add to voting list
                         q.addLogin(voter);
@@ -164,6 +162,38 @@ class Q_ok implements Serializable{
         //RMI.createCandidate(null, "Vio", "FUNCIONARIOS", Type.FUNCIONARIO);
 
 
+
+
+        RMI.createVoter("M", "I", "123456789", "morada", "123", null, "pass", Type.STUDENT);
+        RMI.createVoter("P", "I", "123456789", "morada", "432", null, "pass", Type.STUDENT);
+        RMI.createVoter("C", "I", "123456789", "morada", "135", null, "pass", Type.DOCENTE);
+        RMI.createVoter("K", "I", "123456789", "morada", "136", null, "pass", Type.DOCENTE);
+        RMI.createVoter("J", "I", "123456789", "morada", "246", null, "pass", Type.FUNCIONARIO);
+        RMI.createVoter("L", "I", "123456789", "morada", "241", null, "pass", Type.FUNCIONARIO);
+
+        List<Voter> membersI = new CopyOnWriteArrayList<Voter>();
+
+        membersI.add(new Voter("M", "I", "123", "address", "258", null, "pass", Type.DOCENTE));
+
+        List<Type> electionTypeI = new CopyOnWriteArrayList<>();
+        electionTypeI.add(Type.STUDENT);
+        electionTypeI.add(Type.DOCENTE);
+        RMI.createElection("STUDENTSI","", null, null, "I", electionTypeI);
+        RMI.createCandidate(null, "Tino1", "STUDENTSI", Type.STUDENT);
+        RMI.createCandidate(null, "Octavio1", "STUDENTSI", Type.STUDENT);
+        RMI.createCandidate(null, "Octavio1", "STUDENTSI", Type.DOCENTE);
+
+        electionTypeI = new CopyOnWriteArrayList<>();
+        electionTypeI.add(Type.DOCENTE);
+        RMI.createElection("DOCENTESI","", null, null, "I", electionType);
+        RMI.createCandidate(null, "Antonio1", "DOCENTESI", Type.DOCENTE);
+
+        electionType = new CopyOnWriteArrayList<>();
+        electionType.add(Type.FUNCIONARIO);
+        RMI.createElection("FUNCIONARIOSI","", null, null, "I", electionType);
+        //RMI.createCandidate(null, "Vio", "FUNCIONARIOS", Type.FUNCIONARIO);
+
+
     }
     public int getPORT() {
         return PORT;
@@ -206,18 +236,17 @@ class Q_ok implements Serializable{
                 DatagramPacket packet = new DatagramPacket(buffer, buffer.length, group, PORT);
                 socket.send(packet);
                 boolean flag = true;
+                Protocol protocol;
 
                 // receives answer from thread
                 do {
                     buffer = new byte[256];
                     packet = new DatagramPacket(buffer, buffer.length);
                     socket.receive(packet);
-                    Protocol protocol = new Protocol().parse(new String(packet.getData(), 0, packet.getLength()));
-                    if (protocol!=null && protocol.type!=null && protocol.type.equals("response") && protocol.id!=null) {
-                        flag=false;
-                        ID = protocol.id;
-                    }
-                } while (flag);
+                    protocol = new Protocol().parse(new String(packet.getData(), 0, packet.getLength()));
+
+                } while (protocol==null || !(protocol!=null && protocol.type!=null && protocol.type.equals("response") && protocol.department.equals(department) && protocol.id!=null));
+                ID = protocol.id;
 
                 // sends accepted
                 buffer = (new Protocol().accepted(ID)).getBytes();
@@ -236,38 +265,74 @@ class Q_ok implements Serializable{
                 do {
                     packet = new DatagramPacket(buffer, buffer.length);
                     socket.receive(packet);
-                    Protocol protocol = new Protocol().parse(new String(packet.getData(), 0, packet.getLength()));
-                    if (protocol!=null && protocol.id!=null && protocol.id.equals(ID) && protocol.type.equals("status") && protocol.logged.equals("on")) {
-                        flag=false;
-                    }
-                } while (flag);
+                    protocol = new Protocol().parse(new String(packet.getData(), 0, packet.getLength()));
+                } while (protocol==null || !(protocol!=null && protocol.id!=null && protocol.id.equals(ID) && protocol.type.equals("status") && protocol.department.equals(department) && protocol.logged.equals("on")));
+
+                // sends candidates list
+                // fazer verificação do role com o candidate para só apresentar o que se quer
+                List<Election> elections = RMI.searchElectionbyDepRole(department, voter.getType());
+                List<String> electionsNames = new CopyOnWriteArrayList<String>();
+            
+                // adds elections names in a list to send to client
+                for (Election election: elections) {
+                    electionsNames.add(election.getTitle());
+                }
+
+                // send candidates information
+                buffer = new Protocol().item_list(ID, electionsNames.size(), electionsNames).getBytes();
+                packet = new DatagramPacket(buffer, buffer.length, group, PORT);
+                socket.send(packet);
+
+                // receives request
+                flag = true;
+                do {
+                    packet = new DatagramPacket(buffer, buffer.length);
+                    socket.receive(packet);
+                    protocol = new Protocol().parse(new String(packet.getData(), 0, packet.getLength()));
+                } while (protocol==null || !(protocol!=null && protocol.id!=null && protocol.id.equals(ID) && protocol.type.equals("election") && protocol.department.equals(department)));
 
                 // sends candidates list
                 // fazer verificação do role com o candidate para só apresentar o que se quer
                 List<String> candidates = new CopyOnWriteArrayList<String>();
-
-                // adds candidates in a list to send to client
-                for (Election election: RMI.searchElectionbyDepRole(department, voter.getType())) {
-                    for (Candidates candidate: election.getCandidatesList()) {
-                        //if (candidate.getType().equals(voter.getType())) // PÔR!
-                            candidates.add(candidate.getName());
-                    }
+                //System.out.println("DEBUG: "+protocol.election);
+                for (Candidates candidate: RMI.searchElection(protocol.election).getCandidatesList()) {
+                    //if (candidate.getType().equals(voter.getType())) // PÔR!
+                        candidates.add(candidate.getName());
                 }
-
                 // send candidates information
                 buffer = new Protocol().item_list(ID, candidates.size(), candidates).getBytes();
                 packet = new DatagramPacket(buffer, buffer.length, group, PORT);
                 socket.send(packet);
 
+                // arranjar lista de candidatos e enviar
+
                 login.remove(0);
 
             } catch (SocketTimeoutException e) {
+            } catch(ConnectException e){
+                try{
+                    reconnet();
+                }
+                catch(Exception excp){
+                    System.out.println("MultiCast Server: connecting failed " + excp);
+                }
             } catch (IOException e) {
                 e.printStackTrace();
             } catch (Exception e) {
                 System.out.println("Exception in main: " + e);
                 e.printStackTrace();
             }
+        }
+    }
+    public void reconnet(){
+        try{
+            RMI = (RMIServer_I) Naming.lookup("rmi://localhost:5001/RMIServer");
+        }
+        catch(ConnectException e){
+            reconnet();
+        }
+        catch(Exception e){
+            System.out.println("reconnet and I are not friends :) " + e);
         }
     }
 }
@@ -292,20 +357,21 @@ class Multicast extends Thread implements Serializable {
             DatagramPacket packet;
             Protocol protocol;
 
+            // receives vote information
             while (true) {
                 do {
                     buffer = new byte[256];
                     packet = new DatagramPacket(buffer, buffer.length);
                     socket.receive(packet);
                     protocol = new Protocol().parse(new String(packet.getData(), 0, packet.getLength()));
-                } while (protocol!=null && protocol.type!=null && !protocol.type.equals("vote") && !protocol.department.equals(q.getDepartment()));
+                    System.out.println(protocol.department+'\t'+q.getDepartment());
 
-                System.out.println("VOTED: "+protocol.candidate); // DEBUG
+                } while (protocol==null || !(protocol!=null && protocol.type!=null && protocol.type.equals("vote") && protocol.department.equals(q.getDepartment())));
 
                 if (q.RMI.voterVotes(protocol.username, protocol.election, protocol.candidate, q.getDepartment())) { // não encontra eleição?
-                    buffer = new Protocol().status(protocol.id, "off", "Vote submitted successfully").getBytes();
+                    buffer = new Protocol().status(protocol.id, q.getDepartment(), "off", "Vote submitted successfully").getBytes();
                 } else {
-                    buffer = new Protocol().status(protocol.id, "off", "The vote can not be submitted").getBytes();
+                    buffer = new Protocol().status(protocol.id, q.getDepartment(), "off", "The vote can not be submitted").getBytes();
                 }
                 packet = new DatagramPacket(buffer, buffer.length, groupACK, q.getPORT());
                 socketACK.send(packet);
