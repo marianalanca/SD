@@ -19,7 +19,12 @@ public class Protocol implements Serializable {
 		return "type|login;id|"+id+";username|"+username+";password|"+password;
 	}
 
-	
+
+	public String election(String id, String department, String election) {
+		return "type|election;id|"+id+";department|"+department+";election|"+election;
+	}
+
+
 	/** 
 	 * @param department
 	 * @return String
@@ -35,8 +40,8 @@ public class Protocol implements Serializable {
 	 * @param candidate
 	 * @return String
 	 */
-	public String vote(String id, String username, String election, String candidate) {
-		return "type|vote;id|"+id+";username|"+username+";election|"+election+";candidate|"+candidate;
+	public String vote(String id, String department, String username, String election, String candidate) {
+		return "type|vote;id|"+id+";department|"+department+";username|"+username+";election|"+election+";candidate|"+candidate;
 	}
 
 
@@ -46,30 +51,30 @@ public class Protocol implements Serializable {
 	 * @param msg
 	 * @return String
 	 */
-	public String status(String id, String logged, String msg) {
-		return "type|status;id|"+id+";logged|"+logged+";msg|"+msg;
+	public String status(String id, String department, String logged, String msg) {
+		return "type|status;id|"+id+";department|"+department+";logged|"+logged+";msg|"+msg;
 	}
 
-	
+
 	/** 
 	 * @param id of the terminal to which the information must be sent
 	 * @param logged
 	 * @return String
 	 */
-	public String status(String id, String logged) {
-		return "type|status;id|"+id+";logged|"+logged;
+	public String status(String id, String department, String logged) {
+		return "type|status;id|"+id+";department|"+department+";logged|"+logged;
 	}
 
-	
+
 	/** 
 	 * @param id of the terminal to which the information must be sent
 	 * @return String
 	 */
-	public String response(String id) {
-		return "type|response;id|"+id;
+	public String response(String department, String id) {
+		return "type|response;department|"+department+";id|"+id;
 	}
 
-	
+
 	/** 
 	 * @param id of the terminal to which the information must be sent
 	 * @return String
@@ -78,7 +83,7 @@ public class Protocol implements Serializable {
 		return "type|accepted;id|"+id;
 	}
 
-	
+
 	/** 
 	 * @param id of the terminal to which the information must be sent
 	 * @param item_count
@@ -93,7 +98,7 @@ public class Protocol implements Serializable {
 		return result;
 	}
 
-	
+
 	/** 
 	 * @param message
 	 * @return Protocol
@@ -122,12 +127,7 @@ public class Protocol implements Serializable {
 						}
 						break;
 					case "department":
-						if (type.equals("request"))
-							department = token[1];
-						else {
-							System.out.println("Wrong format");
-							return null;
-						}
+						department = token[1];
 						break;
 					case "password":
 						if (type.equals("login"))
@@ -154,7 +154,7 @@ public class Protocol implements Serializable {
 						}
 						break;
 					case "candidate":
-						if (type.equals("vote"))
+						if (type.equals("vote") || type.equals("election"))
 							candidate = token[1];
 						else {
 							System.out.println("Wrong format");
@@ -162,7 +162,7 @@ public class Protocol implements Serializable {
 						}
 						break;
 					case "election":
-						if (type.equals("vote"))
+						if (type.equals("vote") || type.equals("election"))
 							election = token[1];
 						else {
 							System.out.println("Wrong format");
