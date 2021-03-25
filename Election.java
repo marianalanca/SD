@@ -20,6 +20,7 @@ public class Election implements Serializable {
       private Calendar beggDate;
       private Calendar endDate;
       private String title;
+      private String description;
       private List<Type> allowedVoters = new CopyOnWriteArrayList<>();
       private String department;
       private List<Candidates> candidatesList = new CopyOnWriteArrayList<>();
@@ -28,14 +29,13 @@ public class Election implements Serializable {
       private int whiteVote;
       private int nullVote;
       private State state;
-
-      
        
 
-      public Election(String title,Calendar beggDate,Calendar endDate,String department, List<Type> allowedVoters ){
+      public Election(String title, String description, Calendar beggDate,Calendar endDate,String department, List<Type> allowedVoters ){
             this.beggDate = beggDate;
             this.endDate = endDate;
             this.title =title;
+            this.description = description;
             this.department = department;
             this.allowedVoters = allowedVoters;
             whiteVote = 0;
@@ -89,6 +89,10 @@ public class Election implements Serializable {
       public void setState(State state) {
             this.state = state;
       }
+
+      public void setDescription(String description) {
+            this.description = description;
+      }      
 
       public Calendar getBeggDate() {
             return this.beggDate;

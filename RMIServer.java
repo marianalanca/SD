@@ -511,12 +511,12 @@ public class RMIServer extends UnicastRemoteObject implements RMIServer_I{
       }
 
       @Override
-      public boolean createElection(String title,Calendar beggDate,Calendar endDate,String department, List<Type> allowedVoters)  throws RemoteException{
+      public boolean createElection(String title, String description, Calendar beggDate,Calendar endDate,String department, List<Type> allowedVoters)  throws RemoteException{
             /**
              * Consola admin
              */
             if(searchElection(title) == null){
-                  Election election = new Election(title, beggDate, endDate, department, allowedVoters);
+                  Election election = new Election(title, description, beggDate, endDate, department, allowedVoters);
                   addElection(election);
                   writeElectionFile();
                   
