@@ -5,7 +5,7 @@ import java.util.concurrent.CopyOnWriteArrayList;
 public class Protocol implements Serializable {
 	public String type, id, department;
 	public List<String> item_name = new CopyOnWriteArrayList<String>();
-	public String username, password, logged, msg, candidate;
+	public String username, password, logged, msg, candidate, election;
 	public int item_count;
 
 	
@@ -35,11 +35,11 @@ public class Protocol implements Serializable {
 	 * @param candidate
 	 * @return String
 	 */
-	public String vote(String id, String username, String candidate) {
-		return "type|vote;id|"+id+"username|"+username+";candidate|"+candidate;
+	public String vote(String id, String username, String election, String candidate) {
+		return "type|vote;id|"+id+";username|"+username+";election|"+election+";candidate|"+candidate;
 	}
 
-	
+
 	/** 
 	 * @param id of the terminal to which the information must be sent
 	 * @param logged
@@ -87,10 +87,9 @@ public class Protocol implements Serializable {
 	 */
 	public String item_list(String id, int item_count, List<String> item_name) {
 		String result = "type|item_list;item_count|"+item_count;
-		for (int i=0;i<item_name.size()-1;i++){
-			result.concat(";item_"+i+"_name|"+item_name.get(i));
+		for (int i=0;i<item_name.size();i++){
+			result = result.concat(";item_"+i+"_name|"+item_name.get(i));
 		}
-		System.out.println(result);
 		return result;
 	}
 
@@ -114,8 +113,9 @@ public class Protocol implements Serializable {
 						id = token[1];
 						break;
 					case "username":
-						if (type.equals("login") || type.equals("vote"))
-							username = token[1];
+						if (type.equals("login") || type.equals("vote")){
+							//System.out.println("USERNAME: "+token[1]);
+							username = token[1];}
 						else {
 							System.out.println("Wrong format");
 							return null;
@@ -156,6 +156,14 @@ public class Protocol implements Serializable {
 					case "candidate":
 						if (type.equals("vote"))
 							candidate = token[1];
+						else {
+							System.out.println("Wrong format");
+							return null;
+						}
+						break;
+					case "election":
+						if (type.equals("vote"))
+							election = token[1];
 						else {
 							System.out.println("Wrong format");
 							return null;

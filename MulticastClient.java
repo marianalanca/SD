@@ -172,15 +172,15 @@ public class MulticastClient extends Thread {
                                                         socket.receive(packet);
                                                         protocol = new Protocol().parse(new String(packet.getData(), 0, packet.getLength()));
                                                     } while (protocol==null || (protocol!=null && protocol.id!=null && protocol.item_name!=null && !protocol.type.equals("item_list") && protocol.id.equals(data.ID)));
-                                                    
+
                                                     // fazer procura de eleição por departamento
                                                     // imprimir só se for do tipo certo
-                                                    System.out.println("ELECTION NAME");
+                                                    System.out.println("Select one of the candidates to vote:");
                                                     System.out.println("LIST OF CANDIDATES");
-                                                    for (String candidate: protocol.item_name){
-                                                        System.out.println(candidate);
+                                                    for (int i=0;i<protocol.item_count;i++){
+                                                        System.out.println("\t"+(i+1)+") "+ protocol.item_name.get(i)); // TO DO
                                                     }
-                                                    //System.out.println("White");
+                                                    System.out.println("\t"+(protocol.item_count+1)+") White");
     
                                                     boolean flag = true;
                                                     int selection = protocol.item_count; // white
@@ -190,30 +190,40 @@ public class MulticastClient extends Thread {
                                                             try {
                                                                 selection = Integer.valueOf(keyboardScanner.nextLine());
                                                             } catch (NumberFormatException e) {
-                                                                selection = protocol.item_count+1; // out of range -> pôr a 0
+                                                                selection = 0;
                                                             }
-                                                            if (selection <= protocol.item_count && selection >= 0) // change to > 0
+                                                            if (selection <= protocol.item_count+1 && selection > 0)
                                                                 flag = false;
+                                                            else System.out.print("The option you've chosen is not possible. ");
                                                         } catch (NoSuchElementException e) {}
                                                     } while(flag);
+                                                    String votedCantidate;
+                                                    if ( selection == protocol.item_count+1)
+                                                        votedCantidate = "White";
+                                                    else
+                                                        votedCantidate = protocol.item_name.get(selection-1);
 
                                                     // send vote to MultiCast Server
-                                                    buffer = (new Protocol().vote(data.ID, username, "election"/*protocol.item_name.get(selection-1)*/)).getBytes();
+                                                    buffer = (new Protocol().vote(data.ID, data.getUsername(), "STUDENTS", votedCantidate)).getBytes(); // TO DO
                                                     packet = new DatagramPacket(buffer, buffer.length, groupResult, data.getRESULT_PORT());
                                                     socketResult.send(packet);
 
+                                                    // não está a receber a mensagem?
+                                        
                                                     do {
                                                         buffer = new byte[256];
                                                         packet = new DatagramPacket(buffer, buffer.length);
                                                         socket.receive(packet);
                                                         protocol = new Protocol().parse(new String(packet.getData(), 0, packet.getLength()));
                                                     } while (protocol==null || (protocol!=null && protocol.id!=null && !protocol.type.equals("status") && !protocol.logged.equals("off") && protocol.id.equals(data.ID)));
-
+                                                    if (protocol.msg!=null) {
+                                                        System.out.println(protocol.msg);
+                                                    }
                                                 } else {
                                                     System.out.println("Wrong password");
                                                 }
                                             } else {
-                                                System.out.println("\nThe terminal has been block for inaction");
+                                                System.out.println("\nThe terminal has been blocked for inaction");
                                                 usernameFlag = false;
                                                 passwordFlag = false;
                                             }
