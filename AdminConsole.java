@@ -25,7 +25,7 @@ public class AdminConsole extends UnicastRemoteObject implements AdminConsole_I/
         System.out.println("\n1. Register people");                       //done
         System.out.println("2. Create elections");                        //done
         System.out.println("3. Manage candidate lists");                  //done - mas ver
-        System.out.println("4. Manage polling stations");                 //nop
+        System.out.println("4. Manage polling stations");                 //done - mas ver
         System.out.println("5. Change an election's properties");         //done
         System.out.println("6. Local voted each voter");                  //nop
         System.out.println("7. Show polling station status");             //nop
@@ -33,7 +33,7 @@ public class AdminConsole extends UnicastRemoteObject implements AdminConsole_I/
         System.out.println("9. See detailed results of past elections");  //done
         System.out.println("10. Early vote");                               //done
         System.out.println("11. Change personal data");                     //done
-        System.out.println("12. Manage members of each polling station");   //nop
+        System.out.println("12. Manage members of each polling station");   //done - mas ver
 
         options_menu();
     }
@@ -502,7 +502,85 @@ public class AdminConsole extends UnicastRemoteObject implements AdminConsole_I/
         }
     }
 
-    public void manage_tables(){}
+    public void manage_tables(){
+
+        try{
+
+            List<Election> elections;
+            MulticastServer table;
+            Election election;
+            int option;
+            String id;
+
+            elections = rmi.stateElections(State.WAITING, null);
+
+            System.out.println("Pick a election:");
+            for(int i =0; i < elections.size() ; i++){
+                System.out.println(i + ". " + elections.get(i));
+            }
+
+            option = check_number();
+
+            while(!(option >= 0 && option < elections.size())){
+                System.out.println ("Invalid option. Try again");
+                option = check_number();
+            }
+
+            election = elections.get(option);
+
+            System.out.println("1. Add table to election\n2. Remove table to election");
+            option = check_number();
+
+            while(option < 1 || option > 2){
+                System.out.print("Inavalid option. Try again: ");
+                option = check_number();
+            }
+
+            System.out.print("Insert table's id: ");
+            id = check_string();
+            table =  rmi.searchTable(id);
+
+            while(table == null){
+                System.out.print("Invalid id. Try again: ");
+                id = check_string();
+                table =  rmi.searchTable(id);
+            }
+
+            try{
+                if(option == 1){
+                    rmi.addTableElection(table, election);
+                    System.out.println("Sucess adding table ");
+                }
+                else{
+                    rmi.removeTableElection(table, election);
+                    System.out.println("Sucess removing table ");
+                }
+            }
+            catch(ConnectException e){
+                reconnet();
+                if(option == 1){
+                    rmi.addTableElection(table, election);
+                    System.out.println("Sucess adding table ");
+                }
+                else{
+                    rmi.removeTableElection(table, election);
+                    System.out.println("Sucess removing table ");
+                }
+            }
+            catch(Exception e){
+                System.out.println("Error adding/removing table: " + e);
+            }
+
+        }
+        catch(ConnectException e){
+            reconnet();
+            manage_list();
+        }
+        catch(Exception e){
+            System.out.println("Manage_tables: " + e);
+        }
+
+    }
 
     public void change_election(){
 
@@ -716,6 +794,13 @@ public class AdminConsole extends UnicastRemoteObject implements AdminConsole_I/
             cc_number = check_string();
 
             voter = rmi.searchVoterCc(cc_number);
+
+            while(voter == null){
+                System.out.print("Invalid voter's citizen card number. Try again: ");
+                cc_number = check_string();
+                voter = rmi.searchVoterCc(cc_number);
+            }
+
             new_voter = voter;
             
             System.out.println("1. Change name");
@@ -793,7 +878,104 @@ public class AdminConsole extends UnicastRemoteObject implements AdminConsole_I/
         
     }
 
-    public void manage_table_members(){}
+    public void manage_table_members(){ //tenho que rever proteções!!!
+
+        try{
+
+            MulticastServer table;
+            List<Voter> members;
+            Voter voter = null;
+            String id, cc_number;
+            int option, aux;
+
+            System.out.print("Insert table's id: ");
+            id = check_string();
+            table =  rmi.searchTable(id);
+
+            while(table == null){
+                System.out.print("Invalid id. Try again: ");
+                id = check_string();
+                table =  rmi.searchTable(id);
+            }
+
+            members = table.getTableMembers();
+
+            System.out.println("1. Add new member to table\n2. Remove member to table");
+            option = check_number();
+
+            while(option < 1 || option > 2){
+                System.out.print("Inavalid option. Try again: ");
+                option = check_number();
+            }
+
+            if(option == 1){
+                if(members.size() == 3){
+                    System.out.println("Error: the table is already full");
+                }
+                else{
+                    System.out.print("Insert voter's citizen card number: ");
+                    cc_number = check_string();
+                    voter = rmi.searchVoterCc(cc_number);
+
+                    while(voter == null && cc_number != "0"){
+                        System.out.print("Invalid voter's citizen card number. Try again: ");
+                        cc_number = check_string();
+                        voter = rmi.searchVoterCc(cc_number);
+                    }
+                }
+            }
+            else{
+                System.out.println("Pick the member: ");
+                for(int i =0; i< members.size(); i++){
+                    System.out.println(i + ". " + members.get(i).getUsername());
+                }
+
+                aux = check_number();
+
+                while(aux < 0 || aux > members.size() - 1 ){
+                    System.out.print("Invalid option. Try again: ");
+                    aux = check_number();
+                }
+
+                voter = members.get(aux);
+            }
+
+            try{
+                if(option == 1){
+                    rmi.addVoterTable(table, voter);
+                    System.out.println("Sucess adding member to table");
+                }
+                else{
+                    rmi.removeVoterTable(table, voter);
+                    System.out.println("Sucess removing member to table");
+                }
+            }
+            catch(ConnectException e){
+                reconnet();
+                if(option == 1){
+                    rmi.addVoterTable(table, voter);
+                    System.out.println("Sucess adding member to table");
+                }
+                else{
+                    rmi.removeVoterTable(table, voter);
+                    System.out.println("Sucess removing member to table");
+                }
+            }
+            catch(Exception e){
+                System.out.println("Error adding/removing table: " + e);
+            }
+
+        }
+        catch(ConnectException e){
+            reconnet();
+            manage_list();
+        }
+        catch(Exception e){
+            System.out.println("Manage_tables: " + e);
+        }
+
+
+    }
 
     
     public static void main(String args[]) {
