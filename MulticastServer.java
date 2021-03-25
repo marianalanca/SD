@@ -1,5 +1,6 @@
 // Existe um Multicast Server por cada mesa de voto que gerelocalmente os terminais de voto que lhe estão associados.  Permite aos membros da mesa realizar a funcionalidade 6 e realiza automaticamente a funcionalidade 5
 import java.util.List;
+import java.util.NoSuchElementException;
 import java.util.concurrent.CopyOnWriteArrayList;
 import java.net.*;
 import java.io.*;
@@ -7,6 +8,7 @@ import java.util.Scanner;
 import java.rmi.*;
 
 public class MulticastServer extends Thread implements Serializable {
+    private static final long serialVersionUID = 1L;
     Q_ok q;
     private String tableID;
     private List<Voter> tableMembers = new CopyOnWriteArrayList<Voter>();
@@ -26,85 +28,93 @@ public class MulticastServer extends Thread implements Serializable {
         MulticastPool pool = new MulticastPool(q);
         pool.start();
     }
-
     public MulticastServer(Q_ok q) {
         super();
         this.q = q;
     }
-
     public void run() {
         MulticastSocket socket = null;
         System.out.println("VOTING TABLE eVOTING "+q.getDepartment());
+        Scanner keyboardScanner = new Scanner(System.in);
         try {
 
             // connection with RMI
             q.RMI.loginMulticastServer(this);
-
-            Scanner keyboardScanner = new Scanner(System.in);
+            q.test();
 
             while (true) {
+                try {
+                    // receber por informações de novos eleitores a quererem autenticar-se
+                    int option;
+                    Voter voter;
+                        do {
+                        System.out.println("Autenticate by:\n1) Citizen Card\n2) Username ");
+                        try {
+                            option = Integer.valueOf(keyboardScanner.nextLine());
+                        } catch (NumberFormatException e) {
+                            option = 0; // out of range
+                        }
+                    } while (option !=1 && option != 2);
 
-                // receber por informações de novos eleitores a quererem autenticar-se
-                int option;
-                Voter voter;
-                do {
-                    System.out.println("Autenticate by:\n1) Citizen Card\n2) Username ");
-                    option = Integer.valueOf(keyboardScanner.nextLine());
-                } while (option ==1 && option == 2);
+                    // Autentication
+                    if (option==1) { // CC
+                        System.out.print("Insert CC: ");
+                        String readKeyboard = keyboardScanner.nextLine();
+                        voter = q.RMI.searchVoterCc(readKeyboard);
+                    } else {
+                        System.out.print("Insert Username: ");
+                        String readKeyboard = keyboardScanner.nextLine();
+                        voter = q.RMI.searchVoter(readKeyboard);
+                    }
 
-                // Autentication
-                if (option==1) { // CC
-                    System.out.print("Insert CC: ");
-                    String readKeyboard = keyboardScanner.nextLine();
-                    voter = q.RMI.searchVoterCc(readKeyboard);
-                } else {
-                    System.out.print("Insert Username: ");
-                    String readKeyboard = keyboardScanner.nextLine();
-                    voter = q.RMI.searchVoter(readKeyboard);
-                }
-
-                //Voter voter = q.RMI.searchVoterCc(readKeyboard);
-                voter = new Voter("test", "Info", "987654123","morada", "123456789",null,"pass", null);
-                if((voter!=null && voter.department.equals(q.getDepartment()))){
-                    // add to voting list
-                    q.addLogin(voter);
-                } else {
-                    System.out.println("Data inserted not valid");
+                    //Voter voter = q.RMI.searchVoterCc(readKeyboard);
+                    //voter = new Voter("test", "Info", "987654123","morada", "123456789",null,"pass", null);
+                    if((voter!=null && voter.department.equals(q.getDepartment()))){
+                        // add to voting list
+                        q.addLogin(voter);
+                    } else {
+                        System.out.println("Data inserted not valid");
+                    }
+                } catch (Exception e) { // não está a funcionar bem!
+                    //System.out.println("Not gonna live");
+                    // tentar conectar
+                    // q.RMI.get
+                    // 
                 }
             }
         } catch (Exception e) {
 			System.out.println("Exception in main: " + e);
 			e.printStackTrace();
         } finally {
-            socket.close();
+            keyboardScanner.close();
+            if (socket!=null)
+                socket.close();
         }
     }
-
     public String getTableID() {
         return tableID;
     }
-
     public void setTableID(String tableID) {
         this.tableID = tableID;
     }
-
     public List<Voter> getTableMembers() {
         return tableMembers;
     }
-
     public void addTableMembers(Voter voter) {
         tableMembers.add(voter);
     }
-
     public void removeTableMembers(Voter voter) {
         tableMembers.remove(voter);
     }
-
     public void setTableMembers(List<Voter> tableMembers) {
         this.tableMembers = tableMembers;
     }
 }
 class Q_ok implements Serializable{
+    /**
+     *
+     */
+    private static final long serialVersionUID = 1L;
     private String electionTitle;
     private String MULTICAST_ADDRESS = "224.0.224.0";
     private int PORT = 4321;  // Client Port
@@ -127,6 +137,35 @@ class Q_ok implements Serializable{
 			e.printStackTrace();
         }
     }
+    public void test() throws RemoteException{
+        RMI.createVoter("Maria", "Info", "123456789", "morada", "1234", null, "pass", Type.STUDENT);
+        RMI.createVoter("Pedro", "Info", "123456789", "morada", "4321", null, "pass", Type.STUDENT);
+        RMI.createVoter("Carlos", "Info", "123456789", "morada", "1357", null, "pass", Type.DOCENTE);
+        RMI.createVoter("Joao", "Info", "123456789", "morada", "2468", null, "pass", Type.FUNCIONARIO);
+
+        List<Voter> members = new CopyOnWriteArrayList<Voter>();
+
+        members.add(new Voter("Mauel", "Info", "123", "address", "2587", null, "pass", Type.STUDENT));
+
+        List<Type> electionType = new CopyOnWriteArrayList<>();
+        electionType.add(Type.STUDENT);
+        electionType.add(Type.DOCENTE);
+        RMI.createElection("STUDENTS","", null, null, "Info", electionType);
+        RMI.createCandidate(null, "Tino", "STUDENTS", Type.STUDENT);
+        RMI.createCandidate(null, "Octavio", "STUDENTS", Type.STUDENT);
+
+        electionType = new CopyOnWriteArrayList<>();
+        electionType.add(Type.DOCENTE);
+        RMI.createElection("DOCENTES","", null, null, "Info", electionType);
+        RMI.createCandidate(null, "Antonio", "DOCENTES", Type.DOCENTE);
+
+        electionType = new CopyOnWriteArrayList<>();
+        electionType.add(Type.FUNCIONARIO);
+        RMI.createElection("FUNCIONARIOS","", null, null, "Info", electionType);
+        //RMI.createCandidate(null, "Vio", "FUNCIONARIOS", Type.FUNCIONARIO);
+
+
+    }
     public int getPORT() {
         return PORT;
     }
@@ -144,10 +183,6 @@ class Q_ok implements Serializable{
     }
     public void addLogin(Voter voter) {
         login.add(voter);
-        System.out.println("ADDED: "+voting.size());
-        for(Voter vote : voting) {
-            System.out.println(vote.username);
-        }
     }
     public void removeVoting(String username) {
         // search for cc
@@ -164,10 +199,10 @@ class Q_ok implements Serializable{
         return MULTICAST_ADDRESS;
     }
     void findTerminal(MulticastSocket socket, InetAddress group) {
-        //
         if (login.size()!=0) {
-            System.out.print("LOGIN.SIZE() "+login.size());
             try {
+                System.out.println(login.size());
+                socket.setSoTimeout(1000); // in case it didn't receive a response in a second, 
                 Voter voter = login.get(0);
                 byte[] buffer = (new Protocol().request(department)).getBytes();
                 DatagramPacket packet = new DatagramPacket(buffer, buffer.length, group, PORT);
@@ -185,12 +220,13 @@ class Q_ok implements Serializable{
                         ID = protocol.id;
                     }
                 } while (flag);
-                socket.setSoTimeout(TIMEOUT);
 
                 // sends accepted
                 buffer = (new Protocol().accepted(ID)).getBytes();
                 packet = new DatagramPacket(buffer, buffer.length, group, PORT);
                 socket.send(packet);
+
+                socket.setSoTimeout(TIMEOUT);
 
                 // send voter data to terminal
                 buffer = new Protocol().login(ID, voter.username, voter.getPassword()).getBytes();
@@ -210,15 +246,37 @@ class Q_ok implements Serializable{
 
                 // sends candidates list
                 // fazer verificação do role com o candidate para só apresentar o que se quer
-                //RMI.searchElection("title");
-                buffer = new Protocol().item_list(ID, 0, new CopyOnWriteArrayList<String>()).getBytes();
+                List<String> candidates = new CopyOnWriteArrayList<String>();
+                /*for (Election election: RMI.searchElectionbyDepRole(department, voter.getType())) {
+                    System.out.println(election.getTitle());
+                    for (Candidates candidate: election.getCandidatesList()) {
+                        System.out.println("\t"+candidate.getName() + '\t'+ election.getTitle());
+                    }
+                }*/
+
+                // adds candidates in a list to send to client
+                for (Election election: RMI.searchElectionbyDepRole(department, voter.getType())) {
+                    //System.out.println(election.getTitle());
+                    for (Candidates candidate: election.getCandidatesList()) {
+                        //System.out.println("\t"+candidate.getName() + '\t'+ election.getTitle());
+                        //if (candidate.getType().equals(voter.getType()))
+                            candidates.add(candidate.getName());
+                            System.out.println("DEBUG: "+candidate.getName());
+                    }
+                }
+
+                System.out.println(candidates.size());
+                for (String name: candidates){
+                    System.out.println("NAME: "+name);
+                }
+                // send candidates information
+                buffer = new Protocol().item_list(ID, candidates.size(), candidates).getBytes();
                 packet = new DatagramPacket(buffer, buffer.length, group, PORT);
                 socket.send(packet);
 
                 login.remove(0);
 
             } catch (SocketTimeoutException e) {
-                System.out.println("Terminal has been idle for too long");
             } catch (IOException e) {
                 e.printStackTrace();
             } catch (Exception e) {
@@ -235,7 +293,6 @@ class Multicast extends Thread implements Serializable {
     public Multicast(Q_ok q) {
         this.q = q;
     }
-
     public void run() {
         MulticastSocket socket = null;
         MulticastSocket socketACK = null;
@@ -277,13 +334,16 @@ class Multicast extends Thread implements Serializable {
 }
 // contacts with threads when needed
 class MulticastPool extends Thread implements Serializable {
+    /**
+     *
+     */
+    private static final long serialVersionUID = 1L;
     Q_ok q;
 
     public MulticastPool(Q_ok q) {
         super();
         this.q = q;
     }
-
     // requests new terminals
     public void run() {
         MulticastSocket socket = null;

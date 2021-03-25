@@ -134,10 +134,23 @@ public class RMIServer extends UnicastRemoteObject implements RMIServer_I{
             for(Election election: elections){
                   if(election.getTitle().equals(title)){
                         return election;
-                        
                   }
             }
             return null;
+      }
+      @Override
+      public List<Election> searchElectionbyDepRole(String department, Type role) throws RemoteException{
+            /**
+             * Searches the Election by the Department and Role it was given
+             * returns null if it hasn't been found
+             */
+            List<Election> res = new CopyOnWriteArrayList<>();
+            for(Election election: elections){
+                  if(election.getDepartment().equals(department) && election.getAllowedVoters().contains(role)){
+                        res.add(election);
+                  }
+            }
+            return res;
       }
       @Override
       public boolean addTableElection(MulticastServer table, Election election)throws RemoteException{
