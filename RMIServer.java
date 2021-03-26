@@ -28,7 +28,6 @@ import java.util.Scanner;
 import java.util.UUID;
 import java.util.concurrent.CopyOnWriteArrayList;
 
-import org.graalvm.compiler.lir.sparc.SPARCArithmetic.MulHighOp.MulHigh;
 
 /*Por os restantes objects que podem ser passados */ 
 public class RMIServer extends UnicastRemoteObject implements RMIServer_I{
@@ -95,7 +94,8 @@ public class RMIServer extends UnicastRemoteObject implements RMIServer_I{
                   writeMulticastServerFile();
             }
             if(!onServers.contains(multicastServer)){
-                  for (MulticastServer serv : servers) {
+                  for (int i = 0; i < onServers.size();i++) {
+                        MulticastServer serv = onServers.get(i);
                         if(serv.q.getDepartment().equals(multicastServer.q.getDepartment())){
                               return serv;
                         }
