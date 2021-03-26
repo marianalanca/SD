@@ -28,6 +28,8 @@ import java.util.Scanner;
 import java.util.UUID;
 import java.util.concurrent.CopyOnWriteArrayList;
 
+import org.graalvm.compiler.lir.sparc.SPARCArithmetic.MulHighOp.MulHigh;
+
 /*Por os restantes objects que podem ser passados */ 
 public class RMIServer extends UnicastRemoteObject implements RMIServer_I{
       /**
@@ -82,7 +84,7 @@ public class RMIServer extends UnicastRemoteObject implements RMIServer_I{
       }
 
       @Override
-      public synchronized void loginMulticastServer(MulticastServer multicastServer) throws RemoteException{
+      public synchronized MulticastServer loginMulticastServer(MulticastServer multicastServer) throws RemoteException{
             /**
              * Login the MulticastServer(Table)
              */
@@ -93,7 +95,15 @@ public class RMIServer extends UnicastRemoteObject implements RMIServer_I{
                   writeMulticastServerFile();
             }
             if(!onServers.contains(multicastServer)){
+                  for (MulticastServer serv : servers) {
+                        if(serv.q.getDepartment().equals(multicastServer.q.getDepartment())){
+                              return serv;
+                        }
+                  }
                   onServers.add(multicastServer);
+                  return null;
+            }else{
+                  return multicastServer;
             }
             
       }
@@ -193,6 +203,7 @@ public class RMIServer extends UnicastRemoteObject implements RMIServer_I{
             }
             return false;
       }
+
       @Override
       public synchronized MulticastServer searchTable(String id) throws RemoteException{
             /**
@@ -764,6 +775,7 @@ public class RMIServer extends UnicastRemoteObject implements RMIServer_I{
                   } catch (InterruptedException e) {
                         // TODO Auto-generated catch block
                         e.printStackTrace();
+                        Thread.currentThread().interrupt();
                   }finally{
                         if(aSocket != null){
                               aSocket.close();

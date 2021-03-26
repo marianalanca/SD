@@ -91,7 +91,7 @@ public class MulticastServer extends Thread implements Serializable {
     public String getTableID() {
         return tableID;
     }
-    public void setTableID(String tableID) {
+    public void setTableID(String tableID){
         this.tableID = tableID;
     }
     public List<Voter> getTableMembers() {
