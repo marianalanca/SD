@@ -68,7 +68,10 @@ public class RMIServer extends UnicastRemoteObject implements RMIServer_I{
       public List<MulticastServer> getOnServers() throws RemoteException {
             return onServers;
       }
-
+      @Override
+      public List<MulticastServer> getServers() throws RemoteException {
+            return servers;
+      }
       @Override
       public void loginAdmin(AdminConsole admin) throws RemoteException{
             /**
