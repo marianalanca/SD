@@ -39,22 +39,8 @@ public class MulticastServer extends Thread implements Serializable {
         System.out.println("VOTING TABLE eVOTING "+q.getDepartment());
         Scanner keyboardScanner = new Scanner(System.in);
         try {
-            // connection with RMI
-            // procurar se existe!
-            List<MulticastServer> servers = q.RMI.getOnServers();
-            for (MulticastServer server: servers) {
-                if (server.q.getDepartment().equals(q.getDepartment())){
-                    
-                }
-            }
-            /*if (server!=null){
-                System.out.println("I exist");
-                q = server.q;
-                setTableID(server.getTableID());
-                setTableMembers(server.getTableMembers());
-            } else {*/
-                q.RMI.loginMulticastServer(this);
-            //}
+            login();
+            System.out.println(getId());
 
             q.test(this);
             while (true) {
@@ -156,6 +142,25 @@ public class MulticastServer extends Thread implements Serializable {
         }
         catch(Exception e){
             System.out.println("reconnect and I are not friends :) " + e);
+        }
+    }
+    public MulticastServer searchServer() throws RemoteException{
+        List<MulticastServer> servers = q.RMI.getOnServers();
+            for (MulticastServer server: servers) {
+                if (server.q.getDepartment().equals(q.getDepartment())){
+                    return server;
+                }
+            }
+            return null;
+    }
+    public void login() throws RemoteException{
+        MulticastServer server = searchServer();
+        if (server==null) { // it does not exist
+            q.RMI.loginMulticastServer(this);
+        } else {
+            q = server.q;
+            setTableID(server.getTableID());
+            setTableMembers(server.getTableMembers());
         }
     }
 }
