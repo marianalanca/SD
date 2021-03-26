@@ -194,6 +194,7 @@ public class RMIServer extends UnicastRemoteObject implements RMIServer_I{
              * It searches the table by its unique id
              * returns null if nothing has been found
              */
+
             for(MulticastServer server: servers){
                   if(server.getTableID().equals(id)){
                         return server;
@@ -208,11 +209,18 @@ public class RMIServer extends UnicastRemoteObject implements RMIServer_I{
              * It searches the table by its department
              * returns null if nothing has been found
              */
-            for(MulticastServer server: servers){
+            Iterator<MulticastServer> it = servers.iterator();
+            while (it.hasNext()) {
+                  MulticastServer server = it.next();
                   if(server.q.getDepartment().equals(department)){
                         return server;
                   }
             }
+            /*for(MulticastServer server: servers){
+                  if(server.q.getDepartment().equals(department)){
+                        return server;
+                  }
+            }*/
             return null;
       }
       @Override
