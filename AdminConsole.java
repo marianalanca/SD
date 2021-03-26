@@ -16,11 +16,19 @@ public class AdminConsole extends UnicastRemoteObject implements AdminConsole_I/
     RMIServer_I rmi;
     Scanner myObj  = new Scanner(System.in);
 
+    /**
+     * Constructor AdminConsole
+     * @param rmi interface RMIServer
+     * @throws RemoteException
+     */
     private AdminConsole(RMIServer_I rmi) throws RemoteException {
         super();
         this.rmi = rmi;
     }
 
+    /**
+     * prints all the features available on the administration console
+     */
     public void menu(){
         System.out.println("\n1. Register people");                       //done
         System.out.println("2. Create elections");                        //done
@@ -38,6 +46,9 @@ public class AdminConsole extends UnicastRemoteObject implements AdminConsole_I/
         options_menu();
     }
 
+    /**
+     * handles all the features available in the administration console
+     */
     public void options_menu(){
 
         int option = check_number();
@@ -90,6 +101,10 @@ public class AdminConsole extends UnicastRemoteObject implements AdminConsole_I/
         
     }
 
+    /**
+     * Reads a string and evaluates the content of it is correct (doesn't contain ; or |)
+     * @return the string read without errors
+     */
     private String check_string(){
 
         String s;
@@ -104,6 +119,10 @@ public class AdminConsole extends UnicastRemoteObject implements AdminConsole_I/
         return s;
     }
 
+    /**
+     * Reads a string and evaluates if the given role in the string is valid
+     * @return the correct role Type
+     */
     private Type check_role(){
 
         String s;
@@ -128,6 +147,10 @@ public class AdminConsole extends UnicastRemoteObject implements AdminConsole_I/
 
     }
 
+    /**
+     * Reads a string, parse it into a int and evaluates if the given hour is correct
+     * @return the hour
+     */
     private int check_hour(){
   
         int h = check_number();
@@ -141,11 +164,15 @@ public class AdminConsole extends UnicastRemoteObject implements AdminConsole_I/
 
     }
 
+    /**
+     * Reads a string, parse it into a int and evaluates if the given minute is correct
+     * @return the minute
+     */
     private int check_minutes(){
 
         int m = check_number();
 
-        while(m < 0 || m > 60){
+        while(m < 0 || m > 59){
             System.out.println("Invalid minutes. Try again");
             m = check_number();
         }
@@ -154,6 +181,10 @@ public class AdminConsole extends UnicastRemoteObject implements AdminConsole_I/
 
     }
 
+    /**
+     * Reads a string, parse it into a integer and returns it
+     * @return an integer number
+     */
     private int check_number(){
         String aux;
         int n;
@@ -170,6 +201,11 @@ public class AdminConsole extends UnicastRemoteObject implements AdminConsole_I/
         }while(true);
     }
 
+    /**
+     * Reads a date and retuns it in the Calendar format
+     * @param i an integer that if i==1 we can specify hour and minutes
+     * @return Calendar dete
+     */
     private Calendar date(int i){
 
         int day, month, year;
@@ -194,6 +230,9 @@ public class AdminConsole extends UnicastRemoteObject implements AdminConsole_I/
 
     }
 
+    /**
+     * Recursive method that will try to recover the connetion with the rmi server when it fails
+     */
     public void reconnect(){
         try{
             rmi = (RMIServer_I) Naming.lookup("rmi://localhost:5001/RMIServer");
@@ -206,6 +245,11 @@ public class AdminConsole extends UnicastRemoteObject implements AdminConsole_I/
         }
     }
 
+    /**
+     * Register a new voter.
+     * All the information needed to create the new voter is read and treated. 
+     * This information will be passed to the rmi server.
+     */
     public void register_voter(){
 
         String name, department, contact, address, cc_number, password;
@@ -255,6 +299,11 @@ public class AdminConsole extends UnicastRemoteObject implements AdminConsole_I/
         } 
     }
 
+    /**
+     * Create a new election.
+     * All the information needed to create the new election is read and treated. 
+     * This information will be passed to the rmi server.
+     */
     public void create_election(){
 
         Calendar dateB = Calendar.getInstance(), dateE = Calendar.getInstance();
@@ -326,9 +375,9 @@ public class AdminConsole extends UnicastRemoteObject implements AdminConsole_I/
     }
 
     /**
-     * prints all the lists in a election
-     * @param c list of candidates
-     * @return number of candidates
+     * Prints all the lists in a election
+     * @param c a list of candidates
+     * @return a integer that correspond to the number of candidates in that election
      */
     private int printListInElection(List<Candidates> c){
 
@@ -342,6 +391,10 @@ public class AdminConsole extends UnicastRemoteObject implements AdminConsole_I/
         return size;
     }
 
+    /**
+     * prints all the available elections
+     * @param elections a list of elections
+     */
     private void printElection(List<Election> elections){
 
         System.out.println("Pick a election:");
@@ -351,6 +404,14 @@ public class AdminConsole extends UnicastRemoteObject implements AdminConsole_I/
 
     }
 
+    /**
+     * Allows you to change the properties of the lists of an election:
+     *  - Create a new list
+     *  - Delete a existing list
+     *  - Insert a candidate in a list
+     *  - Delete a candidate in a list
+     * All changes are passed to the rmi server
+     */
     public void manage_list(){ //REVER 3 e 4 - repetitivo?????
 
         try{
@@ -377,10 +438,8 @@ public class AdminConsole extends UnicastRemoteObject implements AdminConsole_I/
 
             election = elections.get(option);
 
-            System.out.println ("1. Create a new list");
-            System.out.println ("2. Delete a existing list"); 
-            System.out.println ("3. Insert a candidate in a list");   
-            System.out.println ("4. Delete a candidate in a list");         
+            System.out.println ("1. Create a new list\n2. Delete a existing list"); 
+            System.out.println ("3. Insert a candidate in a list\n4. Delete a candidate in a list");         
             
             option = check_number();
 
@@ -508,6 +567,12 @@ public class AdminConsole extends UnicastRemoteObject implements AdminConsole_I/
         }
     }
 
+    /**
+     * Allows you to change the tables of an election:
+     *  - Add table to election
+     *  - Remove table to election
+     * All changes are passed to the rmi server
+     */
     public void manage_tables(){
 
         try{
@@ -584,6 +649,10 @@ public class AdminConsole extends UnicastRemoteObject implements AdminConsole_I/
 
     }
 
+    /**
+     * Allows you to change the properties of an election
+     * All changes are passed to the rmi server
+     */
     public void change_election(){
 
         try{
@@ -665,6 +734,9 @@ public class AdminConsole extends UnicastRemoteObject implements AdminConsole_I/
         }
     }
 
+    /**
+     * Allows to know at which polling station and at what time each voter voted.
+     */
     public void see_voters_local(){
 
         try{
@@ -707,6 +779,9 @@ public class AdminConsole extends UnicastRemoteObject implements AdminConsole_I/
 
     public void voters_real_time(){}
 
+    /**
+     * Allows to see the results of a past election.
+     */
     public void see_results(){
 
         try{
@@ -740,6 +815,9 @@ public class AdminConsole extends UnicastRemoteObject implements AdminConsole_I/
         }        
     }
 
+    /**
+     * Allows a voter to be able to vote in a election, before the official start date and time through the administration console.
+     */
     public void early_vote(){
         try{
 
@@ -806,6 +884,10 @@ public class AdminConsole extends UnicastRemoteObject implements AdminConsole_I/
 
     } 
 
+    /**
+     * Allows you to change the properties of a voter
+     * All changes are passed to the rmi server
+     */
     public void change_voter_data(){
 
         try{
@@ -902,6 +984,12 @@ public class AdminConsole extends UnicastRemoteObject implements AdminConsole_I/
         
     }
 
+    /**
+     * Allows you to change the tables of an election:
+     *  - Add new member to a table
+     *  - Remove a member of a table
+     * All changes are passed to the rmi server
+     */
     public void manage_table_members(){ //tenho que rever proteções!!!
 
         try{
