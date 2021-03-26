@@ -33,7 +33,6 @@ public class Protocol implements Serializable {
 		return "type|request;department|"+department;
 	}
 
-	
 	/** 
 	 * @param id of the terminal to which the information must be sent
 	 * @param username
@@ -98,6 +97,14 @@ public class Protocol implements Serializable {
 		return result;
 	}
 
+	/** 
+	 * @param id of the terminal to which the information must be sent
+	 * @param department
+	 * @return String
+	 */
+	public String crashed(String id, String department, String username) {
+		return "type|crashed;id|"+id+";department|"+department+";username|"+username;
+	}
 
 	/** 
 	 * @param message
@@ -118,8 +125,7 @@ public class Protocol implements Serializable {
 						id = token[1];
 						break;
 					case "username":
-						if (type.equals("login") || type.equals("vote")){
-							//System.out.println("USERNAME: "+token[1]);
+						if (type.equals("login") || type.equals("vote") || type.equals("crashed")){
 							username = token[1];}
 						else {
 							System.out.println("Wrong format");
