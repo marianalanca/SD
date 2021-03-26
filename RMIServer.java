@@ -203,6 +203,19 @@ public class RMIServer extends UnicastRemoteObject implements RMIServer_I{
             return null;
       }
       @Override
+      public MulticastServer searchTableDept(String department) throws RemoteException{
+            /**
+             * It searches the table by its department
+             * returns null if nothing has been found
+             */
+            for(MulticastServer server: servers){
+                  if(server.q.getDepartment().equals(department)){
+                        return server;
+                  }
+            }
+            return null;
+      }
+      @Override
       public boolean addVoterTable(MulticastServer table, Voter member)  throws RemoteException{
             /**
              * Does a callback with the table to add a member to it
