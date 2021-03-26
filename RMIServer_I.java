@@ -47,4 +47,5 @@ public interface RMIServer_I extends Remote {
       public void logoutMulticastServer(MulticastServer multicastServer) throws RemoteException;
       public List<Election> stateElections(State state, Type type) throws RemoteException;
       public List<Election> tablesElections(MulticastServer table) throws RemoteException;
+      public List<MulticastServer> getOnServers() throws RemoteException;
 }

@@ -44,6 +44,7 @@ public class RMIServer extends UnicastRemoteObject implements RMIServer_I{
       private List<Election> elections = new CopyOnWriteArrayList<>();
       private List<AdminConsole> admins = new CopyOnWriteArrayList<>();
       private List<MulticastServer> servers = new CopyOnWriteArrayList<>();
+      private List<MulticastServer> onServers = new CopyOnWriteArrayList<>();
       private static int port = 6789;
       private static String electionFile;
       private static String voterFile;
@@ -63,8 +64,10 @@ public class RMIServer extends UnicastRemoteObject implements RMIServer_I{
             return null;
       }
 
-
-
+      @Override
+      public List<MulticastServer> getOnServers() throws RemoteException {
+            return onServers;
+      }
 
       @Override
       public void loginAdmin(AdminConsole admin) throws RemoteException{
@@ -81,23 +84,22 @@ public class RMIServer extends UnicastRemoteObject implements RMIServer_I{
              * Login the MulticastServer(Table)
              */
             System.out.println("Multicast Server logged in");
-            multicastServer.setTableID(UUID.randomUUID().toString());
-            servers.add(multicastServer);
-            writeMulticastServerFile();
+            if(!servers.contains(multicastServer)){
+                  multicastServer.setTableID(UUID.randomUUID().toString());
+                  servers.add(multicastServer);
+                  writeMulticastServerFile();
+            }
+            if(!onServers.contains(multicastServer)){
+                  onServers.add(multicastServer);
+            }
+            
       }
       @Override
       public void logoutMulticastServer(MulticastServer multicastServer) throws RemoteException{
             /**
              * Logout the MulticastServer(Table)
              */
-            servers.remove(multicastServer);
-            for (Election election : elections) {
-                  if(election.getTables().contains(multicastServer)){
-                        election.getTables().remove(multicastServer);
-                  }
-            }
-            writeElectionFile();
-            writeMulticastServerFile();
+            onServers.remove(multicastServer);
       }
       @Override
       public List<Election> stateElections(State state, Type type) throws RemoteException{
@@ -603,12 +605,26 @@ public class RMIServer extends UnicastRemoteObject implements RMIServer_I{
             }
             return false;
       }
+
+      /**
+       * @params all the infor 
+       * 
+       */
       @Override
       public boolean createCandidate(List<Voter> members, String name,String title,Type type) throws RemoteException{
             Candidates candidates = new Candidates(members, name,type);
             return addCandidate(title, candidates);
       }
 
+
+      /**
+       * @param1 original info Election
+       * @param2 new info Election
+       * 
+       * switches to the new election info
+       * 
+       * @return boolean if it was possible to switch
+       */
       @Override
       public boolean switchElection(Election oriElection, Election newInfo) throws RemoteException{
             if(elections.contains(oriElection)){
@@ -626,6 +642,14 @@ public class RMIServer extends UnicastRemoteObject implements RMIServer_I{
             return true;
       }
 
+      /**
+       * @param1 original info Voter
+       * @param2 new info Voter
+       * 
+       * Switches to the new User info
+       * 
+       * @return boolean if it was possible to switch
+       */
       @Override
       public boolean switchUser(Voter oriVoter, Voter newInfo) throws RemoteException{
             if(voterList.contains(oriVoter)){
@@ -644,10 +668,12 @@ public class RMIServer extends UnicastRemoteObject implements RMIServer_I{
 
       }
 
+      /**
+       * Read the config file if it doesnt exist it will go to the default values
+       * 
+       */
       public static void readConfig(){
-            /**
-             * Read the config file if it doesnt exist it will go to the default values
-             */
+            
             try {
                   File myObj = new File("config.txt");
                   Scanner myRScanner = new Scanner(myObj);
