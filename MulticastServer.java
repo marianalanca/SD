@@ -9,7 +9,7 @@ import java.rmi.ConnectException;
 
 public class MulticastServer extends Thread implements Serializable {
     private static final long serialVersionUID = 1L;
-    Q_ok q;
+    private Q_ok q;
     private String tableID;
     private List<Voter> tableMembers = new CopyOnWriteArrayList<Voter>();
 
@@ -40,7 +40,6 @@ public class MulticastServer extends Thread implements Serializable {
         Scanner keyboardScanner = new Scanner(System.in);
         try {
             login();
-            System.out.println(getId());
 
             q.test(this);
             while (true) {
@@ -132,6 +131,9 @@ public class MulticastServer extends Thread implements Serializable {
     public void setTableMembers(List<Voter> tableMembers) throws RemoteException{
         this.tableMembers = tableMembers;
     }
+    public void setQ(Q_ok q) {
+        this.q = q;
+    }
     public void reconnect(){
         try{
             q.RMI = (RMIServer_I) Naming.lookup("rmi://localhost:5001/RMIServer");
@@ -158,7 +160,7 @@ public class MulticastServer extends Thread implements Serializable {
         if (server==null) { // it does not exist
             q.RMI.loginMulticastServer(this);
         } else {
-            q = server.q;
+            setQ(server.getQ());
             setTableID(server.getTableID());
             setTableMembers(server.getTableMembers());
         }
