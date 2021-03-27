@@ -269,6 +269,7 @@ public class MulticastClient extends Thread {
                     }
                 }
             } catch (Exception e) {
+                e.printStackTrace();
                 try {
                     buffer = (new Protocol().crashed(data.ID, data.getDepartment(),data.getUsername())).getBytes(); // TO DO
                     packet = new DatagramPacket(buffer, buffer.length, group, data.getPORT());

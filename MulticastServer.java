@@ -156,10 +156,8 @@ public class MulticastServer extends Thread implements Serializable {
             return null;
     }
     public void login() throws RemoteException{
-        MulticastServer server = searchServer();
-        if (server==null) { // it does not exist
-            q.RMI.loginMulticastServer(this);
-        } else {
+        MulticastServer server = q.RMI.loginMulticastServer(this);
+        if (server!=null) {
             setQ(server.getQ());
             setTableID(server.getTableID());
             setTableMembers(server.getTableMembers());
