@@ -9,7 +9,7 @@ import java.rmi.ConnectException;
 
 public class MulticastServer extends Thread implements Serializable {
     private static final long serialVersionUID = 1L;
-    Q_ok q;
+    private Q_ok q;
     private String tableID;
     private List<Voter> tableMembers = new CopyOnWriteArrayList<Voter>();
 
@@ -39,22 +39,7 @@ public class MulticastServer extends Thread implements Serializable {
         System.out.println("VOTING TABLE eVOTING "+q.getDepartment());
         Scanner keyboardScanner = new Scanner(System.in);
         try {
-            // connection with RMI
-            // procurar se existe!
-            List<MulticastServer> servers = q.RMI.getOnServers();
-            for (MulticastServer server: servers) {
-                if (server.q.getDepartment().equals(q.getDepartment())){
-                    
-                }
-            }
-            /*if (server!=null){
-                System.out.println("I exist");
-                q = server.q;
-                setTableID(server.getTableID());
-                setTableMembers(server.getTableMembers());
-            } else {*/
-                q.RMI.loginMulticastServer(this);
-            //}
+            login();
 
             q.test(this);
             while (true) {
@@ -146,6 +131,9 @@ public class MulticastServer extends Thread implements Serializable {
     public void setTableMembers(List<Voter> tableMembers) throws RemoteException{
         this.tableMembers = tableMembers;
     }
+    public void setQ(Q_ok q) {
+        this.q = q;
+    }
     public void reconnect(){
         try{
             q.RMI = (RMIServer_I) Naming.lookup("rmi://localhost:5001/RMIServer");
@@ -156,6 +144,25 @@ public class MulticastServer extends Thread implements Serializable {
         }
         catch(Exception e){
             System.out.println("reconnect and I are not friends :) " + e);
+        }
+    }
+    public MulticastServer searchServer() throws RemoteException{
+        List<MulticastServer> servers = q.RMI.getOnServers();
+            for (MulticastServer server: servers) {
+                if (server.q.getDepartment().equals(q.getDepartment())){
+                    return server;
+                }
+            }
+            return null;
+    }
+    public void login() throws RemoteException{
+        MulticastServer server = searchServer();
+        if (server==null) { // it does not exist
+            q.RMI.loginMulticastServer(this);
+        } else {
+            setQ(server.getQ());
+            setTableID(server.getTableID());
+            setTableMembers(server.getTableMembers());
         }
     }
 }

@@ -7,8 +7,20 @@ public class Protocol implements Serializable {
 	public List<String> item_name = new CopyOnWriteArrayList<String>();
 	public String username, password, logged, msg, candidate, election;
 	public int item_count;
+	public List<String> types = new CopyOnWriteArrayList<String>(){{
+		add("type");
+		add("id");
+		add("department");
+		add("item_name");
+		add("username");
+		add("password");
+		add("logged");
+		add("msg");
+		add("candidate");
+		add("election");
+		add("item_count");
+		  }};
 
-	
 	/**
 	 * @param id of the terminal to which the information must be sent
 	 * @param username 
@@ -19,13 +31,11 @@ public class Protocol implements Serializable {
 		return "type|login;id|"+id+";username|"+username+";password|"+password;
 	}
 
-
 	public String election(String id, String department, String election) {
 		return "type|election;id|"+id+";department|"+department+";election|"+election;
 	}
 
-
-	/** 
+	/**
 	 * @param department
 	 * @return String
 	 */
@@ -33,7 +43,7 @@ public class Protocol implements Serializable {
 		return "type|request;department|"+department;
 	}
 
-	/** 
+	/**
 	 * @param id of the terminal to which the information must be sent
 	 * @param username
 	 * @param candidate
@@ -42,7 +52,6 @@ public class Protocol implements Serializable {
 	public String vote(String id, String department, String username, String election, String candidate) {
 		return "type|vote;id|"+id+";department|"+department+";username|"+username+";election|"+election+";candidate|"+candidate;
 	}
-
 
 	/** 
 	 * @param id of the terminal to which the information must be sent
@@ -54,7 +63,6 @@ public class Protocol implements Serializable {
 		return "type|status;id|"+id+";department|"+department+";logged|"+logged+";msg|"+msg;
 	}
 
-
 	/** 
 	 * @param id of the terminal to which the information must be sent
 	 * @param logged
@@ -64,7 +72,6 @@ public class Protocol implements Serializable {
 		return "type|status;id|"+id+";department|"+department+";logged|"+logged;
 	}
 
-
 	/** 
 	 * @param id of the terminal to which the information must be sent
 	 * @return String
@@ -73,7 +80,6 @@ public class Protocol implements Serializable {
 		return "type|response;department|"+department+";id|"+id;
 	}
 
-
 	/** 
 	 * @param id of the terminal to which the information must be sent
 	 * @return String
@@ -81,7 +87,6 @@ public class Protocol implements Serializable {
 	public String accepted(String id) {
 		return "type|accepted;id|"+id;
 	}
-
 
 	/** 
 	 * @param id of the terminal to which the information must be sent
@@ -106,7 +111,7 @@ public class Protocol implements Serializable {
 		return "type|crashed;id|"+id+";department|"+department+";username|"+username;
 	}
 
-	/** 
+	/**
 	 * @param message
 	 * @return Protocol
 	 */
@@ -119,9 +124,11 @@ public class Protocol implements Serializable {
 			try {
 				switch(token[0]) {
 					case "type":
-						type = token[1];
+						if (types.contains(token[1]))
+							type = token[1];
 						break;
 					case "id":
+						if (type!=null && (type.equals("login") || type.equals("election")  || type.equals("vote") || type.equals("status") || type.equals("response")  || type.equals("accepted") || type.equals("item_list") || type.equals("crashed")))
 						id = token[1];
 						break;
 					case "username":
@@ -133,7 +140,8 @@ public class Protocol implements Serializable {
 						}
 						break;
 					case "department":
-						department = token[1];
+						if (type!=null && (type.equals("request") || type.equals("election")  || type.equals("vote") || type.equals("status") || type.equals("response")  || type.equals("crashed")))
+							department = token[1];
 						break;
 					case "password":
 						if (type.equals("login"))
@@ -160,7 +168,7 @@ public class Protocol implements Serializable {
 						}
 						break;
 					case "candidate":
-						if (type.equals("vote") || type.equals("election"))
+						if (type.equals("vote"))
 							candidate = token[1];
 						else {
 							System.out.println("Wrong format");
@@ -176,8 +184,13 @@ public class Protocol implements Serializable {
 						}
 						break;
 					case "item_count":
-						try {item_count = Integer.parseInt(token[1]);}
-						catch (NumberFormatException e) { System.out.println(e); }
+						if (type.equals("item_list"))
+							try {item_count = Integer.parseInt(token[1]);}
+							catch (NumberFormatException e) { System.out.println(e); }
+						else {
+							System.out.println("Wrong format");
+							return null;
+						}
 						break;
 					default:
 						if (type.equals("item_list"))
