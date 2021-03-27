@@ -44,6 +44,8 @@ public class Election implements Serializable {
             new Thread(new Runnable(){
                   @Override
                   public void run(){
+                        try {
+                              
                         
                         while ( beggDate.getTimeInMillis() > Calendar.getInstance().getTimeInMillis()) {
                               try {
@@ -68,8 +70,11 @@ public class Election implements Serializable {
                               }
                         }
                         setState(State.CLOSED);
-                        System.out.println("Acabou");
-
+                        
+                        } catch (Exception e) {
+                              setState(State.CLOSED);
+                              Thread.currentThread().interrupt();
+                        }
                   }
             },"Something").start();
             

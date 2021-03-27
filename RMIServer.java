@@ -94,10 +94,12 @@ public class RMIServer extends UnicastRemoteObject implements RMIServer_I{
                   writeMulticastServerFile();
             }
             if(!onServers.contains(multicastServer)){
-                  for (int i = 0; i < onServers.size();i++) {
-                        MulticastServer serv = onServers.get(i);
-                        if(serv.q.getDepartment().equals(multicastServer.q.getDepartment())){
-                              return serv;
+                  List<MulticastServer> servers2 = getOnServers();
+                  if(!onServers.isEmpty()){
+                  for (MulticastServer server: servers2) {
+                              if (server.q.getDepartment().equals(multicastServer.q.getDepartment())){
+                                    return server;
+                              }
                         }
                   }
                   onServers.add(multicastServer);
@@ -210,8 +212,8 @@ public class RMIServer extends UnicastRemoteObject implements RMIServer_I{
              * It searches the table by its unique id
              * returns null if nothing has been found
              */
-
-            for(MulticastServer server: servers){
+            List<MulticastServer> servers2 = getOnServers();
+            for(MulticastServer server: servers2){
                   if(server.getTableID().equals(id)){
                         return server;
                         
@@ -225,7 +227,8 @@ public class RMIServer extends UnicastRemoteObject implements RMIServer_I{
              * It searches the table by its department
              * returns null if nothing has been found
              */
-            Iterator<MulticastServer> it = servers.iterator();
+            List<MulticastServer> servers2 = getOnServers();
+            Iterator<MulticastServer> it = servers2.iterator();
             while (it.hasNext()) {
                   MulticastServer server = it.next();
                   if(server.q.getDepartment().equals(department)){
@@ -306,10 +309,11 @@ public class RMIServer extends UnicastRemoteObject implements RMIServer_I{
              * returns false if it can't find an election or a List
              * 
              */
-            ListIterator<Election> iterator = elections.listIterator();
-            while(iterator.hasNext()){
-                  if(iterator.next().getTitle().equals(title)){
-                        boolean flag = iterator.next().addCandidateList(candidate);
+            List<Election> elections2 = getElections();
+            
+            for (Election election : elections2) {
+                  if(election.getTitle().equals(title)){
+                        boolean flag = election.addCandidateList(candidate);
                         writeElectionFile();
                         System.out.println("Candidate created sucessfully");
                         return flag;

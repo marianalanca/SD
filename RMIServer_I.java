@@ -10,7 +10,7 @@ public interface RMIServer_I extends Remote {
 
       public void loginAdmin(AdminConsole admin) throws RemoteException;
 
-      public MulticastServer loginMulticastServer(MulticastServer multicastServer) throws RemoteException;
+      public boolean loginMulticastServer(MulticastServer multicastServer) throws RemoteException;
 
       public Election searchElection(String title) throws RemoteException;
       public List<Election> searchElectionbyDepRole(String department, Type role) throws RemoteException;
