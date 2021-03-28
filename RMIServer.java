@@ -231,7 +231,7 @@ public class RMIServer extends UnicastRemoteObject implements RMIServer_I{
             Iterator<MulticastServer> it = servers2.iterator();
             while (it.hasNext()) {
                   MulticastServer server = it.next();
-                  if(server.q.getDepartment().equals(department)){
+                  if(server.getQ().getDepartment().equals(department)){
                         return server;
                   }
             }
