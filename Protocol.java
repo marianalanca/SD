@@ -111,17 +111,7 @@ public class Protocol implements Serializable {
 	 * @return String
 	 */
 	public String crashed(String id, String department, String username) {
-		System.out.println("crashed");
 		return "type|crashed;id|"+id+";department|"+department+";username|"+username;
-	}
-
-	/** 
-	 * @param id of the terminal to which the information must be sent
-	 * @param department
-	 * @return String
-	 */
-	public String crashed(String id, String department) {
-		return "type|crashed;id|"+id+";department|"+department;
 	}
 
 	/**

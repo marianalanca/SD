@@ -17,7 +17,7 @@ class Data{
     private int RESULT_PORT = 4322;  // RESULT Port
     private String department, username, password;
     public String ID;
-    private int TIMEOUT = 5;
+    private int TIMEOUT = 10;
     public boolean available = true;
     MulticastSocket socket = null;
     MulticastSocket socketResult = null;
@@ -73,17 +73,20 @@ public class MulticastClient extends Thread {
         client.start();
     }
 
-    // recebe
     public void run() {
         Runtime.getRuntime().addShutdownHook(new Thread() {
             public void run() {
                 try {
                     Thread.sleep(200);
-                    System.out.println("Shutting down ...");
-                    sendCrashed();
-    
+                    System.out.println("\nThe terminal has crashed. Shutting down ...");
+                    byte[] buffer = (new Protocol().crashed(data.ID, data.getDepartment(),data.getUsername())).getBytes();
+                    DatagramPacket packet = new DatagramPacket(buffer, buffer.length, data.group, data.getPORT());
+                    data.socket.send(packet);
                 } catch (InterruptedException e) {
                     Thread.currentThread().interrupt();
+                    e.printStackTrace();
+                } catch (IOException e) {
+                    System.out.println("Your request has been lost. Please try again.");
                     e.printStackTrace();
                 }
             }
@@ -325,14 +328,4 @@ public class MulticastClient extends Thread {
         return result;
     }
 
-    public void sendCrashed() {
-        try {
-            System.out.println("The terminal has crashed");
-            byte[] buffer = (new Protocol().crashed(data.ID, data.getDepartment(),data.getUsername())).getBytes(); // TO DO
-            DatagramPacket packet = new DatagramPacket(buffer, buffer.length, data.group, data.getPORT());
-            data.socket.send(packet);
-        } catch (IOException e) {
-            e.printStackTrace();
-        }
-    }
 }
