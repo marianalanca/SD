@@ -81,9 +81,6 @@ public class RMIServer extends UnicastRemoteObject implements RMIServer_I{
        */
       @Override
       public synchronized void loginAdmin(AdminConsole_I admin) throws RemoteException{
-            /**
-             * Login the Admin Console
-             */
             System.out.println("Admin Console logged in");
             admins.add(admin);
       }
@@ -127,7 +124,11 @@ public class RMIServer extends UnicastRemoteObject implements RMIServer_I{
                   }
                   String notif = "Mesa de Voto "+ multicastServer.getTableID() + " ON"; 
                   for (AdminConsole_I admin : admins) {
+                        try{
                         admin.notify_state(notif);
+                        }catch(Exception e){
+                              admins.remove(admin);
+                        }
                   }
                   onServers.add(multicastServer);
                   return null;
@@ -147,7 +148,11 @@ public class RMIServer extends UnicastRemoteObject implements RMIServer_I{
             onServers.remove(multicastServer);
             String notif = "Mesa de Voto "+ multicastServer.getTableID() + " OFF"; 
             for (AdminConsole_I admin : admins) {
-                  admin.notify_state(notif);
+                  try{
+                        admin.notify_state(notif);
+                  }catch(Exception e){
+                        admins.remove(admin);
+                  }
             }
       }
       @Override
@@ -246,27 +251,37 @@ public class RMIServer extends UnicastRemoteObject implements RMIServer_I{
              * It searches the table by its unique id
              * returns null if nothing has been found
              */
-            List<MulticastServer> servers2 = getOnServers();
+            List<MulticastServer> servers2 = getServers();
             for(MulticastServer server: servers2){
-                  if(server.getTableID().equals(id)){
-                        return server;
-                        
+                  try{
+                        if(server.getTableID().equals(id)){
+                              return server;
+                              
+                        }
+                  }catch(Exception e){
+                        onServers.remove(server);
                   }
             }
             return null;
       }
+      /**
+       * @param String the name of the department
+      * It searches the table by its department that are on the OnServers
+      * @return null if nothing has been found
+      */
       @Override
       public synchronized MulticastServer searchTableDept(String department) throws RemoteException{
-            /**
-             * It searches the table by its department
-             * returns null if nothing has been found
-             */
+            
             List<MulticastServer> servers2 = getOnServers();
             Iterator<MulticastServer> it = servers2.iterator();
             while (it.hasNext()) {
                   MulticastServer server = it.next();
-                  if(server.getQ().getDepartment().equals(department)){
-                        return server;
+                  try {
+                        if(server.getQ().getDepartment().equals(department)){
+                              return server;
+                        }
+                  } catch (Exception e) {
+                        onServers.remove(server);
                   }
             }
             /*for(MulticastServer server: servers){
