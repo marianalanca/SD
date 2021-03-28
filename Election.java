@@ -218,6 +218,11 @@ public class Election implements Serializable {
       }
 
       public Boolean addUsersVoted(AlreadyVoted voter){
+            for (AlreadyVoted vote : usersVoted) {
+                  if(vote.getVote().equals(voter.vote)){
+                        return false;
+                  }
+            }
             if(this.usersVoted.contains(voter)){
                   return false;
             }else{
@@ -250,7 +255,7 @@ public class Election implements Serializable {
              * 
              * @return if the vote was successful or not
              */
-            if((this.getDepartment().isEmpty() || this.getDepartment().equals(vote.getDepartment())) && this.getAllowedVoters().contains(vote.getType())){
+            if((this.getDepartment().isEmpty() || this.getDepartment().equals(voteLocal)) && this.getAllowedVoters().contains(vote.getType())){
                   Calendar timeOfVote = Calendar.getInstance();
                   Candidates candidates = searchCandidates(name);
                   AlreadyVoted voter = new AlreadyVoted(vote, timeOfVote, voteLocal);
