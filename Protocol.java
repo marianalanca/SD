@@ -8,17 +8,16 @@ public class Protocol implements Serializable {
 	public String username, password, logged, msg, candidate, election;
 	public int item_count;
 	public List<String> types = new CopyOnWriteArrayList<String>(){{
-		add("type");
-		add("id");
-		add("department");
-		add("item_name");
-		add("username");
-		add("password");
-		add("logged");
-		add("msg");
-		add("candidate");
+		add("login");
 		add("election");
-		add("item_count");
+		add("request");
+		add("vote");
+		add("status");
+		add("response");
+		add("accepted");
+		add("item_list");
+		add("crashed");
+		add("timeout");
 		  }};
 
 	/**
@@ -33,6 +32,10 @@ public class Protocol implements Serializable {
 
 	public String election(String id, String department, String election) {
 		return "type|election;id|"+id+";department|"+department+";election|"+election;
+	}
+
+	public String timeout(String id, String department) {
+		return "type|timeout;id|"+id+";department|"+department;
 	}
 
 	/**
@@ -108,7 +111,17 @@ public class Protocol implements Serializable {
 	 * @return String
 	 */
 	public String crashed(String id, String department, String username) {
+		System.out.println("crashed");
 		return "type|crashed;id|"+id+";department|"+department+";username|"+username;
+	}
+
+	/** 
+	 * @param id of the terminal to which the information must be sent
+	 * @param department
+	 * @return String
+	 */
+	public String crashed(String id, String department) {
+		return "type|crashed;id|"+id+";department|"+department;
 	}
 
 	/**
@@ -128,8 +141,12 @@ public class Protocol implements Serializable {
 							type = token[1];
 						break;
 					case "id":
-						if (type!=null && (type.equals("login") || type.equals("election")  || type.equals("vote") || type.equals("status") || type.equals("response")  || type.equals("accepted") || type.equals("item_list") || type.equals("crashed")))
+						if (type!=null && (type.equals("login") || type.equals("election")  || type.equals("vote") || type.equals("status") || type.equals("response")  || type.equals("accepted") || type.equals("item_list") || type.equals("crashed") || type.equals("timeout")))
 						id = token[1];
+						else {
+							System.out.println("Wrong format");
+							return null;
+						}
 						break;
 					case "username":
 						if (type.equals("login") || type.equals("vote") || type.equals("crashed")){
@@ -140,8 +157,12 @@ public class Protocol implements Serializable {
 						}
 						break;
 					case "department":
-						if (type!=null && (type.equals("request") || type.equals("election")  || type.equals("vote") || type.equals("status") || type.equals("response")  || type.equals("crashed")))
+						if (type!=null && (type.equals("request") || type.equals("election")  || type.equals("vote") || type.equals("status") || type.equals("response")  || type.equals("crashed") || type.equals("timeout")))
 							department = token[1];
+						else {
+							System.out.println("Wrong format");
+							return null;
+						}
 						break;
 					case "password":
 						if (type.equals("login"))

@@ -169,19 +169,29 @@ class Q_ok implements Serializable{
      *
      */
     private static final long serialVersionUID = 1L;
-    private String electionTitle;
     private String MULTICAST_ADDRESS = "224.0.224.0";
     private int PORT = 4321;  // Client Port
     private int RESULT_PORT = 4322;  // RESULT Port
     private String department;
     private List<Voter> voting = new CopyOnWriteArrayList<Voter>(); // stores all voting members in case a terminal fails
-    private List<Voter> login = new CopyOnWriteArrayList<Voter>(); // stores all voting members in case a terminal fails
-    public String ID;
-    public boolean availableTerminal = false; //tests whether a terminal has been found for the request
+    private String ID;
     private int TIMEOUT = 120000;
     RMIServer_I RMI;
 
     public Q_ok(String department) {
+        Runtime.getRuntime().addShutdownHook(new Thread() {
+            public void run() {
+                try {
+                    Thread.sleep(200);
+                    System.out.println("Shutting down ...");
+                    //some cleaning up code...
+    
+                } catch (InterruptedException e) {
+                    Thread.currentThread().interrupt();
+                    e.printStackTrace();
+                }
+            }
+        });
         this.department = department;
         try {
             // connection with RMI
@@ -194,10 +204,10 @@ class Q_ok implements Serializable{
         }
     }
     public void test(MulticastServer ola) throws RemoteException{
-        RMI.createVoter("Maria", "Info", "123456789", "morada", "1234", null, "pass", Type.STUDENT);
-        RMI.createVoter("Pedro", "Info", "123456789", "morada", "4321", null, "pass", Type.STUDENT);
-        RMI.createVoter("Carlos", "Info", "123456789", "morada", "1357", null, "pass", Type.DOCENTE);
-        RMI.createVoter("Joao", "Info", "123456789", "morada", "2468", null, "pass", Type.FUNCIONARIO);
+        RMI.createVoter("Maria", "Info", "123456789", "morada", "1", null, "pass", Type.STUDENT);
+        RMI.createVoter("Pedro", "Info", "123456789", "morada", "2", null, "pass", Type.STUDENT);
+        RMI.createVoter("Carlos", "Info", "123456789", "morada", "3", null, "pass", Type.DOCENTE);
+        RMI.createVoter("Joao", "Info", "123456789", "morada", "4", null, "pass", Type.FUNCIONARIO);
 
         List<Voter> members = new CopyOnWriteArrayList<Voter>();
 
@@ -275,14 +285,11 @@ class Q_ok implements Serializable{
     public String getDepartment() {
         return department;
     }
-    public String getElectionTitle() {
-        return electionTitle;
-    }
-    public void addVoting(Voter voter) {
-        voting.add(voter);
+    public List<Voter> getVoting() {
+        return voting;
     }
     public void addLogin(Voter voter) {
-        login.add(voter);
+        voting.add(voter);
     }
     public void removeVoting(String username) {
         // search for cc
@@ -295,34 +302,39 @@ class Q_ok implements Serializable{
         }
         return;
     }
+    public String getID() {
+        return ID;
+    }
+    public void setID(String iD) {
+        ID = iD;
+    }
     public String getMULTICAST_ADDRESS() {
         return MULTICAST_ADDRESS;
     }
-    public List<Voter> getLogin() {
-        return login;
-    }
     void findTerminal(MulticastSocket socket, InetAddress group) {
-        if (login.size()!=0) {
+        if (voting.size()!=0) {
             try {
-                socket.setSoTimeout(1000); // in case it didn't receive a response in a second
-                Voter voter = login.get(0);
+                Protocol protocol;
+                Voter voter = voting.get(0);
+
+                socket.setSoTimeout(2000); // in case it didn't receive a response in 2 seconds
+
+                // send request for terminal
                 byte[] buffer = (new Protocol().request(department)).getBytes();
                 DatagramPacket packet = new DatagramPacket(buffer, buffer.length, group, PORT);
                 socket.send(packet);
-                Protocol protocol;
 
-                // receives answer from thread
+                // receives answer
                 do {
                     buffer = new byte[256];
                     packet = new DatagramPacket(buffer, buffer.length);
                     socket.receive(packet);
                     protocol = new Protocol().parse(new String(packet.getData(), 0, packet.getLength()));
-
                 } while (protocol==null || !(protocol!=null && protocol.type!=null && (protocol.type.equals("response") || protocol.type.equals("crashed"))  && protocol.department.equals(department) && protocol.id!=null));
                 ID = protocol.id;
 
                 if (protocol.type.equals("crashed")) {
-                    login.remove(0);
+                    voting.remove(0);
                     return;
                 }
 
@@ -343,10 +355,15 @@ class Q_ok implements Serializable{
                     packet = new DatagramPacket(buffer, buffer.length);
                     socket.receive(packet);
                     protocol = new Protocol().parse(new String(packet.getData(), 0, packet.getLength()));
-                } while (protocol==null || !(protocol!=null && protocol.id!=null && protocol.id.equals(ID) && (protocol.type.equals("status") || protocol.type.equals("crashed")) && protocol.department.equals(department) && protocol.logged.equals("on")));
+                } while (protocol==null ||
+                    !(protocol!=null && protocol.department!=null && protocol.department.equals(department) && protocol.id!=null && protocol.id.equals(ID) &&
+                    ((protocol.type.equals("status")  && protocol.logged.equals("on")) ||
+                    protocol.type.equals("crashed") ||
+                    protocol.type.equals("timeout"))));
 
-                if (protocol.type.equals("crashed")) {
-                    login.remove(0);
+
+                if (protocol.type.equals("crashed") || protocol.type.equals("timeout")) {
+                    voting.remove(0);
                     return;
                 }
 
@@ -370,10 +387,10 @@ class Q_ok implements Serializable{
                     packet = new DatagramPacket(buffer, buffer.length);
                     socket.receive(packet);
                     protocol = new Protocol().parse(new String(packet.getData(), 0, packet.getLength()));
-                } while (protocol==null || !(protocol!=null && protocol.id!=null && protocol.id.equals(ID) && (protocol.type.equals("election") || protocol.type.equals("crashed")) && protocol.department.equals(department)));
+                } while (protocol==null || !(protocol!=null && protocol.id!=null && protocol.id.equals(ID) && (protocol.type.equals("election") || protocol.type.equals("crashed") || protocol.type.equals("timeout")) && protocol.department.equals(department)));
 
-                if (protocol.type.equals("crashed")) {
-                    login.remove(0);
+                if (protocol.type.equals("crashed") || protocol.type.equals("timeout")) {
+                    voting.remove(0);
                     return;
                 }
 
@@ -381,7 +398,7 @@ class Q_ok implements Serializable{
                 // fazer verificação do role com o candidate para só apresentar o que se quer
                 List<String> candidates = new CopyOnWriteArrayList<String>();
                 for (Candidates candidate: RMI.searchElection(protocol.election).getCandidatesList()) {
-                    //if (candidate.getType().equals(voter.getType()))
+                    if (candidate.getType().equals(voter.getType()))  // PUT
                         candidates.add(candidate.getName());
                 }
                 // send candidates information
@@ -389,7 +406,7 @@ class Q_ok implements Serializable{
                 packet = new DatagramPacket(buffer, buffer.length, group, PORT);
                 socket.send(packet);
 
-                login.remove(0);
+                voting.remove(0);
 
             } catch (SocketTimeoutException e) {
             } catch (IOException e) {
@@ -434,6 +451,7 @@ class Multicast extends Thread implements Serializable {
                 if (protocol.candidate.equals("white")) {
                     protocol.candidate = "";
                 }
+                System.out.println("Received vote");
                 if (q.RMI.voterVotes(protocol.username, protocol.election, protocol.candidate, q.getDepartment())) { // não encontra eleição?
                     buffer = new Protocol().status(protocol.id, q.getDepartment(), "off", "Vote submitted successfully").getBytes();
                 } else {
@@ -453,7 +471,6 @@ class Multicast extends Thread implements Serializable {
             socket.close();
         }
     }
-
 }
 // contacts with threads when needed
 class MulticastPool extends Thread implements Serializable {
@@ -489,7 +506,6 @@ class MulticastPool extends Thread implements Serializable {
             socket.close();
         }
     }
-
 }
 
 // contacts with threads when needed
@@ -504,7 +520,7 @@ class MulticastCrash extends Thread implements Serializable {
         super();
         this.q = q;
     }
-    // requests new terminals
+
     public void run() {
         MulticastSocket socket = null;
         try {
@@ -523,10 +539,10 @@ class MulticastCrash extends Thread implements Serializable {
                 } while (protocol==null || !(protocol!=null && protocol.id!=null && protocol.username!=null && protocol.type.equals("crashed") && protocol.department.equals(q.getDepartment())));
 
                 System.out.println("crashou :(");
-                if (q.getLogin().size()==0) {
+                if (q.getVoting().size()==0) {
                     q.addLogin(q.RMI.searchVoter(protocol.username));
                 } else
-                    q.getLogin().add(0, q.RMI.searchVoter(protocol.username));
+                    q.getVoting().add(0, q.RMI.searchVoter(protocol.username));
             }
         } catch (RemoteException e) {
             this.start();
