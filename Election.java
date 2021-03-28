@@ -255,7 +255,7 @@ public class Election implements Serializable {
              * 
              * @return if the vote was successful or not
              */
-            if((this.getDepartment().isEmpty() || this.getDepartment().equals(voteLocal)) && this.getAllowedVoters().contains(vote.getType())){
+            if((this.getDepartment().isEmpty() || (this.getDepartment().equals(voteLocal) && this.getDepartment().equals(vote.getDepartment()))) && this.getAllowedVoters().contains(vote.getType())){
                   Calendar timeOfVote = Calendar.getInstance();
                   Candidates candidates = searchCandidates(name);
                   AlreadyVoted voter = new AlreadyVoted(vote, timeOfVote, voteLocal);
