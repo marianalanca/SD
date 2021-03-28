@@ -1174,10 +1174,10 @@ public class AdminConsole extends UnicastRemoteObject implements AdminConsole_I/
             
             RMIServer_I rmi = (RMIServer_I) Naming.lookup("rmi://localhost:5001/RMIServer");
             AdminConsole admin = new AdminConsole(rmi);
-            //AdminConsole_I admin_I = (AdminConsole_I) admin;
+            AdminConsole_I admin_I = (AdminConsole_I) admin;
 
             try{
-                //rmi.loginAdmin(admin_I);
+                rmi.loginAdmin(admin_I);
             }
             catch(Exception e ){
                 //argument type mismatch

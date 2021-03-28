@@ -43,7 +43,7 @@ public class RMIServer extends UnicastRemoteObject implements RMIServer_I{
       
       private List<Voter> voterList = new CopyOnWriteArrayList<>();
       private List<Election> elections = new CopyOnWriteArrayList<>();
-      private List<AdminConsole> admins = new CopyOnWriteArrayList<>();
+      private List<AdminConsole_I> admins = new CopyOnWriteArrayList<>();
       private List<MulticastServer> servers = new CopyOnWriteArrayList<>();
       private List<MulticastServer> onServers = new CopyOnWriteArrayList<>();
       private static int port = 6789;
@@ -74,7 +74,7 @@ public class RMIServer extends UnicastRemoteObject implements RMIServer_I{
             return servers;
       }
       @Override
-      public synchronized void loginAdmin(AdminConsole admin) throws RemoteException{
+      public synchronized void loginAdmin(AdminConsole_I admin) throws RemoteException{
             /**
              * Login the Admin Console
              */

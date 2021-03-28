@@ -8,7 +8,7 @@ public interface RMIServer_I extends Remote {
 
       public Voter searchVoter(String username) throws RemoteException;
 
-      public void loginAdmin(AdminConsole admin) throws RemoteException;
+      public void loginAdmin(AdminConsole_I admin) throws RemoteException;
 
       public MulticastServer loginMulticastServer(MulticastServer multicastServer) throws RemoteException;
 
