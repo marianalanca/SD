@@ -73,6 +73,12 @@ public class RMIServer extends UnicastRemoteObject implements RMIServer_I{
       public synchronized List<MulticastServer> getServers() throws RemoteException {
             return servers;
       }
+
+      /**
+       * @param AdminConsole_I that is going to be added
+       * Login the Admin Console
+       * 
+       */
       @Override
       public synchronized void loginAdmin(AdminConsole_I admin) throws RemoteException{
             /**
@@ -82,11 +88,28 @@ public class RMIServer extends UnicastRemoteObject implements RMIServer_I{
             admins.add(admin);
       }
 
+      /**
+       * @param AdminConsole_I that is going to be removed
+       * Logout the Admin Console
+       * 
+       */
+      @Override
+      public synchronized void logoutAdmin(AdminConsole_I admin) throws RemoteException{
+            
+            System.out.println("Admin Console logged on");
+            admins.remove(admin);
+      }
+
+      /**
+      * @param MulticastServer u want to add 
+      * if it already exists one in the table array it will skip to add to the full list
+      * Login the MulticastServer(Table)
+      * Will notify all admin consoles
+      * returns null if it was added sucessfully or the "supposed value" it should have
+      */
       @Override
       public synchronized MulticastServer loginMulticastServer(MulticastServer multicastServer) throws RemoteException{
-            /**
-             * Login the MulticastServer(Table)
-             */
+            
             System.out.println("Multicast Server logged in");
             if(!servers.contains(multicastServer)){
                   multicastServer.setTableID(UUID.randomUUID().toString());
@@ -102,7 +125,7 @@ public class RMIServer extends UnicastRemoteObject implements RMIServer_I{
                               }
                         }
                   }
-                  String notif = "Mesa de Voto"+ multicastServer.getTableID() + "ON"; 
+                  String notif = "Mesa de Voto "+ multicastServer.getTableID() + " ON"; 
                   for (AdminConsole_I admin : admins) {
                         admin.notify_state(notif);
                   }
@@ -113,13 +136,16 @@ public class RMIServer extends UnicastRemoteObject implements RMIServer_I{
             }
             
       }
+      /**
+      * @param MulticastServer it should be removed
+      * Logout the MulticastServer(Table)
+      * Will notify all adminConsoles it left
+      * @return void
+      */
       @Override
       public synchronized void logoutMulticastServer(MulticastServer multicastServer) throws RemoteException{
-            /**
-             * Logout the MulticastServer(Table)
-             */
             onServers.remove(multicastServer);
-            String notif = "Mesa de Voto"+ multicastServer.getTableID() + "OFF"; 
+            String notif = "Mesa de Voto "+ multicastServer.getTableID() + " OFF"; 
             for (AdminConsole_I admin : admins) {
                   admin.notify_state(notif);
             }
