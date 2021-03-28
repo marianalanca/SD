@@ -102,6 +102,10 @@ public class RMIServer extends UnicastRemoteObject implements RMIServer_I{
                               }
                         }
                   }
+                  String notif = "Mesa de Voto"+ multicastServer.getTableID() + "ON"; 
+                  for (AdminConsole_I admin : admins) {
+                        admin.notify_state(notif);
+                  }
                   onServers.add(multicastServer);
                   return null;
             }else{
@@ -115,6 +119,10 @@ public class RMIServer extends UnicastRemoteObject implements RMIServer_I{
              * Logout the MulticastServer(Table)
              */
             onServers.remove(multicastServer);
+            String notif = "Mesa de Voto"+ multicastServer.getTableID() + "OFF"; 
+            for (AdminConsole_I admin : admins) {
+                  admin.notify_state(notif);
+            }
       }
       @Override
       public synchronized List<Election> stateElections(State state, Type type) throws RemoteException{
