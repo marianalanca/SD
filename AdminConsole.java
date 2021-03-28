@@ -776,6 +776,14 @@ public class AdminConsole extends UnicastRemoteObject implements AdminConsole_I/
         }
     }
 
+    /**
+     * prints a notification about the state (on or off) of a table
+     */
+    @Override
+    public void notify_state(String notification) throws RemoteException{
+        System.out.println(notification);
+    }
+
     public void table_state(){
         
         try{
