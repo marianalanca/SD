@@ -8,9 +8,6 @@ import java.rmi.server.UnicastRemoteObject;
 
 public class AdminConsole extends UnicastRemoteObject implements AdminConsole_I/*, Serializable */{   
 
-    /**
-     *
-     */
     //private static final long serialVersionUID = 1L;
 
     RMIServer_I rmi;
@@ -30,7 +27,8 @@ public class AdminConsole extends UnicastRemoteObject implements AdminConsole_I/
      * prints all the features available on the administration console
      */
     public void menu(){
-        System.out.println("\n1. Register people");                       //done
+        System.out.println("\n0. Exit"); 
+        System.out.println("1. Register people");                       //done
         System.out.println("2. Create elections");                        //done
         System.out.println("3. Manage candidate lists");                  //done - mas ver
         System.out.println("4. Manage polling stations");                 //done - mas ver
@@ -41,7 +39,7 @@ public class AdminConsole extends UnicastRemoteObject implements AdminConsole_I/
         System.out.println("9. See detailed results of past elections");  //done
         System.out.println("10. Early vote");                               //done
         System.out.println("11. Change personal data");                     //done
-        System.out.println("12. Manage members of each polling station");   //done - mas ver
+        System.out.println("12. Manage members of each polling station\n");  //done - mas ver
 
         options_menu();
     }
@@ -54,6 +52,9 @@ public class AdminConsole extends UnicastRemoteObject implements AdminConsole_I/
         int option = check_number();
 
         switch(option){
+            case 0:
+                System.exit(0);
+                break;
             case 1:
                 register_voter();
                 break;
@@ -325,9 +326,9 @@ public class AdminConsole extends UnicastRemoteObject implements AdminConsole_I/
                 electionType.add(Type.FUNCIONARIO);
                 break;
             case 2:
-                System.out.println("Insert election's type");
+                System.out.print("Insert election's type: ");
                 electionType.add(check_role());
-                System.out.println("Insert department");
+                System.out.print("Insert department: ");
                 department = check_string();
                 break;
             default:
@@ -335,13 +336,13 @@ public class AdminConsole extends UnicastRemoteObject implements AdminConsole_I/
                 break;
         }
 
-        System.out.print("Insert a description");
+        System.out.print("Insert a description: ");
         description = check_string();
 
         System.out.println("Insert begin date:");
         dateB = date(1);
         
-        while(dateB.after(Calendar.getInstance())){
+        while(dateB.before(Calendar.getInstance())){
             System.out.println("Invalid date - insert new begin date:");
             dateB = date(1);
         }
@@ -351,7 +352,7 @@ public class AdminConsole extends UnicastRemoteObject implements AdminConsole_I/
 
         while(dateE.before(dateB)){
             System.out.println("Invalid date - end date must be after\nInsert new end date:");
-            dateB = date(1);
+            dateE = date(1);
         }
 
         try{
@@ -775,9 +776,78 @@ public class AdminConsole extends UnicastRemoteObject implements AdminConsole_I/
         }
     }
 
-    public void table_state(){}
+    public void table_state(){
+        
+        try{
 
-    public void voters_real_time(){}
+            List<MulticastServer> tablesOff;
+            List<MulticastServer> tablesOn;
+
+            tablesOff = rmi.getServers();
+            tablesOn = rmi.getOnServers();
+
+            tablesOff.removeAll(tablesOn);
+
+            System.out.println("Tables On");
+            for(int i = 0; i < tablesOn.size(); i++){
+                System.out.println(tablesOn.get(i).getTableID());
+            }
+
+            System.out.println("\nTables Off");
+            for(int i = 0; i < tablesOff.size(); i++){
+                System.out.println(tablesOff.get(i).getTableID());
+            }
+            
+        }catch(ConnectException e){
+            reconnect();
+            table_state();
+        }
+        catch (Exception e){
+            System.out.println("Table_state: exception in RMIServer.java(main) " + e);
+        }
+        
+
+    }
+
+    public void voters_real_time(){
+        try{
+
+            List <Candidates> candidates;
+            List <Election> elections;
+            Election election;
+            Candidates cand;
+            int option;
+
+            elections = rmi.getElections();
+            printElection(elections);
+
+            option = check_number();
+
+            while(option < 0 || option > elections.size()){
+                System.out.println ("Invalid option. Try again");
+                option = check_number();
+            }
+
+            election = elections.get(option);
+            System.out.println("\nElection " + election.getTitle() + ":");
+            candidates = election.getCandidatesList();
+
+            for(int i = 0; i < candidates.size(); i++){
+                cand = candidates.get(i);
+                System.out.println(cand.getName() + ": " + cand.getNumberOfVotes());
+            }
+
+
+
+        }catch(ConnectException e){
+            reconnect();
+            voters_real_time();
+        }
+        catch (Exception e){
+            System.out.println("Voters_real_time: exception in RMIServer.java(main) " + e);
+        }
+
+    }
 
     /**
      * Allows to see the results of a past election.
@@ -1111,7 +1181,7 @@ public class AdminConsole extends UnicastRemoteObject implements AdminConsole_I/
 
         }
         catch (Exception e){
-            System.out.println("Main: Exception in RMIServer.java(main) " + e);
+            System.out.println("Main: " + e);
         }
 
     }
