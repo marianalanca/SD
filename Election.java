@@ -1,21 +1,12 @@
 
-import java.io.Serializable;
-import java.util.Calendar;
 import java.util.List;
+import java.util.Calendar;
+import java.io.Serializable;
 import java.util.concurrent.CopyOnWriteArrayList;
-
-
-
 
 
 public class Election implements Serializable {
 
-      
-
-      /**
-       *
-       */
-      
       private static final long serialVersionUID = 1L; 
       private Calendar beggDate;
       private Calendar endDate;
@@ -31,6 +22,15 @@ public class Election implements Serializable {
       private State state;
        
 
+      /**
+       * Constructor Election
+       * @param title a string with the election's title 
+       * @param description a string with the election's description
+       * @param beggDate the election's begging date
+       * @param endDate the election's ending date
+       * @param department a string with the department where the election takes place. If general council election, department must be a empty string
+       * @param allowedVoters a list with the types allowed in the election
+       */
       public Election(String title, String description, Calendar beggDate,Calendar endDate,String department, List<Type> allowedVoters ){
             this.beggDate = beggDate;
             this.endDate = endDate;
@@ -80,53 +80,84 @@ public class Election implements Serializable {
             
       }
 
-      public List<MulticastServer> getTables() {
-            return tables;
-      }
-      public void setTables(List<MulticastServer> tables) {
-            this.tables = tables;
-      }
+      /**
+       * get all the tables associated with the election
+       * @return a list of multicastServer
+       */
+      public List<MulticastServer> getTables() { return tables; }
 
-      public State getState() {
-            return this.state;
-      }
+      /**
+       * set tables associated with the election
+       * @param tables a list of multicastServer
+       */
+      public void setTables(List<MulticastServer> tables) { this.tables = tables; }
 
-      public void setState(State state) {
-            this.state = state;
-      }
+      /**
+       * get state os the election
+       * @return state
+       */
+      public State getState() { return this.state; }
 
-      public void setDescription(String description) {
-            this.description = description;
-      }      
+      /**
+       * set election's state
+       * @param state 
+       */
+      public void setState(State state) { this.state = state; }
 
-      public Calendar getBeggDate() {
-            return this.beggDate;
-      }
+      /**
+       * set election's description
+       * @param description a string with the election's description
+       */
+      public void setDescription(String description) { this.description = description; }      
 
-      public void setBeggDate(Calendar beggDate) {
-            this.beggDate = beggDate;
-      }
+      /**
+       * get election's begging date
+       * @return election's begging date
+       */
+      public Calendar getBeggDate() { return this.beggDate; }
 
-      public Calendar getEndDate() {
-            return this.endDate;
-      }
+      /**
+       * set election's begging date
+       * @param beggDate election's begging date
+       */
+      public void setBeggDate(Calendar beggDate) { this.beggDate = beggDate; }
 
-      public void setEndDate(Calendar endDate) {
-            this.endDate = endDate;
-      }
+      /**
+       * get election's ending date
+       * @return election's ending date
+       */
+      public Calendar getEndDate() { return this.endDate; }
 
-      public String getTitle() {
-            return this.title;
-      }
+      /**
+       * set election's ending date
+       * @param endDate election's ending date
+       */
+      public void setEndDate(Calendar endDate) { this.endDate = endDate; }
 
-      public void setTitle(String title) {
-            this.title = title;
-      }
+      /**
+       * get election's title
+       * @return a string with election's title
+       */
+      public String getTitle() { return this.title; }
 
-      public List<Type> getAllowedVoters() {
-            return this.allowedVoters;
-      }
+      /**
+       * set election's title
+       * @param title a string with election's title
+       */
+      public void setTitle(String title) { this.title = title; }
 
+      /**
+       * get a list with the Type of all allowed voters
+       * @return a list with the Type of all allowed voters
+       */
+      public List<Type> getAllowedVoters() { return this.allowedVoters; }
+
+      /**
+       * add a member to a candidate list
+       * @param nome name of a candidate list
+       * @param member voter to inserte in the candidate list
+       * @return true if success, false otherwise
+       */
       public boolean addMemberToLista(String nome, Voter member){
             for (Candidates candidates : candidatesList) {
                   if(candidates.getName().equals(nome)){
@@ -138,6 +169,12 @@ public class Election implements Serializable {
             return false;
       }
 
+      /**
+       * remove a member to a candidate list
+       * @param nome name of a candidate list
+       * @param member voter to remove in the candidate list
+       * @return true if success, false otherwise
+       */
       public boolean removeMemberToLista(String nome, Voter member){
             for (Candidates candidates : candidatesList) {
                   if(candidates.getName().equals(nome)){
@@ -149,27 +186,42 @@ public class Election implements Serializable {
             return false;
       }
 
-      public void setAllowedVoters(List<Type> allowedVoters) {
-            this.allowedVoters = allowedVoters;
-      }
+      /**
+       * set allowed voters
+       * @param allowedVoters list with the Type of allowed voters
+       */
+      public void setAllowedVoters(List<Type> allowedVoters) { this.allowedVoters = allowedVoters; }
 
-      public String getDepartment() {
-            return this.department;
-      }
+      /**
+       * get election's department
+       * @return a string with the election's department
+       */
+      public String getDepartment() { return this.department; }
 
-      public void setDepartment(String department) {
-            this.department = department;
-      }
+      /**
+       * set election's department
+       * @param department a string with the election's department
+       */
+      public void setDepartment(String department) { this.department = department; }
 
+      /**
+       * add a table to the election
+       * @param server musticast server
+       * @return true if success, false otherwise
+       */
       public boolean addTable(MulticastServer server){
             if(!tables.contains(server)){
                   tables.add(server);
                   return true;
             }
             return false;
-
       }
 
+      /**
+       * renove a table to the election
+       * @param server musticast server
+       * @return true if success, false otherwise
+       */
       public boolean removeTable(MulticastServer server){
             if(tables.contains(server)){
                   tables.remove(server);
@@ -179,15 +231,24 @@ public class Election implements Serializable {
 
       }
 
+      /**
+       * add a new candidate list to the election
+       * @param candidate candidate
+       * @return true if success, false otherwise
+       */
       public boolean addCandidateList(Candidates candidate){
             if(searchCandidates(candidate.getName())== null){
                   this.candidatesList.add(candidate);
                   return true;
-            }else{
-                  return false;
             }
+            return false;
       }
 
+      /**
+       * remove a candidate list to the election by candidate name
+       * @param candidateName a string with the candidate name
+       * @return true if success, false otherwise
+       */
       public boolean removeCandidateList(String candidateName){
             Candidates candidates = searchCandidates(candidateName);
             if(candidates != null){
@@ -197,35 +258,52 @@ public class Election implements Serializable {
             return false;
       }
 
-      public void removeCandidateList(Candidates candidate){
-            this.candidatesList.remove(candidate);
-      }
+      /**
+       * remove a candidate list to the election
+       * @param candidate candidate
+       */
+      public void removeCandidateList(Candidates candidate){ this.candidatesList.remove(candidate); }
 
-      public List<Candidates> getCandidatesList() {
-            return this.candidatesList;
-      }
+      /**
+       * get list of election's candidate list
+       * @return list of election's candidate list
+       */
+      public List<Candidates> getCandidatesList() { return this.candidatesList; }
 
-      public void setCandidatesList(List<Candidates> candidatesList) {
-            this.candidatesList = candidatesList;
-      }
+      /**
+       * set list of election's candidate list
+       * @param candidatesList list of election's candidate list
+       */
+      public void setCandidatesList(List<Candidates> candidatesList) { this.candidatesList = candidatesList; }
 
-      public List<AlreadyVoted> getUsersVoted() {
-            return this.usersVoted;
-      }
+      /**
+       * get list the voter that already voted
+       * @return list the voter that already voted
+       */
+      public List<AlreadyVoted> getUsersVoted() { return this.usersVoted; }
 
-      public void setUsersVoted(List<AlreadyVoted> usersVoted) {
-            this.usersVoted = usersVoted;
-      }
+      /**
+       * set list the voter that already voted
+       * @param usersVoted list the voter that already voted
+       */
+      public void setUsersVoted(List<AlreadyVoted> usersVoted) { this.usersVoted = usersVoted; }
 
+      /**
+       * add a voter that already voted
+       * @param voter voter
+       * @return true if success, false otherwise
+       */
       public Boolean addUsersVoted(AlreadyVoted voter){
-            if(this.usersVoted.contains(voter)){
-                  return false;
-            }else{
+            if(!this.usersVoted.contains(voter)){
                   this.usersVoted.add(voter);
                   return true;
             }
+            return false;
       }
 
+      /**
+       * prints the election's candidate lists results
+       */
       public void results() {
             System.out.println("Number of Votes");
             for (Candidates type : candidatesList) {
@@ -234,6 +312,11 @@ public class Election implements Serializable {
             
       }
 
+      /**
+       * search a candidate list by name
+       * @param name a string with the name of the candidate list
+       * @return candidate is it exists, null otherwise
+       */
       public Candidates searchCandidates(String name){
             for (Candidates candidates : candidatesList) {
                   if(candidates.getName().equals(name)){
@@ -241,15 +324,17 @@ public class Election implements Serializable {
                   }
             }
             return null;
-
       }
 
-      public boolean vote(Voter vote,String name, String voteLocal){
-            /**
-             * This functions is to simulate the act of voting in a particular list and add to pile of voters who already voted
-             * 
-             * @return if the vote was successful or not
-             */
+      /**
+       * Simulate the act of voting in a particular list and add to pile of voters who already voted
+       * @param vote the voter that voted
+       * @param name a string with the name of the candidate list
+       * @param voteLocal a string with the department where the voter voted
+       * @return true if success, false otherwise
+       */
+      public boolean vote(Voter vote, String name, String voteLocal){
+
             if(this.getDepartment().equals(vote.getDepartment()) && this.getAllowedVoters().contains(vote.getType())){
                   Calendar timeOfVote = Calendar.getInstance();
                   Candidates candidates = searchCandidates(name);
@@ -276,21 +361,29 @@ public class Election implements Serializable {
             
       }
 
-      public int getWhiteVote() {
-            return this.whiteVote;
-      }
+      /**
+       * get the number of white votes
+       * @return a integer with the number of white votes
+       */
+      public int getWhiteVote() { return this.whiteVote; }
 
-      public void setWhiteVote(int whiteVote) {
-            this.whiteVote = whiteVote;
-      }
+      /**
+       * set the number of white vote
+       * @param whiteVote a integer with the number of white votes
+       */
+      public void setWhiteVote(int whiteVote) { this.whiteVote = whiteVote; }
 
-      public int getNullVote() {
-            return this.nullVote;
-      }
+      /**
+       * get a integer with the number of null votes
+       * @return a integer with the number of null votes
+       */
+      public int getNullVote() { return this.nullVote; }
 
-      public void setNullVote(int nullVote) {
-            this.nullVote = nullVote;
-      }     
+      /**
+       * set a integer with the number of null votes
+       * @param nullVote a integer with the number of null votes
+       */
+      public void setNullVote(int nullVote) { this.nullVote = nullVote; }     
 
       public static void main(String[] args) {
             System.out.println("Created");

@@ -6,7 +6,7 @@ import java.util.concurrent.CopyOnWriteArrayList;
 import java.rmi.server.UnicastRemoteObject;
 //import java.io.Serializable;
 
-public class AdminConsole extends UnicastRemoteObject implements AdminConsole_I/*, Serializable */{   
+public class AdminConsole extends UnicastRemoteObject implements AdminConsole_I /*, Serializable*/{   
 
     //private static final long serialVersionUID = 1L;
 
@@ -309,7 +309,7 @@ public class AdminConsole extends UnicastRemoteObject implements AdminConsole_I/
 
         Calendar dateB = Calendar.getInstance(), dateE = Calendar.getInstance();
         List<Type> electionType = new CopyOnWriteArrayList<>();
-        String electionName, description, department = null;
+        String electionName, description, department = "";
         int option;
 
         System.out.print("Insert election's name: ");
@@ -784,6 +784,9 @@ public class AdminConsole extends UnicastRemoteObject implements AdminConsole_I/
         System.out.println(notification);
     }
 
+    /**
+     * Print all the tables and their state
+     */
     public void table_state(){
         
         try{
@@ -817,6 +820,9 @@ public class AdminConsole extends UnicastRemoteObject implements AdminConsole_I/
 
     }
 
+    /**
+     * prints the number of voters who have voted so far at each polling station for a chosen election
+     */
     public void voters_real_time(){
         try{
 
@@ -1179,9 +1185,12 @@ public class AdminConsole extends UnicastRemoteObject implements AdminConsole_I/
             try{
                 rmi.loginAdmin(admin_I);
             }
-            catch(Exception e ){
-                //argument type mismatch
-                System.out.println("Ups loginAdim deu merda :) " + e);
+            catch(ConnectException e){
+                admin.reconnect();
+                rmi.loginAdmin(admin_I);
+            }
+            catch(Exception e){
+                System.out.println("Login Admin: " + e);
             }
 
             admin.menu();
