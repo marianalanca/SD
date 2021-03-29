@@ -294,6 +294,11 @@ public class Election implements Serializable {
        * @return true if success, false otherwise
        */
       public Boolean addUsersVoted(AlreadyVoted voter){
+            for (AlreadyVoted vote : usersVoted) {
+                  if(vote.getVote().equals(voter.vote)){
+                        return false;
+                  }
+            }
             if(!this.usersVoted.contains(voter)){
                   this.usersVoted.add(voter);
                   return true;
@@ -340,6 +345,7 @@ public class Election implements Serializable {
                   Candidates candidates = searchCandidates(name);
                   AlreadyVoted voter = new AlreadyVoted(vote, timeOfVote, voteLocal);
                   Boolean isNotIn = addUsersVoted(voter);
+
                   if(Boolean.TRUE.equals(isNotIn)){
                         if(name.isEmpty()){
                               whiteVote++;
