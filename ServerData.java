@@ -1,6 +1,7 @@
 import java.io.*;
 import java.net.MalformedURLException;
 import java.rmi.*;
+import java.rmi.registry.LocateRegistry;
 import java.util.List;
 import java.util.concurrent.CopyOnWriteArrayList;
 
@@ -15,7 +16,7 @@ public class ServerData implements Serializable{
     private String department;
     private List<Voter> requests = new CopyOnWriteArrayList<Voter>(); // stores all voting members in case a terminal fails
     private int TIMEOUT = 120000;
-    RMIServer_I RMI;
+    private RMIServer_I RMI;
     private List<Long> registeredAcks = new CopyOnWriteArrayList<Long>();
     private List<TerminalVoter> voting = new CopyOnWriteArrayList<TerminalVoter>();
 
@@ -23,10 +24,11 @@ public class ServerData implements Serializable{
         this.department = department;
         try {
             // connection with RMI
-            RMI = (RMIServer_I) Naming.lookup("rmi://localhost:5001/RMIServer");
+            RMI = (RMIServer_I) LocateRegistry.getRegistry("localhost",5001).lookup("RMIServer");
+
+            //RMI = (RMIServer_I) Naming.lookup("rmi://localhost:5001/RMIServer");
         } catch (RemoteException e) {
             System.out.println("The RMI Server is not connected. Connect it before starting the Multicast Server");
-        } catch (MalformedURLException e) {
         } catch (NotBoundException e) {
             System.out.println("The RMI Server registry name is not correct. Correct it before starting the Multicast Server");
         } catch (Exception e) {
@@ -34,8 +36,8 @@ public class ServerData implements Serializable{
 			e.printStackTrace();
         }
     }
-    
-    /** 
+
+    /**
      * @param ola
      * @throws RemoteException
      */
@@ -112,14 +114,14 @@ public class ServerData implements Serializable{
 
 
     }
-    
-    /** 
+
+    /**
      * @return int with the value of the client Port
      */
     public int getPORT() {
         return PORT;
     }
-    
+
     /** 
      * @return int with the value of the port where the vote result is received
      */
