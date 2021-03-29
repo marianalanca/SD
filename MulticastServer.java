@@ -15,6 +15,10 @@ public class MulticastServer extends Thread implements Serializable {
     private String tableID;
     private List<Voter> tableMembers = new CopyOnWriteArrayList<Voter>();
 
+
+    /** 
+     * @param args
+     */
     public static void main(String[] args) {
 
         // recebe departamento da consola?
@@ -123,27 +127,65 @@ public class MulticastServer extends Thread implements Serializable {
             System.exit(0);
         }
     }
+    
+    /** 
+     * @return String
+     * @throws RemoteException
+     */
     public String getTableID() throws RemoteException{
         return tableID;
     }
+    
+    /** 
+     * @param tableID
+     * @throws RemoteException
+     */
     public void setTableID(String tableID) throws RemoteException{
         this.tableID = tableID;
     }
+    
+    /** 
+     * @return List<Voter>
+     * @throws RemoteException
+     */
     public List<Voter> getTableMembers() throws RemoteException{
         return tableMembers;
     }
+    
+    /** 
+     * @return ServerData
+     */
     public ServerData getQ() {
         return q;
     }
+    
+    /** 
+     * @param voter
+     * @throws RemoteException
+     */
     public void addTableMembers(Voter voter) throws RemoteException{
         tableMembers.add(voter);
     }
+    
+    /** 
+     * @param voter
+     * @throws RemoteException
+     */
     public void removeTableMembers(Voter voter) throws RemoteException{
         tableMembers.remove(voter);
     }
+    
+    /** 
+     * @param tableMembers
+     * @throws RemoteException
+     */
     public void setTableMembers(List<Voter> tableMembers) throws RemoteException{
         this.tableMembers = tableMembers;
     }
+    
+    /** 
+     * @param q
+     */
     public void setQ(ServerData q) {
         this.q = q;
     }
@@ -159,14 +201,24 @@ public class MulticastServer extends Thread implements Serializable {
             System.out.println("reconnect and I are not friends :) " + e);
         }
     }
+    
+    /** 
+     * @throws RemoteException
+     */
     public void login() throws RemoteException{
         MulticastServer server = q.RMI.loginMulticastServer(this);
         if (server!=null) {
             setQ(server.getQ());
             setTableID(server.getTableID());
             setTableMembers(server.getTableMembers());
+            System.out.println("server size: "+server.getQ().getRequests().size());
         }
+        System.out.println("size beginning: "+q.getRequests().size()); // NAO ESTA A IR BUSCAR BEM AO INICIO
     }
+
+    /** 
+     * @throws IOException
+     */
     public void closeTerminals() throws IOException{
         MulticastSocket socket = new MulticastSocket(q.getPORT());  // create socket and bind it
         InetAddress group = InetAddress.getByName(q.getMULTICAST_ADDRESS());
@@ -256,7 +308,7 @@ class MulticastPool extends Thread implements Serializable {
 
             while (true) {
                 if (q.getRequests().size()!=0){
-                    System.out.println(q.getRequests().size());
+                    System.out.println("requests: "+q.getRequests().size());
                     Voter voter = q.getRequests().get(0);
                     q.getRequests().remove(0);
                     findTerminal(voter, socket, group);
@@ -277,7 +329,6 @@ class MulticastPool extends Thread implements Serializable {
     void findTerminal(Voter voter, MulticastSocket socket, InetAddress group) throws IOException{
         try {
             Protocol protocol;
-            System.out.println("size: "+q.getVoting().size());
 
             socket.setSoTimeout(2000); // in case it didn't receive a response in 2 seconds
 
@@ -295,6 +346,7 @@ class MulticastPool extends Thread implements Serializable {
                 System.out.println(protocol.type + '\t' + protocol.id);
             } while (protocol==null || !(protocol!=null && protocol.type!=null && (protocol.type.equals("response"))  && protocol.department.equals(q.getDepartment()) && protocol.id!=null));
             String id = protocol.id;
+            System.out.println("RESPONSE ID: "+id);
 
             if (q.getRegisteredAcks().contains(protocol.msgId)) {
                 return; // HERE
@@ -303,7 +355,7 @@ class MulticastPool extends Thread implements Serializable {
             }
 
             // sends accepted
-            buffer = (new Protocol().accepted(new Date().getTime(),  id)).getBytes();
+            buffer = (new Protocol().accepted(new Date().getTime(), id)).getBytes();
             packet = new DatagramPacket(buffer, buffer.length, group, q.getPORT());
             socket.send(packet);
 

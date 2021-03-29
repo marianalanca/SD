@@ -113,6 +113,7 @@ public class Protocol implements Serializable {
 	 * @return String containing the protocol with all the data received as param
 	 */
 	public String response(Long msgId, String department, String id) {
+		System.out.println("PROTOCOL; ID: "+id);
 		return "type|response;msgID|"+msgId+";department|"+department+";id|"+id;
 	}
 
