@@ -7,6 +7,7 @@ import java.io.*;
 import java.util.Scanner;
 import java.rmi.*;
 import java.rmi.ConnectException;
+import java.rmi.registry.LocateRegistry;
 import java.util.Date;
 
 public class MulticastServer extends Thread implements Serializable {
@@ -96,11 +97,11 @@ public class MulticastServer extends Thread implements Serializable {
                     if (option==1) { // CC
                         System.out.print("Insert CC: ");
                         String readKeyboard = keyboardScanner.nextLine();
-                        voter = q.RMI.searchVoterCc(readKeyboard);
+                        voter = q.getRMI().searchVoterCc(readKeyboard);
                     } else { // Username
                         System.out.print("Insert Username: ");
                         String readKeyboard = keyboardScanner.nextLine();
-                        voter = q.RMI.searchVoter(readKeyboard);
+                        voter = q.getRMI().searchVoter(readKeyboard);
                     }
                     // test if voter exists
                     if((voter!=null && voter.department.equals(q.getDepartment()))){
@@ -127,7 +128,7 @@ public class MulticastServer extends Thread implements Serializable {
             System.exit(0);
         }
     }
-    
+
     /** 
      * @return String
      * @throws RemoteException
@@ -135,7 +136,7 @@ public class MulticastServer extends Thread implements Serializable {
     public String getTableID() throws RemoteException{
         return tableID;
     }
-    
+
     /** 
      * @param tableID
      * @throws RemoteException
@@ -143,7 +144,7 @@ public class MulticastServer extends Thread implements Serializable {
     public void setTableID(String tableID) throws RemoteException{
         this.tableID = tableID;
     }
-    
+
     /** 
      * @return List<Voter>
      * @throws RemoteException
@@ -151,14 +152,14 @@ public class MulticastServer extends Thread implements Serializable {
     public List<Voter> getTableMembers() throws RemoteException{
         return tableMembers;
     }
-    
+
     /** 
      * @return ServerData
      */
     public ServerData getQ() {
         return q;
     }
-    
+
     /** 
      * @param voter
      * @throws RemoteException
@@ -166,7 +167,7 @@ public class MulticastServer extends Thread implements Serializable {
     public void addTableMembers(Voter voter) throws RemoteException{
         tableMembers.add(voter);
     }
-    
+
     /** 
      * @param voter
      * @throws RemoteException
@@ -191,8 +192,8 @@ public class MulticastServer extends Thread implements Serializable {
     }
     public void reconnect(){
         try{
-            q.RMI = (RMIServer_I) Naming.lookup("rmi://localhost:5001/RMIServer");
-            q.RMI.loginMulticastServer(this);
+            q.setRMI((RMIServer_I) LocateRegistry.getRegistry("localhost",5001).lookup("RMIServer"));
+            q.getRMI().loginMulticastServer(this);
         }
         catch(ConnectException e){
             reconnect();
@@ -206,7 +207,7 @@ public class MulticastServer extends Thread implements Serializable {
      * @throws RemoteException
      */
     public void login() throws RemoteException{
-        MulticastServer server = q.RMI.loginMulticastServer(this);
+        MulticastServer server = q.getRMI().loginMulticastServer(this);
         if (server!=null) {
             setQ(server.getQ());
             setTableID(server.getTableID());
@@ -264,7 +265,7 @@ class MulticastVote extends Thread implements Serializable {
                     protocol.candidate = "";
                 }
                 System.out.println("Received vote");
-                if (q.RMI.voterVotes(protocol.username, protocol.election, protocol.candidate, q.getDepartment())) { // não encontra eleição?
+                if (q.getRMI().voterVotes(protocol.username, protocol.election, protocol.candidate, q.getDepartment())) { // não encontra eleição?
                     buffer = new Protocol().status(new Date().getTime(), protocol.id, q.getDepartment(), "off", "Vote submitted successfully").getBytes();
                 } else {
                     buffer = new Protocol().status(new Date().getTime(), protocol.id, q.getDepartment(), "off", "The vote can not be submitted").getBytes();
@@ -372,7 +373,7 @@ class MulticastPool extends Thread implements Serializable {
     }
 
 }
-// contacts with threads when needed
+// receives packets from terminals
 class MulticastRequest extends Thread implements Serializable {
     /**
      *
