@@ -50,7 +50,10 @@ public class RMIServer extends UnicastRemoteObject implements RMIServer_I{
       private static String electionFile;
       private static String voterFile;
       private static String tableFile;
+      private static String ipDoServer;
      
+
+
       @Override
       public synchronized Voter searchVoter(String username)throws RemoteException{
             
@@ -63,6 +66,16 @@ public class RMIServer extends UnicastRemoteObject implements RMIServer_I{
             return null;
       }
       
+
+      public synchronized boolean updateServerData(String department, ServerData update){
+            for (MulticastServer server : onServers) {
+                  if(server.getQ().getDepartment().equals(department)){
+                        server.setQ(update);
+                        return true;
+                  }
+            }
+            return false;
+      }
       @Override
       public synchronized List<MulticastServer> getOnServers() throws RemoteException {
             return onServers;
@@ -689,6 +702,7 @@ public class RMIServer extends UnicastRemoteObject implements RMIServer_I{
                   voterFile = myRScanner.nextLine();
                   electionFile = myRScanner.nextLine();
                   tableFile = myRScanner.nextLine();
+                  ipDoServer = myRScanner.nextLine();
                   myRScanner.close();
             } catch (Exception e) {
                   port = 5001;
@@ -708,7 +722,7 @@ public class RMIServer extends UnicastRemoteObject implements RMIServer_I{
             readConfig();
             try{
 
-                   
+                  System.setProperty("java.rmi.server.hostname", ipDoServer);
                   rmiServer = new RMIServer();
                   LocateRegistry.createRegistry(port).rebind("RMIServer", rmiServer);
                   System.out.println("RMIServer is on");
