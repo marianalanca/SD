@@ -389,7 +389,7 @@ public class Election implements Serializable {
        * set a integer with the number of null votes
        * @param nullVote a integer with the number of null votes
        */
-      public void setNullVote(int nullVote) { this.nullVote = nullVote; }     
+      public void setNullVote(int nullVote) { this.nullVote = nullVote; }
 
       public static void main(String[] args) {
             System.out.println("Created");
