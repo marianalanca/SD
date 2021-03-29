@@ -24,13 +24,20 @@ public class ServerData implements Serializable{
         this.department = department;
         try {
             // connection with RMI
-            RMI = (RMIServer_I) LocateRegistry.getRegistry("localhost",5001).lookup("RMIServer");
-
+            BufferedReader br = new BufferedReader(new FileReader("configRMI.txt"));
+            String address, port;
+            if ((address = br.readLine())!=null && (port = br.readLine())!=null) {
+                RMI = (RMIServer_I) LocateRegistry.getRegistry(address,Integer.parseInt(port)).lookup("RMIServer");
+            } else {
+                System.exit(0);
+            }
             //RMI = (RMIServer_I) Naming.lookup("rmi://localhost:5001/RMIServer");
         } catch (RemoteException e) {
             System.out.println("The RMI Server is not connected. Connect it before starting the Multicast Server");
         } catch (NotBoundException e) {
             System.out.println("The RMI Server registry name is not correct. Correct it before starting the Multicast Server");
+        } catch (FileNotFoundException e) {
+            System.out.println("Could not find the config data file. Correct it before starting the Multicast Server");
         } catch (Exception e) {
 			System.out.println("Exception in Multicast: " + e);
 			e.printStackTrace();
