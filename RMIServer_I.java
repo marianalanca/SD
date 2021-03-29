@@ -13,6 +13,15 @@ public interface RMIServer_I extends Remote {
        */
       public Voter searchVoter(String username) throws RemoteException;
 
+      /**
+       * Changes the info needed
+       * @param department
+       * @param update
+       * @return if it was successful
+       * @throws RemoteException
+       */
+      public synchronized boolean updateServerData(String department, ServerData update) throws RemoteException;
+
       /** {@inheritDoc}
        * @param admin the admin that is going to be added and is operational
        * 

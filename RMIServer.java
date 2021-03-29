@@ -66,8 +66,15 @@ public class RMIServer extends UnicastRemoteObject implements RMIServer_I{
             return null;
       }
       
-
-      public synchronized boolean updateServerData(String department, ServerData update){
+      /**
+       * Changes the info needed
+       * @param department
+       * @param update
+       * @return if it was successful
+       * @throws RemoteException
+       */
+      @Override
+      public synchronized boolean updateServerData(String department, ServerData update) throws RemoteException{
             for (MulticastServer server : onServers) {
                   if(server.getQ().getDepartment().equals(department)){
                         server.setQ(update);
