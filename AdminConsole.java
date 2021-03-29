@@ -1,26 +1,30 @@
+import java.io.BufferedReader;
+import java.io.FileReader;
 import java.rmi.*;
 import java.util.List;
 import java.util.Scanner;
 import java.util.Calendar;
 import java.util.concurrent.CopyOnWriteArrayList;
 import java.rmi.server.UnicastRemoteObject;
-//import java.io.Serializable;
+import java.rmi.registry.LocateRegistry;
 
-public class AdminConsole extends UnicastRemoteObject implements AdminConsole_I /*, Serializable*/{   
+public class AdminConsole extends UnicastRemoteObject implements AdminConsole_I{   
 
     //private static final long serialVersionUID = 1L;
 
     RMIServer_I rmi;
     Scanner myObj  = new Scanner(System.in);
+    String address;
+    int port;
 
     /**
      * Constructor AdminConsole
      * @param rmi interface RMIServer
      * @throws RemoteException
      */
-    private AdminConsole(RMIServer_I rmi) throws RemoteException {
+    private AdminConsole(/*RMIServer_I rmi*/) throws RemoteException {
         super();
-        this.rmi = rmi;
+        //his.rmi = rmi;
     }
 
     /**
@@ -53,7 +57,13 @@ public class AdminConsole extends UnicastRemoteObject implements AdminConsole_I 
 
         switch(option){
             case 0:
-                System.exit(0);
+                try{
+                    rmi.logoutAdmin(this);
+                    System.exit(0);
+                }
+                catch(Exception e){
+                    System.out.println("Ups, I can't disconnect");
+                }
                 break;
             case 1:
                 register_voter();
@@ -236,7 +246,7 @@ public class AdminConsole extends UnicastRemoteObject implements AdminConsole_I 
      */
     public void reconnect(){
         try{
-            rmi = (RMIServer_I) Naming.lookup("rmi://localhost:5001/RMIServer");
+            rmi = (RMIServer_I) LocateRegistry.getRegistry(address, port).lookup("RMIServer");
         }
         catch(ConnectException e){
             reconnect();
@@ -400,7 +410,7 @@ public class AdminConsole extends UnicastRemoteObject implements AdminConsole_I 
 
         System.out.println("Pick a election:");
         for(int i =0; i < elections.size() ; i++){
-            System.out.println(i + ". " + elections.get(i));
+            System.out.println(i + ". " + elections.get(i).getTitle());
         }
 
     }
@@ -776,10 +786,10 @@ public class AdminConsole extends UnicastRemoteObject implements AdminConsole_I 
         }
     }
 
-    /**
-     * prints a notification about the state (on or off) of a table
-     */
     @Override
+    /**
+     * {@inheritDoc}
+     */
     public void notify_state(String notification) throws RemoteException{
         System.out.println(notification);
     }
@@ -1177,17 +1187,30 @@ public class AdminConsole extends UnicastRemoteObject implements AdminConsole_I 
     public static void main(String args[]) {
 
         try{
-            
-            RMIServer_I rmi = (RMIServer_I) Naming.lookup("rmi://localhost:5001/RMIServer");
-            AdminConsole admin = new AdminConsole(rmi);
+
+            BufferedReader br = new BufferedReader(new FileReader("configRMI.txt")); 
+
+            AdminConsole admin = new AdminConsole();
             AdminConsole_I admin_I = (AdminConsole_I) admin;
 
+            String port_aux;
+            if ((admin.address = br.readLine())!=null && (port_aux = br.readLine())!=null) {
+                admin.port = Integer.parseInt(port_aux);
+                admin.rmi = (RMIServer_I) LocateRegistry.getRegistry(admin.address, admin.port).lookup("RMIServer");
+            }
+            else{
+                System.out.println("Error in the file configRMI");
+                System.exit(-1);
+            }
+
+            br.close();
+
             try{
-                rmi.loginAdmin(admin_I);
+                admin.rmi.loginAdmin(admin_I);
             }
             catch(ConnectException e){
                 admin.reconnect();
-                rmi.loginAdmin(admin_I);
+                admin.rmi.loginAdmin(admin_I);
             }
             catch(Exception e){
                 System.out.println("Login Admin: " + e);
