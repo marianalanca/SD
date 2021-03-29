@@ -20,7 +20,7 @@ public interface RMIServer_I extends Remote {
        * @return if it was successful
        * @throws RemoteException
        */
-      public synchronized boolean updateServerData(String department, ServerData update) throws RemoteException;
+      public boolean updateServerData(String department, ServerData update) throws RemoteException;
 
       /** {@inheritDoc}
        * @param admin the admin that is going to be added and is operational
