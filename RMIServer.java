@@ -50,10 +50,7 @@ public class RMIServer extends UnicastRemoteObject implements RMIServer_I{
       private static String electionFile;
       private static String voterFile;
       private static String tableFile;
-      /**
-      * @param username the username you want to search 
-      *  @return a boolean if the operation was sucessfull
-      */
+     
       @Override
       public synchronized Voter searchVoter(String username)throws RemoteException{
             
@@ -65,36 +62,26 @@ public class RMIServer extends UnicastRemoteObject implements RMIServer_I{
             }
             return null;
       }
-      /**
-       * @return onServers - list of all On Tables
-       */
+      
       @Override
       public synchronized List<MulticastServer> getOnServers() throws RemoteException {
             return onServers;
       }
 
-      /**
-       * @return servers - list of all servers that existed
-       */
+      
       @Override
       public synchronized List<MulticastServer> getServers() throws RemoteException {
             return servers;
       }
 
-      /**
-       * @param admin the admin that is going to be added and is operational
-       * 
-       */
+      
       @Override
       public synchronized void loginAdmin(AdminConsole_I admin) throws RemoteException{
             System.out.println("Admin Console logged in");
             admins.add(admin);
       }
 
-      /**
-       * @param admin that is not going to be operational
-       * 
-       */
+      
       @Override
       public synchronized void logoutAdmin(AdminConsole_I admin) throws RemoteException{
             
@@ -102,20 +89,12 @@ public class RMIServer extends UnicastRemoteObject implements RMIServer_I{
             admins.remove(admin);
       }
 
-      /**
-      * @param multicastServer the multicastServer that is on and in the network 
-      * Will notify all admin consoles
-      * @return null if it was added sucessfully or the "supposed MulticastServer value" it should have
-      */
+      
       @Override
       public synchronized MulticastServer loginMulticastServer(MulticastServer multicastServer) throws RemoteException{
             
             System.out.println("Multicast Server logged in");
-            if(!servers.contains(multicastServer)){
-                  multicastServer.setTableID(UUID.randomUUID().toString());
-                  servers.add(multicastServer);
-                  writeMulticastServerFile();
-            }
+
             if(!onServers.contains(multicastServer)){
                   List<MulticastServer> servers2 = getOnServers();
                   if(!onServers.isEmpty()){
@@ -134,16 +113,22 @@ public class RMIServer extends UnicastRemoteObject implements RMIServer_I{
                         }
                   }
                   onServers.add(multicastServer);
-                  return null;
-            }else{
-                  return multicastServer;
             }
+
+
+            if(!servers.contains(multicastServer)){
+                  multicastServer.setTableID(UUID.randomUUID().toString());
+                  servers.add(multicastServer);
+                  writeMulticastServerFile();
+                  return null;
+            }
+            return multicastServer;
+            
+
+            
             
       }
-      /**
-      * @param multicastServer the multicastServer is removed from the list of onServers
-      * Will notify all adminConsoles it left
-      */
+      
       @Override
       public synchronized void logoutMulticastServer(MulticastServer multicastServer) throws RemoteException{
             onServers.remove(multicastServer);
@@ -156,11 +141,7 @@ public class RMIServer extends UnicastRemoteObject implements RMIServer_I{
                   }
             }
       }
-      /**
-      * @param state the state wish to obtain
-      * @param type the type of the Election 
-      * @return a List of all the election that has the state and the type
-      */
+      
       @Override
       public synchronized List<Election> stateElections(State state, Type type) throws RemoteException{
             
@@ -176,10 +157,7 @@ public class RMIServer extends UnicastRemoteObject implements RMIServer_I{
       }
 
       
-      /**
-      * @param table the table that you want to find the possible elections you can vote
-      * @return the list of possible Elections that the Table can vote
-      */
+      
       @Override
       public synchronized List<Election> tablesElections(MulticastServer table) throws RemoteException{
             
@@ -193,10 +171,7 @@ public class RMIServer extends UnicastRemoteObject implements RMIServer_I{
             return res;
       }
 
-      /**
-       * @param title the title of the election you want to find
-       * @return the election if it was successfull or null if the opposite
-       */
+      
       @Override
       public synchronized Election searchElection(String title)  throws RemoteException{
             for(Election election: elections){
@@ -207,11 +182,7 @@ public class RMIServer extends UnicastRemoteObject implements RMIServer_I{
             return null;
       }
 
-      /**
-       * @param department the department where the election is happenning
-       * @param role the type of voter that are allowed in the election 
-       * @return the election if it was successfull or null if the opposite 
-       */
+      
       @Override
       public synchronized List<Election> searchElectionbyDepRole(String department, Type role) throws RemoteException{
             /**
@@ -227,12 +198,7 @@ public class RMIServer extends UnicastRemoteObject implements RMIServer_I{
             return res;
       }
 
-      /**
-       * @param table the table that you wish to add 
-       * @param election the election that the table is added
-       * 
-       * @return boolean depending if it was successful or not
-       */
+      
       @Override
       public synchronized boolean addTableElection(MulticastServer table, Election election)throws RemoteException{
             int index1 = elections.indexOf(election);
@@ -244,12 +210,7 @@ public class RMIServer extends UnicastRemoteObject implements RMIServer_I{
             return false;
       }
 
-      /**
-       * @param table the table that you wish to remove
-       * @param election the election that the table is removed
-       * 
-       * @return boolean depending if it was successful or not
-       */
+      
       @Override
       public synchronized boolean removeTableElection(MulticastServer table, Election election)throws RemoteException{
             int index1 = elections.indexOf(election);
@@ -261,10 +222,7 @@ public class RMIServer extends UnicastRemoteObject implements RMIServer_I{
             return false;
       }
 
-      /**
-       * @param id the id of the table 
-       * @returns the table if it was successful or null if it wasn't
-       */
+      
       @Override
       public synchronized MulticastServer searchTable(String id) throws RemoteException{
             List<MulticastServer> servers2 = getServers();
@@ -280,11 +238,7 @@ public class RMIServer extends UnicastRemoteObject implements RMIServer_I{
             }
             return null;
       }
-      /**
-      * @param name the name of the department
-      * It searches the table by its department that are on the OnServers
-      * @return null if nothing has been found or the table if successfull
-      */
+      
       @Override
       public synchronized MulticastServer searchTableDept(String department) throws RemoteException{
             
@@ -308,11 +262,7 @@ public class RMIServer extends UnicastRemoteObject implements RMIServer_I{
             return null;
       }
 
-      /**
-       * @param table the table to callback and add the member
-      * @param member the voter to be added as a member
-      * @return false if something wrong happened
-      */
+      
       @Override
       public synchronized boolean addVoterTable(MulticastServer table, Voter member)  throws RemoteException{
 
@@ -328,10 +278,7 @@ public class RMIServer extends UnicastRemoteObject implements RMIServer_I{
             }
             return false;
       }
-      /**@param table the table to callback and remove the member
-       * @param member the voter to be removed as a member
-       * @return false if something wrong happened
-       */
+      
       @Override
       public synchronized boolean removeVoterTable(MulticastServer table, Voter member) throws RemoteException{
             int index = servers.indexOf(table);
@@ -344,11 +291,7 @@ public class RMIServer extends UnicastRemoteObject implements RMIServer_I{
       }
 
 
-      /**
-       * @param cc_number the cc_number of the user
-      * 
-      * @return null if it hasnt been found one with that value
-      */
+      
       @Override
       public synchronized Voter searchVoterCc(String cc_number)  throws RemoteException{
             
@@ -361,12 +304,7 @@ public class RMIServer extends UnicastRemoteObject implements RMIServer_I{
             return null;
       }
 
-      /**
-      * @param username the username of the voter
-      * @param password the password of the voter with that username
-      * 
-      * @return null if it hasnt been found one with that value
-      */
+      
       @Override
       public synchronized Voter searchUser(String username, String password) throws RemoteException{
             for (Voter voter : voterList) {
@@ -378,11 +316,7 @@ public class RMIServer extends UnicastRemoteObject implements RMIServer_I{
             return null;
       }
 
-      /**
-       * @param title the title of the election
-       * @param candidate the candidate to add to the election
-       * @return true if successful
-       */
+      
       @Override
       public synchronized boolean addCandidate(String title,Candidates candidate) throws RemoteException{
             List<Election> elections2 = getElections();
@@ -399,11 +333,7 @@ public class RMIServer extends UnicastRemoteObject implements RMIServer_I{
             return false;
       }
 
-      /**
-       * @param title the title of the election
-       * @param candidate the candidate to add to the election
-       * @return true if successful
-       */
+      
       @Override
       public synchronized boolean removeCandidate(String title, String candidateName) throws RemoteException{
             /**
@@ -543,9 +473,7 @@ public class RMIServer extends UnicastRemoteObject implements RMIServer_I{
 
       }
 
-      /**
-       * Gets the Voter List
-       */
+      
       @Override
       public synchronized List<Voter> getVoterList() throws RemoteException {
             return this.voterList;
@@ -555,9 +483,7 @@ public class RMIServer extends UnicastRemoteObject implements RMIServer_I{
             this.voterList = voterList;
       }
 
-      /**
-       * Gets the Election List
-       */
+      
       @Override
       public synchronized List<Election> getElections() throws RemoteException {
             return this.elections;
@@ -610,10 +536,7 @@ public class RMIServer extends UnicastRemoteObject implements RMIServer_I{
             voterList.add(voter);
       }
 
-      /**
-      * Adds a member from an election list
-      * return false if there was an error finding the member or the list
-      */
+      
       @Override
       public synchronized boolean addMembroToLista(Election election, String nome,Voter member) throws RemoteException{
             
@@ -629,10 +552,7 @@ public class RMIServer extends UnicastRemoteObject implements RMIServer_I{
 
             return false;
       }
-      /**
-       * Removes a member from an election list
-       * return false if there was an error finding the member or the list
-       */
+      
       @Override
       public synchronized boolean removeMembroToLista(Election election, String nome,Voter member) throws RemoteException{
             
@@ -648,9 +568,7 @@ public class RMIServer extends UnicastRemoteObject implements RMIServer_I{
 
             return false;
       }
-      /**
-       * It will create a voter
-      */
+      
       @Override
       public synchronized boolean createVoter(String username, String department, String contact, String address, String cc_number, Calendar cc_expiring, String password,Type type)  throws RemoteException{
             
@@ -663,11 +581,7 @@ public class RMIServer extends UnicastRemoteObject implements RMIServer_I{
             }
             return false;
       }
-      /**
-       * It receives the voter username, the title of the election and the candidate that is going to vote for
-      * returns if there was a problem in the voting
-      * Server e admins
-      */
+      
       @Override
       public synchronized boolean voterVotes(String username,String title, String candidateName, String voteLocal)  throws RemoteException{
             
@@ -684,11 +598,7 @@ public class RMIServer extends UnicastRemoteObject implements RMIServer_I{
             return false;
       }
 
-      /**
-       * It receives the voter username, the title of the election and the candidate that is going to vote for
-      * returns if there was a problem in the voting
-      * Server e admins
-      */
+      
       @Override
       public synchronized boolean voterVotesAdmin(String username,String title, String candidateName, String voteLocal)  throws RemoteException{
             
@@ -704,10 +614,7 @@ public class RMIServer extends UnicastRemoteObject implements RMIServer_I{
             }
             return false;
       }
-      /**
-       * @params Election constructor
-       * @return if successfull returns true else false
-       */
+      
       @Override
       public synchronized boolean createElection(String title, String description, Calendar beggDate,Calendar endDate,String department, List<Type> allowedVoters)  throws RemoteException{
             /**
@@ -724,10 +631,7 @@ public class RMIServer extends UnicastRemoteObject implements RMIServer_I{
             return false;
       }
 
-      /**
-       * @params all the infor 
-       * 
-       */
+      
       @Override
       public synchronized boolean createCandidate(List<Voter> members, String name,String title,Type type) throws RemoteException{
             Candidates candidates = new Candidates(members, name,type);
@@ -735,14 +639,7 @@ public class RMIServer extends UnicastRemoteObject implements RMIServer_I{
       }
 
 
-      /**
-       * @param original info Election
-       * @param newInfo Election
-       * 
-       * switches to the new election info
-       * 
-       * @return boolean if it was possible to switch
-       */
+      
       @Override
       public synchronized boolean switchElection(Election oriElection, Election newInfo) throws RemoteException{
             if(elections.contains(oriElection)){
@@ -760,14 +657,7 @@ public class RMIServer extends UnicastRemoteObject implements RMIServer_I{
             return true;
       }
 
-      /**
-       * @param original info Voter
-       * @param newInfo Voter
-       * 
-       * Switches to the new User info
-       * 
-       * @return boolean if it was possible to switch
-       */
+      
       @Override
       public synchronized boolean switchUser(Voter oriVoter, Voter newInfo) throws RemoteException{
             if(voterList.contains(oriVoter)){
