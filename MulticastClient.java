@@ -107,10 +107,6 @@ class Data{
         return registeredAcks;
     }
 
-    
-    /** 
-     * @return String
-     */
     public String getID() {
         return ID;
     }
@@ -183,7 +179,7 @@ public class MulticastClient extends Thread {
         Protocol protocol;
         try {
 
-            socket.setSoTimeout(2000); // NÃO FUNCIONA
+            //socket.setSoTimeout(2000); // NÃO FUNCIONA
 
             // receives request
             do {
@@ -228,6 +224,11 @@ public class MulticastClient extends Thread {
                             System.exit(0);
                         }
                     } while (protocol==null || protocol.id==null || (protocol!=null && !protocol.type.equals("login")));
+
+                    // send ack telling it has received login
+                    buffer = (new Protocol().ack(data.getID(), data.getDepartment())).getBytes();
+                    packet = new DatagramPacket(buffer, buffer.length, group, data.getPORT());
+                    socket.send(packet);
 
                     // autentication
                     data.setUsername(protocol.username);
@@ -360,8 +361,6 @@ public class MulticastClient extends Thread {
                         socket.send(packet);
                         return;
                     } catch (Exception e) {
-                        e.printStackTrace();
-                        System.out.print("\nThe terminal has crashed. ");
                         System.exit(0);
                     }
                 }
