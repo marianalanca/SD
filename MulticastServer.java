@@ -15,7 +15,7 @@ public class MulticastServer extends Thread implements Serializable {
     private List<Voter> tableMembers = new CopyOnWriteArrayList<Voter>();
 
 
-    /** 
+    /**
      * @param args
      */
     public static void main(String[] args) {
@@ -111,7 +111,9 @@ public class MulticastServer extends Thread implements Serializable {
                     }
                     // test if voter exists
                     if((voter!=null && voter.department.equals(q.getDepartment()))){
-                        q.getRequests().add(voter);// add to voting list
+                        if (q.votingContains(voter)==null && q.requestContains(voter)==null && (q.getSearchingTerminal()==null || (q.getSearchingTerminal()!=null && !q.getSearchingTerminal().getUsername().equals(voter.getUsername())))) // MELHORAR!
+                            q.getRequests().add(voter);// add to voting list
+                        else System.out.println("The user has already been selected");
                     } else {
                         System.out.println("Data inserted is not valid");
                     }
@@ -347,11 +349,11 @@ class MulticastPool extends Thread implements Serializable {
                 packet = new DatagramPacket(buffer, buffer.length);
                 socket.receive(packet);
                 protocol = new Protocol().parse(new String(packet.getData(), 0, packet.getLength()));
-                System.out.println(protocol.type + '\t' + protocol.id);
             } while (protocol==null || !(protocol!=null && protocol.type!=null && (protocol.type.equals("response"))  && protocol.department.equals(q.getDepartment()) && protocol.id!=null));
             String id = protocol.id;
 
             if (q.getRegisteredAcks().contains(protocol.msgId)) {
+                System.out.println("I'm useful!");
                 return; // HERE
             } else {
                 q.getRegisteredAcks().add(protocol.msgId);
@@ -378,8 +380,11 @@ class MulticastPool extends Thread implements Serializable {
                 packet = new DatagramPacket(buffer, buffer.length);
                 socket.receive(packet);
                 protocol = new Protocol().parse(new String(packet.getData(), 0, packet.getLength()));
-                System.out.println(protocol.type + '\t' + protocol.id);
-            } while (protocol==null || !(protocol!=null && protocol.type!=null && (protocol.type.equals("ack"))  && protocol.department.equals(q.getDepartment()) && protocol.id!=null && protocol.id.equals(id)));
+            } while (protocol==null || !(protocol!=null && protocol.type!=null && (protocol.type.equals("ack") || protocol.type.equals("crashed"))  && protocol.department.equals(q.getDepartment()) && protocol.id!=null && protocol.id.equals(id)));
+
+            if (protocol.type.equals("crashed")) {
+                q.getRequests().add(0, voter);
+            }
 
         } catch (SocketTimeoutException e) {q.getRequests().add(0, voter);}
     }

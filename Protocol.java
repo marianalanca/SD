@@ -47,7 +47,6 @@ public class Protocol implements Serializable {
 		return "type|turnoff;msgID|"+msgId+";department|"+department;
 	}
 
-	
 	/** 
 	 * @param msgId id that identifies the message; In case this one is replicated, it is discarted
 	 * @param id of the terminal to which the information must be sent
@@ -59,7 +58,6 @@ public class Protocol implements Serializable {
 		return "type|election;msgID|"+msgId+";id|"+id+";department|"+department+";election|"+election;
 	}
 
-	
 	/** 
 	 * @param msgId id that identifies the message; In case this one is replicated, it is discarted
 	 * @param id of the terminal to which the information must be sent

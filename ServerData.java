@@ -28,6 +28,24 @@ public class ServerData implements Serializable{
         }
     }
 
+    public TerminalVoter votingContains(Voter voter) {
+        for (TerminalVoter terminalVoter: voting) {
+            if (terminalVoter.getData().getUsername().equals(voter.getUsername())) {
+                return terminalVoter;
+            }
+        }
+        return null;
+    }
+
+    public Voter requestContains(Voter voter) {
+        for (Voter request: requests) {
+            if (request.getUsername().equals(voter.getUsername())) {
+                return request;
+            }
+        }
+        return null;
+    }
+
     public void setRequests(List<Voter> requests) {
         this.requests = requests;
     }
