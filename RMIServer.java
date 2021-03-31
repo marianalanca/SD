@@ -32,24 +32,65 @@ import java.util.concurrent.CopyOnWriteArrayList;
 /*Por os restantes objects que podem ser passados */ 
 public class RMIServer extends UnicastRemoteObject implements RMIServer_I{
       /**
-       *
+       * Const to use
        */
       private static final String FILE_EMPTY = "File Empty";
+      /**
+       * Const to use
+       */
       private static final String AN_ERROR_OCCURRED = "An error occurred.";
+      /**
+       * Const to use
+       */
       private static final String FILE_ALREADY_EXISTS = "File already exists.";
+      /**
+       * Const to use
+       */
       private static final String FILE_CREATED = "File created: ";
-
+      /**
+       * Const to help on serialize
+       */
       private static final long serialVersionUID = -7161055300561474003L;
       
+      /**
+       * List of voters
+       */
       private List<Voter> voterList = new CopyOnWriteArrayList<>();
+      /**
+       * List of elections
+       */
       private List<Election> elections = new CopyOnWriteArrayList<>();
+      /**
+       * List of adminsConsolo logged in
+       */
       private List<AdminConsole_I> admins = new CopyOnWriteArrayList<>();
+      /**
+       * List of all the servers
+       */
       private List<MulticastServer> servers = new CopyOnWriteArrayList<>();
+      /**
+       * List of all the servers logged in
+       */
       private List<MulticastServer> onServers = new CopyOnWriteArrayList<>();
+      /**
+       * Connection port
+       */
       private static int port = 6789;
+      /**
+       * File to write
+       */
       private static String electionFile;
+      /**
+       * File to write
+       */
       private static String voterFile;
+      /**
+       * File to write
+       */
       private static String tableFile;
+      /**
+       * IP the rmi uses
+       */
       private static String ipDoServer;
      
 
@@ -66,13 +107,7 @@ public class RMIServer extends UnicastRemoteObject implements RMIServer_I{
             return null;
       }
       
-      /**
-       * Changes the info needed
-       * @param department
-       * @param update
-       * @return if it was successful
-       * @throws RemoteException
-       */
+      
       @Override
       public synchronized boolean updateServerData(String department, ServerData update) throws RemoteException{
             for (MulticastServer server : onServers) {
@@ -85,13 +120,13 @@ public class RMIServer extends UnicastRemoteObject implements RMIServer_I{
       }
       @Override
       public synchronized List<MulticastServer> getOnServers() throws RemoteException {
-            return onServers;
+            return  onServers;
       }
 
       
       @Override
       public synchronized List<MulticastServer> getServers() throws RemoteException {
-            return servers;
+            return  servers;
       }
 
       
@@ -105,7 +140,7 @@ public class RMIServer extends UnicastRemoteObject implements RMIServer_I{
       @Override
       public synchronized void logoutAdmin(AdminConsole_I admin) throws RemoteException{
             
-            System.out.println("Admin Console logged on");
+            System.out.println("Admin Console logged out");
             admins.remove(admin);
       }
 
@@ -124,14 +159,7 @@ public class RMIServer extends UnicastRemoteObject implements RMIServer_I{
                               }
                         }
                   }
-                  String notif = "Mesa de Voto "+ multicastServer.getTableID() + " ON"; 
-                  for (AdminConsole_I admin : admins) {
-                        try{
-                        admin.notify_state(notif);
-                        }catch(Exception e){
-                              admins.remove(admin);
-                        }
-                  }
+                  
                   onServers.add(multicastServer);
             }
 
@@ -140,6 +168,14 @@ public class RMIServer extends UnicastRemoteObject implements RMIServer_I{
                   multicastServer.setTableID(UUID.randomUUID().toString());
                   servers.add(multicastServer);
                   writeMulticastServerFile();
+                  String notif = "Mesa de Voto "+ multicastServer.getTableID() + " ON"; 
+                  for (AdminConsole_I admin : admins) {
+                        try{
+                        admin.notify_state(notif);
+                        }catch(Exception e){
+                              admins.remove(admin);
+                        }
+                  }
                   return null;
             }
             return multicastServer;
@@ -403,7 +439,7 @@ public class RMIServer extends UnicastRemoteObject implements RMIServer_I{
        */
       public void writeMulticastServerFile(){
             try(FileOutputStream fos = new FileOutputStream(tableFile); ObjectOutputStream oos = new ObjectOutputStream(fos)){
-                  oos.writeObject(voterList);
+                  oos.writeObject(servers);
             }catch(Exception ex){
                   ex.printStackTrace();
             }
@@ -728,7 +764,6 @@ public class RMIServer extends UnicastRemoteObject implements RMIServer_I{
             DatagramSocket aSocket = null;
             readConfig();
             try{
-
                   System.setProperty("java.rmi.server.hostname", ipDoServer);
                   rmiServer = new RMIServer();
                   LocateRegistry.createRegistry(port).rebind("RMIServer", rmiServer);

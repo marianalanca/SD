@@ -6,9 +6,15 @@ import java.util.List;
 
 public interface RMIServer_I extends Remote {
      
+
+
+
+
+      
+
       /** {@inheritDoc}
        * @param username the username you want to search 
-       *  @return a boolean if the operation was sucessfull
+       * @return a boolean if the operation was sucessfull
        * @throws RemoteException
        */
       public Voter searchVoter(String username) throws RemoteException;
