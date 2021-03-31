@@ -374,7 +374,7 @@ class MulticastPool extends Thread implements Serializable {
             socket.send(packet);
 
             // receives ack in case the terminal has received the data
-            do {
+            /*do {
                 buffer = new byte[256];
                 packet = new DatagramPacket(buffer, buffer.length);
                 socket.receive(packet);
@@ -383,7 +383,7 @@ class MulticastPool extends Thread implements Serializable {
 
             if (protocol.type.equals("crashed")) {
                 q.addRequestFront(voter);
-            }
+            }*/
 
         } catch (SocketTimeoutException e) {q.addRequestFront(voter);}
     }

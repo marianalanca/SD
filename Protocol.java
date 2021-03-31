@@ -34,8 +34,8 @@ public class Protocol implements Serializable {
 		return "type|login;msgID|"+msgId+";id|"+id+";username|"+username+";password|"+password;
 	}
 
-	public String ack(Long msgId, String id, String department){
-		return "type|ack;msgID|"+msgId+";id|"+id+";department|"+department;
+	public String ack(String id, String department){
+		return "type|ack;id|"+msgId+";department|"+department;
 	}
 
 	/** 
@@ -115,6 +115,7 @@ public class Protocol implements Serializable {
 	 * @return String containing the protocol with all the data received as param
 	 */
 	public String response(Long msgId, String department, String id) {
+		System.out.println("PROTOCOL; ID: "+id);
 		return "type|response;msgID|"+msgId+";department|"+department+";id|"+id;
 	}
 
