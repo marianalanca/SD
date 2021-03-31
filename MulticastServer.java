@@ -278,7 +278,7 @@ class MulticastVote extends Thread implements Serializable {
                 packet = new DatagramPacket(buffer, buffer.length, groupACK, q.getPORT());
                 socketACK.send(packet);
 
-                q.removeVoter(protocol.id); 
+                q.removeVoter(protocol.id);
             }
         } catch (RemoteException e) {
             this.start();
@@ -352,10 +352,20 @@ class MulticastPool extends Thread implements Serializable {
             } while (protocol==null || !(protocol!=null && protocol.type!=null && (protocol.type.equals("response"))  && protocol.department.equals(q.getDepartment()) && protocol.id!=null));
             String id = protocol.id;
 
+            System.out.println(id);
+
+            System.out.println("ALL REGISTERED");
+            for (Long registered: q.getRegisteredAcks()) {
+                System.out.println(registered);
+            }
+            System.out.println();
+
             // test if packet has already been received;  this is necessary since sometimes the client receives some packet that has already been received and starts unnecessarily
             if (q.getRegisteredAcks().contains(protocol.msgId)) {
+                System.out.println("bye sucker "+protocol.msgId);
                 return;
             } else {
+                System.out.println("added: "+protocol.type +'\t' + protocol.msgId);
                 q.getRegisteredAcks().add(protocol.msgId);
             }
 
@@ -374,16 +384,12 @@ class MulticastPool extends Thread implements Serializable {
             socket.send(packet);
 
             // receives ack in case the terminal has received the data
-            /*do {
+            do {
                 buffer = new byte[256];
                 packet = new DatagramPacket(buffer, buffer.length);
                 socket.receive(packet);
                 protocol = new Protocol().parse(new String(packet.getData(), 0, packet.getLength()));
             } while (protocol==null || !(protocol!=null && protocol.type!=null && (protocol.type.equals("ack"))  && protocol.department.equals(q.getDepartment()) && protocol.id!=null && protocol.id.equals(id)));
-
-            if (protocol.type.equals("crashed")) {
-                q.addRequestFront(voter);
-            }*/
 
         } catch (SocketTimeoutException e) {q.addRequestFront(voter);}
     }
@@ -437,6 +443,7 @@ class MulticastRequest extends Thread implements Serializable {
                                     if (protocol.type.equals("crashed")) {
                                         crash(voter.getData());
                                         q.removeVoter(voter);
+                                        q.addRequestFront(voter.getData());
                                     } else if (protocol.type.equals("timeout")) {
                                         q.removeVoter(voter);
                                     }

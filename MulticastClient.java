@@ -19,7 +19,7 @@ class Data{
     private int RESULT_PORT = 4322;  // RESULT Port
     private String department, username, password;
     private String ID;
-    private int TIMEOUT = 7;
+    private int TIMEOUT = 120;
     MulticastSocket socket = null;
     MulticastSocket socketResult = null;
     InetAddress group, groupResult;
@@ -177,6 +177,7 @@ public class MulticastClient extends Thread {
         Protocol protocol;
         try {
             // receives request
+            System.out.println("BREAKPOINT 1");
             do {
                 buffer = new byte[256];
                 packet = new DatagramPacket(buffer, buffer.length);
@@ -190,7 +191,8 @@ public class MulticastClient extends Thread {
                 packet = new DatagramPacket(buffer, buffer.length, group, data.getPORT());
                 socket.send(packet);
 
-                System.out.println("response sent");
+                System.out.println("response sent "+data.getID());
+                System.out.println("BREAKPOINT 2");
 
                 // TEST
                 if (data.getRegisteredAcks().contains(protocol.msgId)) {
@@ -211,9 +213,13 @@ public class MulticastClient extends Thread {
                     }
                 } while (protocol==null || !(protocol!=null && protocol.type.equals("accepted")));
 
+                System.out.println("BREAKPOINT 3");
+
                 if (data.getRegisteredAcks().contains(protocol.msgId)) {
+                    System.out.println("bye");
                     return;
                 } else {
+                    System.out.println("added");
                     data.getRegisteredAcks().add(protocol.msgId);
                 }
 
@@ -231,16 +237,20 @@ public class MulticastClient extends Thread {
                         }
                     } while (protocol==null || protocol.id==null || (protocol!=null && !protocol.type.equals("login")));
 
+                    System.out.println("BREAKPOINT 4");
+
                     // send ack telling it has received login
-                    /*buffer = (new Protocol().ack(new Date().getTime(), data.getID(), data.getDepartment())).getBytes();
+                    buffer = (new Protocol().ack(new Date().getTime(), data.getID(), data.getDepartment())).getBytes();
                     packet = new DatagramPacket(buffer, buffer.length, group, data.getPORT());
-                    socket.send(packet);*/
+                    socket.send(packet);
 
                     // autentication
                     data.setUsername(protocol.username);
                     data.setPassword(protocol.password);
 
                     System.out.println("Welcome to eVoting");
+
+                    System.out.println("BREAKPOINT 5");
 
                     // enumeração das listas
                     boolean usernameFlag = true, passwordFlag = true;

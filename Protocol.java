@@ -34,8 +34,8 @@ public class Protocol implements Serializable {
 		return "type|login;msgID|"+msgId+";id|"+id+";username|"+username+";password|"+password;
 	}
 
-	public String ack(String id, String department){
-		return "type|ack;id|"+msgId+";department|"+department;
+	public String ack(long msgId, String id, String department){
+		return "type|ack;id|"+msgId+";id|"+id+";department|"+department;
 	}
 
 	/** 
