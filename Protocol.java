@@ -34,6 +34,13 @@ public class Protocol implements Serializable {
 		return "type|login;msgID|"+msgId+";id|"+id+";username|"+username+";password|"+password;
 	}
 
+	
+	/** 
+	 * @param msgId id that identifies the message; In case this one is replicated, it is discarted
+	 * @param id of the terminal to which the information must be sent
+	 * @param department of the table and terminal where the voter is voting
+	 * @return String containing the protocol message with all the data received as param
+	 */
 	public String ack(long msgId, String id, String department){
 		return "type|ack;id|"+msgId+";id|"+id+";department|"+department;
 	}
