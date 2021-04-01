@@ -11,7 +11,6 @@ import java.rmi.*;
 public class MulticastServer extends Thread implements Serializable {
     private static final long serialVersionUID = 1L;
     private ServerData q;
-    private String tableID;
     private List<Voter> tableMembers = new CopyOnWriteArrayList<Voter>();
 
 
@@ -135,25 +134,8 @@ public class MulticastServer extends Thread implements Serializable {
             System.exit(0);
         }
     }
-
     /** 
-     * @return String with the tableID
-     * @throws RemoteException
-     */
-    public String getTableID() throws RemoteException{
-        return tableID;
-    }
-
-    /** 
-     * @param tableID with the new value for the tableID
-     * @throws RemoteException
-     */
-    public void setTableID(String tableID) throws RemoteException{
-        this.tableID = tableID;
-    }
-
-    /** 
-     * @return List<Voter> of all the members in the table
+     * @return List of all the members in the table
      * @throws RemoteException
      */
     public List<Voter> getTableMembers() throws RemoteException{
@@ -182,7 +164,7 @@ public class MulticastServer extends Thread implements Serializable {
     public void removeTableMembers(Voter voter) throws RemoteException{
         tableMembers.remove(voter);
     }
-    
+
     /** 
      * @param tableMembers the new value of the members of the table members
      * @throws RemoteException
@@ -190,7 +172,7 @@ public class MulticastServer extends Thread implements Serializable {
     public void setTableMembers(List<Voter> tableMembers) throws RemoteException{
         this.tableMembers = tableMembers;
     }
-    
+
     /** 
      * @param q the object containing important data to substitute the current serer data
      */
@@ -207,7 +189,7 @@ public class MulticastServer extends Thread implements Serializable {
             System.out.println("Failed to connect");
         }
     }
-    
+
     /** 
      * @throws RemoteException in case the access to the RMI fails
      */
@@ -217,7 +199,6 @@ public class MulticastServer extends Thread implements Serializable {
             q.setRequests(server.getQ().getRequests());
             q.setVoting(server.getQ().getVoting());
             q.setRegisteredAcks(server.getQ().getRegisteredAcks());
-            setTableID(server.getTableID());
             setTableMembers(server.getTableMembers());
         }
     }
