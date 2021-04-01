@@ -1,5 +1,6 @@
 import java.io.BufferedReader;
 import java.io.FileReader;
+import java.io.IOException;
 import java.rmi.*;
 import java.util.List;
 import java.util.Scanner;
@@ -36,19 +37,19 @@ public class AdminConsole extends UnicastRemoteObject implements AdminConsole_I{
      */
     public void menu(){
         System.out.println("\n0. Exit"); 
-        System.out.println("1. Register people");                       //done
-        System.out.println("2. Create elections");                        //done
-        System.out.println("3. Manage candidate lists");                  //done - mas ver
-        System.out.println("4. Manage polling stations");                 //done - mas ver
-        System.out.println("5. Change an election's properties");         //done
-        System.out.println("6. Local voted each voter");                  //nop
-        System.out.println("7. Show polling station status");             //nop
-        System.out.println("8. Show voters in real time");                //nop
-        System.out.println("9. See detailed results of past elections");  //done
-        System.out.println("10. Early vote");                               //done
-        System.out.println("11. Change personal data");                     //done
-        System.out.println("12. Manage members of each polling station\n");  //done - mas ver
-
+        System.out.println("Voter:\n\t1. Register voter"); 
+        System.out.println("\t2. Change voter's personal data");                       
+        System.out.println("Election:\n\t3. Create elections");   
+        System.out.println("\t4. Change an election's properties");                     
+        System.out.println("\t5. Manage candidate lists");                   
+        System.out.println("Tables:\n\t6. Manage polling stations");
+        System.out.println("\t7. Manage members of each polling station");  
+        System.out.println("\t8. Show polling station status");             
+        System.out.println("Consult:\n\t9. Local voted each voter");                             
+        System.out.println("\t10. Show voters in real time");              
+        System.out.println("\t11. See detailed results of past elections");  
+        System.out.println("Extra:\n\t12. Early vote\n");                                                   
+        
         options_menu();
     }
 
@@ -73,37 +74,37 @@ public class AdminConsole extends UnicastRemoteObject implements AdminConsole_I{
                 register_voter();
                 break;
             case 2:
-                create_election();
-                break;
-            case 3:
-                manage_list();
-                break;
-            case 4:
-                manage_tables();
-                break;
-            case 5:
-                change_election();
-                break;
-            case 6:
-                see_voters_local();
-                break;
-            case 7:
-                table_state();
-                break;
-            case 8:
-                voters_real_time();
-                break;
-            case 9:
-                see_results();
-                break;
-            case 10:
-                early_vote();
-                break;
-            case 11:
                 change_voter_data();
                 break;
-            case 12:
+            case 3:
+                create_election();
+                break;
+            case 4:
+                change_election();
+                break;
+            case 5:
+                manage_list();
+                break;
+            case 6:
+                manage_tables();
+                break;
+            case 7:
                 manage_table_members();
+                break;
+            case 8:
+                table_state();
+                break;
+            case 9:
+                see_voters_local();
+                break;
+            case 10:
+                voters_real_time();
+                break;
+            case 11:
+                see_results();
+                break;
+            case 12:
+                early_vote();
                 break;
             default:
                 System.out.println("Invalid option. Try again\n");
@@ -938,12 +939,40 @@ public class AdminConsole extends UnicastRemoteObject implements AdminConsole_I{
 
             election = elections.get(option);
             System.out.println("\nElection " + election.getTitle() + ":");
+
+            (new Thread() {
+                public void run() {
+                    try {
+                        Runtime.getRuntime().exec("cmd /c start cmd.exe");
+                        while(true){
+                            try {
+                                List<Candidates> candidates = election.getCandidatesList();
+
+                                for(int i = 0; i < candidates.size(); i++){
+                                    Candidates cand = candidates.get(i);
+                                    System.out.println(cand.getName() + ": " + cand.getNumberOfVotes());
+                                }
+                                Thread.sleep(1000);
+                            } catch (InterruptedException e) {
+                                // TODO Auto-generated catch block
+                                e.printStackTrace();
+                            }
+                        }
+
+                    } catch (IOException e) {
+                        // TODO Auto-generated catch block
+                        e.printStackTrace();
+                    }
+                }
+            }).start();
+
+            /*
             candidates = election.getCandidatesList();
 
             for(int i = 0; i < candidates.size(); i++){
                 cand = candidates.get(i);
                 System.out.println(cand.getName() + ": " + cand.getNumberOfVotes());
-            }
+            }*/
 
         }catch(ConnectException e){
             reconnect();
