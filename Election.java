@@ -111,6 +111,12 @@ public class Election implements Serializable {
       public void setDescription(String description) { this.description = description; }      
 
       /**
+       * get election's description
+       * @return description a string with the election's description
+       */
+      public String getDescription() { return this.description; }  
+      
+      /**
        * get election's begging date
        * @return election's begging date
        */
