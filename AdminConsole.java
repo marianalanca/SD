@@ -12,6 +12,10 @@ public class AdminConsole extends UnicastRemoteObject implements AdminConsole_I{
 
     //private static final long serialVersionUID = 1L;
 
+    /**
+     *
+     */
+    private static final long serialVersionUID = 1723520814373481188L;
     RMIServer_I rmi;
     Scanner myObj  = new Scanner(System.in);
     String address;

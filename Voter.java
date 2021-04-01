@@ -3,6 +3,10 @@ import java.util.Calendar;
 
 public class Voter implements Serializable{
 
+    /**
+     *
+     */
+    private static final long serialVersionUID = -1506063260831152293L;
     public String username, department;
     public String contact, address, cc_number;
     public Calendar cc_expiring;
