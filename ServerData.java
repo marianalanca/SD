@@ -95,85 +95,6 @@ public class ServerData implements Serializable{
         }
         return false;
     }
-    
-    /** 
-     * @param ola
-     * @throws RemoteException
-     */
-    public void test(MulticastServer ola) throws RemoteException{
-        RMI.createVoter("Maria", "Info", "123456789", "morada", "1", null, "pass", Type.STUDENT);
-        RMI.createVoter("Pedro", "Info", "123456789", "morada", "2", null, "pass", Type.STUDENT);
-        RMI.createVoter("Carlos", "Info", "123456789", "morada", "3", null, "pass", Type.DOCENTE);
-        RMI.createVoter("Joao", "Info", "123456789", "morada", "4", null, "pass", Type.FUNCIONARIO);
-
-        List<Voter> members = new CopyOnWriteArrayList<Voter>();
-
-        members.add(new Voter("Mauel", "Info", "123", "address", "2587", null, "pass", Type.STUDENT));
-
-        List<Type> electionType = new CopyOnWriteArrayList<>();
-        electionType.add(Type.STUDENT);
-        electionType.add(Type.DOCENTE);
-        RMI.createElection("STUDENTS","", null, null, "Info", electionType);
-        RMI.createCandidate(null, "Tino", "STUDENTS", Type.STUDENT);
-        RMI.createCandidate(null, "Octavio", "STUDENTS", Type.STUDENT);
-        Election ele = RMI.searchElection("STUDENTS");
-        RMI.addTableElection(ola, ele);
-
-        electionType = new CopyOnWriteArrayList<>();
-        electionType.add(Type.DOCENTE);
-        RMI.createElection("DOCENTES","", null, null, "Info", electionType);
-        RMI.createCandidate(null, "Antonio", "DOCENTES", Type.DOCENTE);
-        ele = RMI.searchElection("DOCENTES");
-        RMI.addTableElection(ola, ele);
-
-        electionType = new CopyOnWriteArrayList<>();
-        electionType.add(Type.FUNCIONARIO);
-        RMI.createElection("FUNCIONARIOS","", null, null, "Info", electionType);
-        ele = RMI.searchElection("FUNCIONARIOS");
-        RMI.addTableElection(ola, ele);
-        //RMI.createCandidate(null, "Vio", "FUNCIONARIOS", Type.FUNCIONARIO);
-
-
-
-
-        RMI.createVoter("M", "I", "123456789", "morada", "123", null, "pass", Type.STUDENT);
-        RMI.createVoter("P", "I", "123456789", "morada", "432", null, "pass", Type.STUDENT);
-        RMI.createVoter("C", "I", "123456789", "morada", "135", null, "pass", Type.DOCENTE);
-        RMI.createVoter("K", "I", "123456789", "morada", "136", null, "pass", Type.DOCENTE);
-        RMI.createVoter("J", "I", "123456789", "morada", "246", null, "pass", Type.FUNCIONARIO);
-        RMI.createVoter("L", "I", "123456789", "morada", "241", null, "pass", Type.FUNCIONARIO);
-
-        List<Voter> membersI = new CopyOnWriteArrayList<Voter>();
-
-        membersI.add(new Voter("M", "I", "123", "address", "258", null, "pass", Type.DOCENTE));
-
-        List<Type> electionTypeI = new CopyOnWriteArrayList<>();
-        electionTypeI.add(Type.STUDENT);
-        electionTypeI.add(Type.DOCENTE);
-        RMI.createElection("STUDENTSI","", null, null, "I", electionTypeI);
-        RMI.createCandidate(null, "Tino1", "STUDENTSI", Type.STUDENT);
-        RMI.createCandidate(null, "Octavio1", "STUDENTSI", Type.STUDENT);
-        RMI.createCandidate(null, "Octavio1", "STUDENTSI", Type.DOCENTE);
-        ele = RMI.searchElection("STUDENTSI");
-        RMI.addTableElection(ola, ele);
-
-        electionTypeI = new CopyOnWriteArrayList<>();
-        electionTypeI.add(Type.DOCENTE);
-        RMI.createElection("DOCENTESI","", null, null, "I", electionType);
-        RMI.createCandidate(null, "Antonio1", "DOCENTESI", Type.DOCENTE);
-        ele = RMI.searchElection("DOCENTESI");
-        RMI.addTableElection(ola, ele);
-
-        electionType = new CopyOnWriteArrayList<>();
-        electionType.add(Type.FUNCIONARIO);
-        RMI.createElection("FUNCIONARIOSI","", null, null, "I", electionType);
-        ele = RMI.searchElection("FUNCIONARIOSI");
-        RMI.addTableElection(ola, ele);
-        //RMI.createCandidate(null, "Vio", "FUNCIONARIOS", Type.FUNCIONARIO);
-
-
-    }
-    
     /** 
      * @return int with the value of the client Port
      */
@@ -196,14 +117,14 @@ public class ServerData implements Serializable{
     }
     
     /** 
-     * @return List<Long> with the id of all messages received
+     * @return List with the id of all messages received
      */
     public List<Long> getRegisteredAcks() {
         return registeredAcks;
     }
     
     /** 
-     * @param ackID 
+     * @param ackID it is the id of the message received
      * @return boolean
      */
     public boolean addACK(Long ackID) {
@@ -257,14 +178,14 @@ public class ServerData implements Serializable{
     }
     
     /** 
-     * @return List<Voter> of all the users requesting to access the terminal
+     * @return List of all the users requesting to access the terminal
      */
     public List<Voter> getRequests() {
         return requests;
     }
     
     /** 
-     * @return List<TerminalVoter> of al the users currently voting
+     * @return List of al the users currently voting
      */
     public List<TerminalVoter> getVoting() {
         return voting;

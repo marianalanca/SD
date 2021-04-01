@@ -42,7 +42,7 @@ public class Protocol implements Serializable {
 	 * @return String containing the protocol message with all the data received as param
 	 */
 	public String ack(long msgId, String id, String department){
-		return "type|ack;id|"+msgId+";id|"+id+";department|"+department;
+		return "type|ack;msgID|"+msgId+";id|"+id+";department|"+department;
 	}
 
 	/** 
@@ -87,7 +87,9 @@ public class Protocol implements Serializable {
 	/**
 	 * @param msgId id that identifies the message; In case this one is replicated, it is discarted
 	 * @param id of the terminal to which the information must be sent
+	 * @param department of the table and terminal where the voter is voting
 	 * @param username of the user that wants to vote
+	 * @param election that the user chose
 	 * @param candidate in which the voter wants to vote
 	 * @return String containing the protocol with all the data received as param
 	 */
@@ -98,6 +100,7 @@ public class Protocol implements Serializable {
 	/** 
 	 * @param msgId id that identifies the message; In case this one is replicated, it is discarted
 	 * @param id of the terminal to which the information must be sent
+	 * @param department of the table and terminal where the voter is voting
 	 * @param logged contains the value of the status (on/off)
 	 * @param msg is some message that is to be sent
 	 * @return String containing the protocol with all the data received as param
@@ -109,6 +112,7 @@ public class Protocol implements Serializable {
 	/** 
 	 * @param msgId id that identifies the message; In case this one is replicated, it is discarted
 	 * @param id of the terminal to which the information must be sent
+	 * @param department of the table and terminal where the voter is voting
 	 * @param logged contains the value of the status (on/off)
 	 * @return String containing the protocol with all the data received as param
 	 */
@@ -118,6 +122,7 @@ public class Protocol implements Serializable {
 
 	/** 
 	 * @param msgId id that identifies the message; In case this one is replicated, it is discarted
+	 * @param department of the table and terminal where the voter is voting
 	 * @param id of the terminal to which the information must be sent
 	 * @return String containing the protocol with all the data received as param
 	 */
