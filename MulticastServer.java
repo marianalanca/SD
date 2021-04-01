@@ -69,19 +69,19 @@ public class MulticastServer extends Thread implements Serializable {
                 // Receives from the console requests for new connections
                 int option = 0;
                 do {
-                    System.out.println("1) Check members of list\n2) Autenticate\n3) Exit");
+                    System.out.println("0. Check members of list\n1. Autenticate\n2. Exit");
                     try {
                         option = Integer.valueOf(keyboardScanner.nextLine());
                     } catch (NumberFormatException e) {
                         option = 0; // out of range
                     }
-                } while (option < 1 || option > 3);
-                if (option == 1) {
+                } while (option < 0 || option > 2);
+                if (option == 0) {
                     System.out.println("List of table members");
                     for (Voter member: tableMembers) {
                         System.out.println('\t'+member.getUsername());
                     }
-                }else if (option == 3) {  // "Exit"
+                }else if (option == 2) {  // "Exit"
                     closeTerminals();
                     q.getRMI().logoutMulticastServer(this);
                     System.exit(0);
@@ -89,21 +89,21 @@ public class MulticastServer extends Thread implements Serializable {
                     option = 0;
                     Voter voter;
                     do {
-                        System.out.println("Autenticate by:\n1) Citizen Card\n2) Username ");
+                        System.out.println("Autenticate by:\n0. Citizen Card\n1. Name ");
                         try {
                             option = Integer.valueOf(keyboardScanner.nextLine());
                         } catch (NumberFormatException e) {
                             option = 0; // out of range
                         }
-                    } while (option !=1 && option != 2);
+                    } while (option !=0 && option != 1);
 
                     // Autentication
-                    if (option==1) { // CC
+                    if (option==0) { // CC
                         System.out.print("Insert CC: ");
                         String readKeyboard = keyboardScanner.nextLine();
                         voter = q.getRMI().searchVoterCc(readKeyboard);
-                    } else { // Username
-                        System.out.print("Insert Username: ");
+                    } else { // Name
+                        System.out.print("Insert Name: ");
                         String readKeyboard = keyboardScanner.nextLine();
                         voter = q.getRMI().searchVoter(readKeyboard);
                     }
