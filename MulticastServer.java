@@ -136,7 +136,7 @@ public class MulticastServer extends Thread implements Serializable {
     }
     /** 
      * @return List of all the members in the table
-     * @throws RemoteException
+     * @throws RemoteException Remote Problem
      */
     public List<Voter> getTableMembers() throws RemoteException{
         return tableMembers;
@@ -151,7 +151,7 @@ public class MulticastServer extends Thread implements Serializable {
 
     /** 
      * @param voter to add to the list of table members
-     * @throws RemoteException
+     * @throws RemoteException Remote Problem
      */
     public void addTableMembers(Voter voter) throws RemoteException{
         tableMembers.add(voter);
@@ -159,7 +159,7 @@ public class MulticastServer extends Thread implements Serializable {
 
     /** 
      * @param voter to remove from the list of table members
-     * @throws RemoteException
+     * @throws RemoteException Remote Problem
      */
     public void removeTableMembers(Voter voter) throws RemoteException{
         tableMembers.remove(voter);
@@ -167,7 +167,7 @@ public class MulticastServer extends Thread implements Serializable {
 
     /** 
      * @param tableMembers the new value of the members of the table members
-     * @throws RemoteException
+     * @throws RemoteException Remote Problem
      */
     public void setTableMembers(List<Voter> tableMembers) throws RemoteException{
         this.tableMembers = tableMembers;
