@@ -276,73 +276,91 @@ public class MulticastClient extends Thread {
                                             }
                                         } while (protocol==null || (protocol!=null && protocol.id!=null && protocol.item_name!=null && !protocol.type.equals("item_list") && protocol.id.equals(data.getID())));
 
-                                        System.out.println("List of Elections");
-                                        for (int i=0;i<protocol.item_count;i++){
-                                            System.out.println("\t"+(i+1)+") "+ protocol.item_name.get(i));
-                                        }
-                                        boolean flag = true;
-                                        int selection = 0;
-                                        do {
-                                            System.out.print("Select one election from the list: ");
-                                            selection = getIntTimeConsole(keyboardScanner, data.getTIMEOUT());
-                                            if (selection <= protocol.item_count && selection > 0)
-                                                flag = false;
-                                            else System.out.print("The option you've chosen is not possible. ");
-                                        } while(flag);
-
-                                        String electionName = protocol.item_name.get(selection-1);
-
-                                        // send request for the list of candidates
-                                        buffer = (new Protocol().election(Math.abs(new Random(System.currentTimeMillis()).nextLong()), data.getID(), data.getDepartment(), protocol.item_name.get(selection-1))).getBytes();
-                                        packet = new DatagramPacket(buffer, buffer.length, group, data.getPORT());
-                                        socket.send(packet);
-                                        do {
-                                            buffer = new byte[256];
-                                            packet = new DatagramPacket(buffer, buffer.length);
-                                            socket.receive(packet);
-                                            protocol = new Protocol().parse(new String(packet.getData(), 0, packet.getLength()));
-                                            if (protocol!=null && protocol.type.equals("turnoff") && protocol.department.equals(data.getDepartment())){
-                                                System.out.print("\nThe table has exited. ");
-                                                System.exit(0);
+                                        if (protocol.item_count==0) {
+                                            System.out.println("There are no elections available at the moment");
+                                            // HERE
+                                            buffer = (new Protocol().timeout(Math.abs(new Random(System.currentTimeMillis()).nextLong()), data.getID(), data.getDepartment())).getBytes(); // TO DO
+                                            packet = new DatagramPacket(buffer, buffer.length, group, data.getPORT());
+                                            socket.send(packet);
+                                            // send timeout?
+                                        } else {
+                                            // pôr aqui o resto!
+                                            System.out.println("List of Elections");
+                                            for (int i=0;i<protocol.item_count;i++){
+                                                System.out.println("\t"+(i+1)+") "+ protocol.item_name.get(i));
                                             }
-                                        } while (protocol==null || (protocol!=null && protocol.id!=null && protocol.item_name!=null && !protocol.type.equals("item_list") && protocol.id.equals(data.getID())));
-    
-                                        System.out.println("List of Candidates");
-                                        for (int i=0;i<protocol.item_count;i++){
-                                            System.out.println("\t"+(i+1)+") "+ protocol.item_name.get(i));
-                                        }
-                                        System.out.println("\t"+(protocol.item_count+1)+") White");
+                                            boolean flag = true;
+                                            int selection = 0;
+                                            do {
+                                                System.out.print("Select one election from the list: ");
+                                                selection = getIntTimeConsole(keyboardScanner, data.getTIMEOUT());
+                                                if (selection <= protocol.item_count && selection > 0)
+                                                    flag = false;
+                                                else System.out.print("The option you've chosen is not possible. ");
+                                            } while(flag);
 
-                                        flag = true;
-                                        selection = 0;
-                                        do {
-                                            System.out.print("Select one election from the list: ");
-                                            selection = getIntTimeConsole(keyboardScanner, data.getTIMEOUT());
-                                            if (selection <= protocol.item_count+1 && selection > 0)
-                                                flag = false;
-                                            else System.out.print("The option you've chosen is not possible. ");
-                                        } while(flag);
+                                            String electionName = protocol.item_name.get(selection-1);
+
+                                            // send request for the list of candidates
+                                            buffer = (new Protocol().election(Math.abs(new Random(System.currentTimeMillis()).nextLong()), data.getID(), data.getDepartment(), protocol.item_name.get(selection-1))).getBytes();
+                                            packet = new DatagramPacket(buffer, buffer.length, group, data.getPORT());
+                                            socket.send(packet);
+                                            do {
+                                                buffer = new byte[256];
+                                                packet = new DatagramPacket(buffer, buffer.length);
+                                                socket.receive(packet);
+                                                protocol = new Protocol().parse(new String(packet.getData(), 0, packet.getLength()));
+                                                if (protocol!=null && protocol.type.equals("turnoff") && protocol.department.equals(data.getDepartment())){
+                                                    System.out.print("\nThe table has exited. ");
+                                                    System.exit(0);
+                                                }
+                                            } while (protocol==null || (protocol!=null && protocol.id!=null && protocol.item_name!=null && !protocol.type.equals("item_list") && protocol.id.equals(data.getID())));
+        
+                                            if (protocol.item_count==0){
+                                                System.out.println("There are no candidates available");
+                                                // HERE
+                                                buffer = (new Protocol().timeout(Math.abs(new Random(System.currentTimeMillis()).nextLong()), data.getID(), data.getDepartment())).getBytes(); // TO DO
+                                                packet = new DatagramPacket(buffer, buffer.length, group, data.getPORT());
+                                                socket.send(packet);
+                                            } else {
+                                                System.out.println("List of Candidates");
+                                                for (int i=0;i<protocol.item_count;i++){
+                                                    System.out.println("\t"+(i+1)+") "+ protocol.item_name.get(i));
+                                                }
+                                                System.out.println("\t"+(protocol.item_count+1)+") White");
+
+                                                flag = true;
+                                                selection = 0;
+                                                do {
+                                                    System.out.print("Select one election from the list: ");
+                                                    selection = getIntTimeConsole(keyboardScanner, data.getTIMEOUT());
+                                                    if (selection <= protocol.item_count+1 && selection > 0)
+                                                        flag = false;
+                                                    else System.out.print("The option you've chosen is not possible. ");
+                                                } while(flag);
 
 
-                                        String votedCantidate;
-                                        if ( selection == protocol.item_count+1)
-                                            votedCantidate = "white";
-                                        else
-                                            votedCantidate = protocol.item_name.get(selection-1);
+                                                String votedCantidate;
+                                                if ( selection == protocol.item_count+1)
+                                                    votedCantidate = "white";
+                                                else
+                                                    votedCantidate = protocol.item_name.get(selection-1);
 
-                                        // send vote to MultiCast Server
-                                        buffer = (new Protocol().vote(Math.abs(new Random(System.currentTimeMillis()).nextLong()), data.getID(), data.getDepartment(), data.getUsername(), electionName, votedCantidate)).getBytes();
-                                        packet = new DatagramPacket(buffer, buffer.length, groupResult, data.getRESULT_PORT());
-                                        socketResult.send(packet);
-                                        do {
-                                            buffer = new byte[256];
-                                            packet = new DatagramPacket(buffer, buffer.length);
-                                            socket.receive(packet);
-                                            protocol = new Protocol().parse(new String(packet.getData(), 0, packet.getLength()));
-                                        } while (protocol==null || !(protocol!=null && protocol.id!=null && protocol.type.equals("status") && protocol.logged.equals("off") && protocol.id.equals(data.getID())));
+                                                // send vote to MultiCast Server
+                                                buffer = (new Protocol().vote(Math.abs(new Random(System.currentTimeMillis()).nextLong()), data.getID(), data.getDepartment(), data.getUsername(), electionName, votedCantidate)).getBytes();
+                                                packet = new DatagramPacket(buffer, buffer.length, groupResult, data.getRESULT_PORT());
+                                                socketResult.send(packet);
+                                                do {
+                                                    buffer = new byte[256];
+                                                    packet = new DatagramPacket(buffer, buffer.length);
+                                                    socket.receive(packet);
+                                                    protocol = new Protocol().parse(new String(packet.getData(), 0, packet.getLength()));
+                                                } while (protocol==null || !(protocol!=null && protocol.id!=null && protocol.type.equals("status") && protocol.logged.equals("off") && protocol.id.equals(data.getID())));
 
-                                        if (protocol.msg!=null) {
-                                            System.out.println(protocol.msg);
+                                                if (protocol.msg!=null) {
+                                                    System.out.println(protocol.msg);
+                                                }
+                                            }
                                         }
                                         } else {
                                             System.out.println("Wrong password");
