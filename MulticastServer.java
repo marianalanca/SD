@@ -60,12 +60,12 @@ public class MulticastServer extends Thread implements Serializable {
         this.q = q;
     }
     public void run() {
-        System.out.println("VOTING TABLE eVOTING "+q.getDepartment());
+        System.out.println("Voting Table eVoting "+q.getDepartment());
         Scanner keyboardScanner = new Scanner(System.in);
         try {
             login();
 
-            q.test(this); // DELETE
+            //q.test(this); // DELETE
             while (true) {
                 // Receives from the console requests for new connections
                 int option = 0;
@@ -204,7 +204,7 @@ public class MulticastServer extends Thread implements Serializable {
             q.getRMI().loginMulticastServer(this);
         }
         catch(Exception e){
-            System.out.println("reconnect and I are not friends :) " + e);
+            System.out.println("Failed to connect");
         }
     }
     
@@ -352,20 +352,10 @@ class MulticastPool extends Thread implements Serializable {
             } while (protocol==null || !(protocol!=null && protocol.type!=null && (protocol.type.equals("response"))  && protocol.department.equals(q.getDepartment()) && protocol.id!=null));
             String id = protocol.id;
 
-            System.out.println(id);
-
-            System.out.println("ALL REGISTERED");
-            for (Long registered: q.getRegisteredAcks()) {
-                System.out.println(registered);
-            }
-            System.out.println();
-
             // test if packet has already been received;  this is necessary since sometimes the client receives some packet that has already been received and starts unnecessarily
             if (q.getRegisteredAcks().contains(protocol.msgId)) {
-                System.out.println("bye sucker "+protocol.msgId);
                 return;
             } else {
-                System.out.println("added: "+protocol.type +'\t' + protocol.msgId);
                 q.getRegisteredAcks().add(protocol.msgId);
             }
 
@@ -420,7 +410,6 @@ class MulticastRequest extends Thread implements Serializable {
             socket.setSoTimeout(q.getTIMEOUT());
 
             while (true) {
-                // recebe info!
                 byte[] buffer = new byte[256];;
                 DatagramPacket packet = new DatagramPacket(buffer, buffer.length);
                 socket.receive(packet);
@@ -482,7 +471,6 @@ class MulticastRequest extends Thread implements Serializable {
     public void status(String logged, TerminalVoter voter, MulticastSocket socket, InetAddress group) throws IOException{
         if (logged.equals("on")){ // receives logged in confirmation
             // sends candidates list
-            // fazer verificação do role com o candidate para só apresentar o que se quer
             List<Election> elections = q.getRMI().searchElectionbyDepRole(q.getDepartment(), voter.getData().getType());
             List<String> electionsNames = new CopyOnWriteArrayList<String>();
 
