@@ -17,8 +17,8 @@ public class Candidates implements Serializable {
 
       /**
        * 
-       * @param name
-       * @param type
+       * @param name - name of the candidate
+       * @param type - type of candidate
        */
       public Candidates(String name, Type type){
             this.members = new CopyOnWriteArrayList<>();
@@ -65,7 +65,7 @@ public class Candidates implements Serializable {
 
       /**
        * 
-       * @param members
+       * @param members List of members to set
        */
       public void setMembers(List<Voter> members) {
             this.members = members;
@@ -80,7 +80,7 @@ public class Candidates implements Serializable {
 
       /**
        * 
-       * @param numberOfVotes
+       * @param numberOfVotes set the number of votes
        */
       public void setNumberOfVotes(int numberOfVotes) {
             this.numberOfVotes = numberOfVotes;
@@ -97,7 +97,7 @@ public class Candidates implements Serializable {
 
       /**
        * 
-       * @param name
+       * @param name the new name of the list
        */
       public void setName(String name) {
             this.name = name;
@@ -113,7 +113,7 @@ public class Candidates implements Serializable {
 
       /**
        * 
-       * @param type
+       * @param type the new type of the list
        */
       public void setType(Type type) {
             this.type = type;

@@ -4,16 +4,16 @@ import java.util.Calendar;
 
 
 public class AlreadyVoted implements Serializable {
-      /**
-       * @param voter - person who already voted
-       * @param timeOfVot - the time of vote of the person
-       * @param location - the location of the vote
-       */
+      
       Voter vote;
       Calendar timeOfVote;
       String local;
 
-
+      /**
+       * @param voter- person who already voted
+       * @param timeOfVote - the time of vote of the person
+       * @param local - the location of the vote
+       */
       public AlreadyVoted(Voter vote, Calendar timeOfVote, String local){
             this.vote = vote;
             this.timeOfVote = timeOfVote;

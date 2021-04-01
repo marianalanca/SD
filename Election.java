@@ -100,7 +100,7 @@ public class Election implements Serializable {
 
       /**
        * set election's state
-       * @param state 
+       * @param state the new state of the Election
        */
       public void setState(State state) { this.state = state; }
 
