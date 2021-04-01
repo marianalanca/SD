@@ -172,14 +172,13 @@ public interface RMIServer_I extends Remote {
       
       /** {@inheritDoc}
        * Creates Candidate and adds it to the proper election
-       * @param members
        * @param name
        * @param title
        * @param type
        * @return
        * @throws RemoteException
        */
-      public boolean createCandidate(List<Voter> members, String name,String title,Type type) throws RemoteException;
+      public boolean createCandidate( String name,String title,Type type) throws RemoteException;
       
       /** {@inheritDoc}
        * @param title the title of the election
@@ -252,13 +251,6 @@ public interface RMIServer_I extends Remote {
        * @throws RemoteException
        */
       public boolean addVoterTable(MulticastServer table, Voter member)  throws RemoteException;
-      
-      /** {@inheritDoc}
-       * @param id the id of the table 
-       * @returns the table if it was successful or null if it wasn't
-       * @throws RemoteException
-       */
-      public MulticastServer searchTable(String id) throws RemoteException;
       
       /** {@inheritDoc}
        * @param department the name of the department

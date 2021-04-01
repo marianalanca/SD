@@ -1,5 +1,6 @@
 import java.io.Serializable;
 import java.util.List;
+import java.util.concurrent.CopyOnWriteArrayList;
 
 public class Candidates implements Serializable {
       /**
@@ -16,12 +17,11 @@ public class Candidates implements Serializable {
 
       /**
        * 
-       * @param members
        * @param name
        * @param type
        */
-      public Candidates(List<Voter> members, String name, Type type){
-            this.members = members;
+      public Candidates(String name, Type type){
+            this.members = new CopyOnWriteArrayList<>();
             this.numberOfVotes = 0;
             this.name = name;
             this.type = type;
@@ -40,7 +40,10 @@ public class Candidates implements Serializable {
        * Adds a candidate
        */
       public void addCandidateList(Voter candidate){
-            members.add(candidate);
+            if(members == null){
+                  this.members = new CopyOnWriteArrayList<>();
+            }
+            this.members.add(candidate);
       }
 
       /**

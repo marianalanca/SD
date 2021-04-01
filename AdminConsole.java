@@ -306,14 +306,14 @@ public class AdminConsole extends UnicastRemoteObject implements AdminConsole_I{
         password = check_string();
 
         try{
-            rmi.createVoter(name, department, contact, address, cc_number, cc_expiring, password, role); 
-            System.out.println("\nSuccessfully created new voter");
+            if(rmi.createVoter(name, department, contact, address, cc_number, cc_expiring, password, role) )
+                System.out.println("\nSuccessfully created new voter");
         }
         catch(ConnectException e){
             try{
                 reconnect();
-                rmi.createVoter(name, department, contact, address, cc_number, cc_expiring, password, role); 
-                System.out.println("\nSuccessfully created new voter");
+                if(rmi.createVoter(name, department, contact, address, cc_number, cc_expiring, password, role) )
+                    System.out.println("\nSuccessfully created new voter");
             }
             catch(Exception excp){
                 System.out.println("Register_voter: connecting failed " + excp);
@@ -495,12 +495,12 @@ public class AdminConsole extends UnicastRemoteObject implements AdminConsole_I{
                 }
 
                 try{
-                    if(rmi.createCandidate(null, nameList, election.getTitle(), typeList)==true)
+                    if(rmi.createCandidate(nameList, election.getTitle(), typeList) )
                         System.out.println("Sucess creating new list.");
                 }
                 catch (ConnectException e){
                     reconnect();
-                    if(rmi.createCandidate(null, nameList, election.getTitle(), typeList)==true)
+                    if(rmi.createCandidate( nameList, election.getTitle(), typeList) )
                         System.out.println("Sucess creating new list.");
                 }
                 catch (Exception e){
@@ -526,12 +526,12 @@ public class AdminConsole extends UnicastRemoteObject implements AdminConsole_I{
                 }
 
                 try{
-                    if(rmi.removeCandidate(election.getTitle(), cand.get(option).getName())==true)
+                    if(rmi.removeCandidate(election.getTitle(), cand.get(option).getName()) )
                         System.out.println("Sucess removing list.");
                 }
                 catch (ConnectException e){
                     reconnect();
-                    if(rmi.removeCandidate(election.getTitle(), cand.get(option).getName())==true)
+                    if(rmi.removeCandidate(election.getTitle(), cand.get(option).getName()) )
                         System.out.println("Sucess removing list.");
                 }
                 catch (Exception e){
@@ -568,11 +568,11 @@ public class AdminConsole extends UnicastRemoteObject implements AdminConsole_I{
                 try{
 
                     if(option == 3){
-                        if(rmi.addMembroToLista(election, cand.get(optionCand).getName(), voter)==true)
+                        if(rmi.addMembroToLista(election, cand.get(optionCand).getName(), voter))
                             System.out.println("Sucess adding member to list");
                     }
                     else{
-                        if(rmi.removeMembroToLista(election, cand.get(optionCand).getName(), voter)==true)
+                        if(rmi.removeMembroToLista(election, cand.get(optionCand).getName(), voter))
                             System.out.println("Sucess removing member to list");
                     }
 
@@ -581,17 +581,18 @@ public class AdminConsole extends UnicastRemoteObject implements AdminConsole_I{
                     reconnect();
 
                     if(option == 3){
-                        if(rmi.addMembroToLista(election, cand.get(optionCand).getName(), voter)==true)
+                        if(rmi.addMembroToLista(election, cand.get(optionCand).getName(), voter) )
                             System.out.println("Sucess adding member to list");
                     }
                     else{
-                        if(rmi.removeMembroToLista(election, cand.get(optionCand).getName(), voter)==true)
+                        if(rmi.removeMembroToLista(election, cand.get(optionCand).getName(), voter) )
                             System.out.println("Sucess removing member to list");
                     }
 
                 }
                 catch(Exception e){
-                    System.out.println("Error adding member to list: " + e);
+                    System.out.println("Error adding/removing member to list: " + e );
+                    e.printStackTrace();
                 }
                 
             }
@@ -623,7 +624,7 @@ public class AdminConsole extends UnicastRemoteObject implements AdminConsole_I{
             MulticastServer table;
             Election election;
             int option;
-            String id;
+            String dep;
 
             elections = rmi.stateElections(State.WAITING, null);
 
@@ -651,39 +652,39 @@ public class AdminConsole extends UnicastRemoteObject implements AdminConsole_I{
                 option = check_number();
             }
 
-            System.out.print("Insert table's id: ");
-            id = check_string();
+            System.out.print("Insert table's department: ");
+            dep = check_string();
 
-            if(id.equals("")){
+            if(dep.equals("")){
                 return;
             }
 
-            table =  rmi.searchTable(id);
+            table =  rmi.searchTableDept(dep);
 
             while(table == null){
                 System.out.print("Invalid id. Try again: ");
-                id = check_string();
-                table =  rmi.searchTable(id);
+                dep = check_string();
+                table =  rmi.searchTableDept(dep);
             }
 
             try{
                 if(option == 1){
-                    if(rmi.addTableElection(table, election)==true)
+                    if(rmi.addTableElection(table, election) )
                         System.out.println("Sucess adding table ");
                 }
                 else{
-                    if(rmi.removeTableElection(table, election)==true)
+                    if(rmi.removeTableElection(table, election) )
                         System.out.println("Sucess removing table ");
                 }
             }
             catch(ConnectException e){
                 reconnect();
                 if(option == 1){
-                    if(rmi.addTableElection(table, election)==true)
+                    if(rmi.addTableElection(table, election) )
                         System.out.println("Sucess adding table ");
                 }
                 else{
-                    if(rmi.removeTableElection(table, election)==true)
+                    if(rmi.removeTableElection(table, election) )
                         System.out.println("Sucess removing table ");
                 }
             }
@@ -783,13 +784,13 @@ public class AdminConsole extends UnicastRemoteObject implements AdminConsole_I{
             }
 
             try{
-                if(rmi.switchElection(election.getTitle(), new_election)==true){
+                if(rmi.switchElection(election.getTitle(), new_election) ){
                     System.out.println("Sucess in updating election information");
                 } 
             }
             catch(ConnectException e){
                 reconnect();
-                if(rmi.switchElection(election.getTitle(), new_election)==true){
+                if(rmi.switchElection(election.getTitle(), new_election) ){
                     System.out.println("Sucess in updating election information");
                 }
             }
@@ -856,7 +857,7 @@ public class AdminConsole extends UnicastRemoteObject implements AdminConsole_I{
 
     @Override
     public void notify_state(String notification) throws RemoteException{
-        System.out.println(notification);
+        System.out.println(notification + "\n");
     }
 
     /**
@@ -875,20 +876,20 @@ public class AdminConsole extends UnicastRemoteObject implements AdminConsole_I{
 
             System.out.println("Tables On");
             for(int i = 0; i < tablesOn.size(); i++){
-                System.out.println(tablesOn.get(i).getTableID());
+                System.out.println(tablesOn.get(i).getQ().getDepartment());
             }
             boolean flag;
             System.out.println("\nTables Off");
             for(int i = 0; i < tablesOff.size(); i++){
                 flag = true;
                 for (MulticastServer multicastServer : tablesOn) {
-                    if(multicastServer.getTableID().equals(tablesOff.get(i).getTableID())){
+                    if(multicastServer.getQ().getDepartment().equals(tablesOff.get(i).getQ().getDepartment())){
                         flag = false;
                         break;
                     }
                 }
                 if(flag){
-                    System.out.println(tablesOff.get(i).getTableID());
+                    System.out.println(tablesOff.get(i).getQ().getDepartment());
                 }
             }
             
@@ -915,7 +916,7 @@ public class AdminConsole extends UnicastRemoteObject implements AdminConsole_I{
             Candidates cand;
             int option;
 
-            elections = rmi.getElections();
+            elections = rmi.stateElections(State.OPEN, null);
 
             if(elections.size() == 0){ 
                 System.out.println("List of elections is empty.");
@@ -1044,12 +1045,12 @@ public class AdminConsole extends UnicastRemoteObject implements AdminConsole_I{
                     cand_name = candidates.get(option).getName();
                 }
                 try{
-                    if(rmi.voterVotesAdmin(name, election.getTitle(), cand_name, election.getDepartment())==true)
+                    if(rmi.voterVotesAdmin(name, election.getTitle(), cand_name, election.getDepartment()) )
                         System.out.println("Sucess early vote");
                 }
                 catch(ConnectException e){
                     reconnect();
-                    if(rmi.voterVotesAdmin(name, election.getTitle(), cand_name, election.getDepartment())==true)
+                    if(rmi.voterVotesAdmin(name, election.getTitle(), cand_name, election.getDepartment()) )
                         System.out.println("Sucess early vote");
                 }
                 catch(Exception e){
@@ -1153,12 +1154,12 @@ public class AdminConsole extends UnicastRemoteObject implements AdminConsole_I{
             }
 
             try{
-                if(rmi.switchUser(voter.getCc_number(), new_voter)==true)
+                if(rmi.switchUser(voter.getCc_number(), new_voter) )
                     System.out.println("Sucess in updating voter information. ");
             }
             catch(ConnectException e){
                 reconnect();
-                if(rmi.switchUser(voter.getCc_number(), new_voter)==true)
+                if(rmi.switchUser(voter.getCc_number(), new_voter) )
                     System.out.println("Sucess in updating voter information. ");
             }
             catch(Exception e){
@@ -1189,22 +1190,22 @@ public class AdminConsole extends UnicastRemoteObject implements AdminConsole_I{
             MulticastServer table;
             List<Voter> members;
             Voter voter = null;
-            String id, cc_number;
+            String dep, cc_number;
             int option, aux;
 
-            System.out.print("Insert table's id: ");
-            id = check_string();
+            System.out.print("Insert table's department: ");
+            dep = check_string();
 
-            if(id.equals("")){
+            if(dep.equals("")){
                 return;
             }
 
-            table =  rmi.searchTable(id);
+            table =  rmi.searchTableDept(dep);
 
             while(table == null){
-                System.out.print("Invalid id. Try again: ");
-                id = check_string();
-                table =  rmi.searchTable(id);
+                System.out.print("Invalid department. Try again: ");
+                dep = check_string();
+                table =  rmi.searchTableDept(dep);
             }
 
             members = table.getTableMembers();
@@ -1254,22 +1255,22 @@ public class AdminConsole extends UnicastRemoteObject implements AdminConsole_I{
 
             try{
                 if(option == 1){
-                    if(rmi.addVoterTable(table, voter)==true)
+                    if(rmi.addVoterTable(table, voter))
                         System.out.println("Sucess adding member to table");
                 }
                 else{
-                    if (rmi.removeVoterTable(table, voter)==true)
+                    if (rmi.removeVoterTable(table, voter))
                         System.out.println("Sucess removing member to table");
                 }
             }
             catch(ConnectException e){
                 reconnect();
                 if(option == 1){
-                    if(rmi.addVoterTable(table, voter)==true)
+                    if(rmi.addVoterTable(table, voter) )
                         System.out.println("Sucess adding member to table");
                 }
                 else{
-                    if (rmi.removeVoterTable(table, voter)==true)
+                    if (rmi.removeVoterTable(table, voter) )
                         System.out.println("Sucess removing member to table");
                 }
             }
