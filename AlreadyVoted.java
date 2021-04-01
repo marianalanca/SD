@@ -10,7 +10,7 @@ public class AlreadyVoted implements Serializable {
       String local;
 
       /**
-       * @param voter- person who already voted
+       * @param vote - person who already voted
        * @param timeOfVote - the time of vote of the person
        * @param local - the location of the vote
        */
@@ -29,7 +29,7 @@ public class AlreadyVoted implements Serializable {
             return this.vote;
       }
       /**
-       * @param vote
+       * @param vote the new voter
        */
       public void setVote(Voter vote) {
             this.vote = vote;
@@ -45,7 +45,7 @@ public class AlreadyVoted implements Serializable {
 
       /**
        * Changes the time of the vote
-       * @param timeOfVote
+       * @param timeOfVote the new time of vote
        */
       public void setTimeOfVote(Calendar timeOfVote) {
             this.timeOfVote = timeOfVote;
