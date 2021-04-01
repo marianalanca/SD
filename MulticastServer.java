@@ -84,7 +84,7 @@ public class MulticastServer extends Thread implements Serializable {
                     }
                 }else if (option == 3) {  // "Exit"
                     closeTerminals();
-                    //q.RMI.logoutMulticastServer(this);
+                    q.getRMI().logoutMulticastServer(this);
                     System.exit(0);
                 } else {
                     option = 0;
@@ -109,8 +109,8 @@ public class MulticastServer extends Thread implements Serializable {
                         voter = q.getRMI().searchVoter(readKeyboard);
                     }
                     // test if voter exists
-                    if((voter!=null && voter.department.equals(q.getDepartment()))){
-                        if (q.votingContains(voter)==null && q.requestContains(voter)==null && (q.getSearchingTerminal()==null || (q.getSearchingTerminal()!=null && !q.getSearchingTerminal().getUsername().equals(voter.getUsername())))) // MELHORAR!
+                    if((voter!=null && voter.department.equalsIgnoreCase(q.getDepartment()))){
+                        if (q.votingContains(voter)==null && q.requestContains(voter)==null && (q.getSearchingTerminal()==null || (q.getSearchingTerminal()!=null && !q.getSearchingTerminal().getUsername().equalsIgnoreCase(voter.getUsername())))) // MELHORAR!
                             q.addRequestBack(voter); // add to voting list
                         else System.out.println("The user has already been selected");
                     } else {
@@ -264,7 +264,7 @@ class MulticastVote extends Thread implements Serializable {
                     packet = new DatagramPacket(buffer, buffer.length);
                     socket.receive(packet);
                     protocol = new Protocol().parse(new String(packet.getData(), 0, packet.getLength()));
-                } while (protocol==null || !(protocol!=null && protocol.type!=null && protocol.type.equals("vote") && protocol.department.equals(q.getDepartment())));
+                } while (protocol==null || !(protocol!=null && protocol.type!=null && protocol.type.equals("vote") && protocol.department.equalsIgnoreCase(q.getDepartment())));
 
                 if (protocol.candidate.equals("white")) {
                     protocol.candidate = "";
@@ -349,7 +349,7 @@ class MulticastPool extends Thread implements Serializable {
                 packet = new DatagramPacket(buffer, buffer.length);
                 socket.receive(packet);
                 protocol = new Protocol().parse(new String(packet.getData(), 0, packet.getLength()));
-            } while (protocol==null || !(protocol!=null && protocol.type!=null && (protocol.type.equals("response"))  && protocol.department.equals(q.getDepartment()) && protocol.id!=null));
+            } while (protocol==null || !(protocol!=null && protocol.type!=null && (protocol.type.equals("response"))  && protocol.department.equalsIgnoreCase(q.getDepartment()) && protocol.id!=null));
             String id = protocol.id;
 
             // test if packet has already been received;  this is necessary since sometimes the client receives some packet that has already been received and starts unnecessarily
@@ -379,7 +379,7 @@ class MulticastPool extends Thread implements Serializable {
                 packet = new DatagramPacket(buffer, buffer.length);
                 socket.receive(packet);
                 protocol = new Protocol().parse(new String(packet.getData(), 0, packet.getLength()));
-            } while (protocol==null || !(protocol!=null && protocol.type!=null && (protocol.type.equals("ack"))  && protocol.department.equals(q.getDepartment()) && protocol.id!=null && protocol.id.equals(id)));
+            } while (protocol==null || !(protocol!=null && protocol.type!=null && (protocol.type.equals("ack"))  && protocol.department.equalsIgnoreCase(q.getDepartment()) && protocol.id!=null && protocol.id.equals(id)));
 
         } catch (SocketTimeoutException e) {q.addRequestFront(voter);}
     }
@@ -416,7 +416,7 @@ class MulticastRequest extends Thread implements Serializable {
                 protocol = new Protocol().parse(new String(packet.getData(), 0, packet.getLength()));
 
                 if (protocol!=null) {
-                    if (protocol.department!=null && protocol.department.equals(q.getDepartment())) {
+                    if (protocol.department!=null && protocol.department.equalsIgnoreCase(q.getDepartment())) {
                         if (protocol.id!=null) {
                             voter = q.searchVoter(protocol.id);
                             if (voter!=null){
