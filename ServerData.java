@@ -100,7 +100,7 @@ public class ServerData implements Serializable{
      * @param ola
      * @throws RemoteException
      */
-    public void test(MulticastServer ola) throws RemoteException{
+    /*public void test(MulticastServer ola) throws RemoteException{
         RMI.createVoter("Maria", "Info", "123456789", "morada", "1", null, "pass", Type.STUDENT);
         RMI.createVoter("Pedro", "Info", "123456789", "morada", "2", null, "pass", Type.STUDENT);
         RMI.createVoter("Carlos", "Info", "123456789", "morada", "3", null, "pass", Type.DOCENTE);
@@ -172,7 +172,7 @@ public class ServerData implements Serializable{
         //RMI.createCandidate(null, "Vio", "FUNCIONARIOS", Type.FUNCIONARIO);
 
 
-    }
+    }*/
     
     /** 
      * @return int with the value of the client Port

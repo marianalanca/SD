@@ -253,13 +253,6 @@ public interface RMIServer_I extends Remote {
       public boolean addVoterTable(MulticastServer table, Voter member)  throws RemoteException;
       
       /** {@inheritDoc}
-       * @param id the id of the table 
-       * @returns the table if it was successful or null if it wasn't
-       * @throws RemoteException
-       */
-      public MulticastServer searchTable(String id) throws RemoteException;
-      
-      /** {@inheritDoc}
        * @param department the name of the department
        * It searches the table by its department that are on the OnServers
        * @return null if nothing has been found or the table if successfull

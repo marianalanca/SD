@@ -624,7 +624,7 @@ public class AdminConsole extends UnicastRemoteObject implements AdminConsole_I{
             MulticastServer table;
             Election election;
             int option;
-            String id;
+            String dep;
 
             elections = rmi.stateElections(State.WAITING, null);
 
@@ -652,19 +652,19 @@ public class AdminConsole extends UnicastRemoteObject implements AdminConsole_I{
                 option = check_number();
             }
 
-            System.out.print("Insert table's id: ");
-            id = check_string();
+            System.out.print("Insert table's department: ");
+            dep = check_string();
 
-            if(id.equals("")){
+            if(dep.equals("")){
                 return;
             }
 
-            table =  rmi.searchTable(id);
+            table =  rmi.searchTableDept(dep);
 
             while(table == null){
                 System.out.print("Invalid id. Try again: ");
-                id = check_string();
-                table =  rmi.searchTable(id);
+                dep = check_string();
+                table =  rmi.searchTableDept(dep);
             }
 
             try{
@@ -876,20 +876,20 @@ public class AdminConsole extends UnicastRemoteObject implements AdminConsole_I{
 
             System.out.println("Tables On");
             for(int i = 0; i < tablesOn.size(); i++){
-                System.out.println(tablesOn.get(i).getTableID());
+                System.out.println(tablesOn.get(i).getQ().getDepartment());
             }
             boolean flag;
             System.out.println("\nTables Off");
             for(int i = 0; i < tablesOff.size(); i++){
                 flag = true;
                 for (MulticastServer multicastServer : tablesOn) {
-                    if(multicastServer.getTableID().equals(tablesOff.get(i).getTableID())){
+                    if(multicastServer.getQ().getDepartment().equals(tablesOff.get(i).getQ().getDepartment())){
                         flag = false;
                         break;
                     }
                 }
                 if(flag){
-                    System.out.println(tablesOff.get(i).getTableID());
+                    System.out.println(tablesOff.get(i).getQ().getDepartment());
                 }
             }
             
@@ -1190,22 +1190,22 @@ public class AdminConsole extends UnicastRemoteObject implements AdminConsole_I{
             MulticastServer table;
             List<Voter> members;
             Voter voter = null;
-            String id, cc_number;
+            String dep, cc_number;
             int option, aux;
 
-            System.out.print("Insert table's id: ");
-            id = check_string();
+            System.out.print("Insert table's department: ");
+            dep = check_string();
 
-            if(id.equals("")){
+            if(dep.equals("")){
                 return;
             }
 
-            table =  rmi.searchTable(id);
+            table =  rmi.searchTableDept(dep);
 
             while(table == null){
-                System.out.print("Invalid id. Try again: ");
-                id = check_string();
-                table =  rmi.searchTable(id);
+                System.out.print("Invalid department. Try again: ");
+                dep = check_string();
+                table =  rmi.searchTableDept(dep);
             }
 
             members = table.getTableMembers();
@@ -1255,11 +1255,11 @@ public class AdminConsole extends UnicastRemoteObject implements AdminConsole_I{
 
             try{
                 if(option == 1){
-                    if(rmi.addVoterTable(table, voter) )
+                    if(rmi.addVoterTable(table, voter))
                         System.out.println("Sucess adding member to table");
                 }
                 else{
-                    if (rmi.removeVoterTable(table, voter) )
+                    if (rmi.removeVoterTable(table, voter))
                         System.out.println("Sucess removing member to table");
                 }
             }
