@@ -278,23 +278,21 @@ public class MulticastClient extends Thread {
 
                                         if (protocol.item_count==0) {
                                             System.out.println("There are no elections available at the moment");
-                                            // HERE
                                             buffer = (new Protocol().timeout(Math.abs(new Random(System.currentTimeMillis()).nextLong()), data.getID(), data.getDepartment())).getBytes(); // TO DO
                                             packet = new DatagramPacket(buffer, buffer.length, group, data.getPORT());
                                             socket.send(packet);
-                                            // send timeout?
                                         } else {
                                             // pôr aqui o resto!
                                             System.out.println("List of Elections");
                                             for (int i=0;i<protocol.item_count;i++){
-                                                System.out.println("\t"+(i+1)+") "+ protocol.item_name.get(i));
+                                                System.out.println("\t"+i+". "+ protocol.item_name.get(i));
                                             }
                                             boolean flag = true;
                                             int selection = 0;
                                             do {
                                                 System.out.print("Select one election from the list: ");
                                                 selection = getIntTimeConsole(keyboardScanner, data.getTIMEOUT());
-                                                if (selection <= protocol.item_count && selection > 0)
+                                                if (selection < protocol.item_count && selection >= 0)
                                                     flag = false;
                                                 else System.out.print("The option you've chosen is not possible. ");
                                             } while(flag);
@@ -325,26 +323,26 @@ public class MulticastClient extends Thread {
                                             } else {
                                                 System.out.println("List of Candidates");
                                                 for (int i=0;i<protocol.item_count;i++){
-                                                    System.out.println("\t"+(i+1)+") "+ protocol.item_name.get(i));
+                                                    System.out.println("\t"+i+". "+ protocol.item_name.get(i));
                                                 }
-                                                System.out.println("\t"+(protocol.item_count+1)+") White");
+                                                System.out.println("\t"+(protocol.item_count)+". White");
 
                                                 flag = true;
                                                 selection = 0;
                                                 do {
                                                     System.out.print("Select one election from the list: ");
                                                     selection = getIntTimeConsole(keyboardScanner, data.getTIMEOUT());
-                                                    if (selection <= protocol.item_count+1 && selection > 0)
+                                                    if (selection <= protocol.item_count && selection >= 0)
                                                         flag = false;
                                                     else System.out.print("The option you've chosen is not possible. ");
                                                 } while(flag);
 
 
                                                 String votedCantidate;
-                                                if ( selection == protocol.item_count+1)
+                                                if ( selection == protocol.item_count)
                                                     votedCantidate = "white";
                                                 else
-                                                    votedCantidate = protocol.item_name.get(selection-1);
+                                                    votedCantidate = protocol.item_name.get(selection);
 
                                                 // send vote to MultiCast Server
                                                 buffer = (new Protocol().vote(Math.abs(new Random(System.currentTimeMillis()).nextLong()), data.getID(), data.getDepartment(), data.getUsername(), electionName, votedCantidate)).getBytes();
