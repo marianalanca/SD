@@ -256,7 +256,7 @@ public class RMIServer extends UnicastRemoteObject implements RMIServer_I{
             List<Election> res = new CopyOnWriteArrayList<>();
             for(Election election: elections){
                   for (MulticastServer table: election.getTables()) {
-                        if (table.getQ().getDepartment().equals(department)  && election.getAllowedVoters().contains(role)) {
+                        if (table.getQ().getDepartment().equals(department)  && election.getAllowedVoters().contains(role) && election.getState()==State.OPEN) {
                               res.add(election);
                         }
                   }

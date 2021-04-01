@@ -219,6 +219,10 @@ public class MulticastServer extends Thread implements Serializable {
 }
 // receives vote info
 class MulticastVote extends Thread implements Serializable {
+    /**
+     *
+     */
+    private static final long serialVersionUID = 1L;
     ServerData q;
 
     public MulticastVote(ServerData q) {

@@ -3,6 +3,10 @@ import java.util.List;
 import java.util.concurrent.CopyOnWriteArrayList;
 
 public class Protocol implements Serializable {
+	/**
+	 *
+	 */
+	private static final long serialVersionUID = 1L;
 	public String type, id, department;
 	public List<String> item_name = new CopyOnWriteArrayList<String>();
 	public String username, password, logged, msg, candidate, election;
