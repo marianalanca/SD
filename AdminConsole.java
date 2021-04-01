@@ -857,7 +857,7 @@ public class AdminConsole extends UnicastRemoteObject implements AdminConsole_I{
 
     @Override
     public void notify_state(String notification) throws RemoteException{
-        System.out.println(notification);
+        System.out.println(notification + "\n");
     }
 
     /**
