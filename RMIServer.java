@@ -19,7 +19,6 @@ import java.rmi.*;
 import java.rmi.registry.LocateRegistry;
 import java.rmi.server.ExportException;
 import java.rmi.server.UnicastRemoteObject;
-import java.util.ArrayList;
 import java.util.Calendar;
 import java.util.Iterator;
 import java.util.List;
@@ -336,13 +335,23 @@ public class RMIServer extends UnicastRemoteObject implements RMIServer_I{
       }
       
       @Override
-      public synchronized boolean removeVoterTable(MulticastServer table, Voter member) throws RemoteException{
+      public synchronized boolean removeVoterTable(MulticastServer table, Voter member/* String cc_number*/) throws RemoteException{
             int index = servers.indexOf(table);
             if(index != -1){
                   servers.get(index).removeTableMembers(member);
                   writeElectionFile();
                   return true;
             }
+            /*
+            if(index != -1){
+                  for(Voter v: voterList){
+                        if(v.getCc_number().equals(cc_number)){           
+                              servers.get(index).removeTableMembers(v);
+                              writeElectionFile();
+                              return true;
+                        }
+                  }
+            }*/
             return false;
       }
 
@@ -597,6 +606,7 @@ public class RMIServer extends UnicastRemoteObject implements RMIServer_I{
       public synchronized boolean addMembroToLista(Election election, String nome,Voter member) throws RemoteException{
             
             int index = elections.indexOf(election);
+            System.out.println(index);
             if(index != -1){
                   boolean flag = elections.get(index).addMemberToLista(nome, member);
                   writeElectionFile();
@@ -697,34 +707,37 @@ public class RMIServer extends UnicastRemoteObject implements RMIServer_I{
 
       
       @Override
-      public synchronized boolean switchElection(Election oriElection, Election newInfo) throws RemoteException{
-            if(elections.contains(oriElection)){
-                  int i = elections.indexOf(oriElection);
-                  if(oriElection.getState() == State.WAITING){
-                        elections.set(i, newInfo);
-                        writeElectionFile();
-                        System.out.println("Switched info successfully");
-                  }else{
-                        return false;
+      public synchronized boolean switchElection(String name, Election newInfo) throws RemoteException{
+            
+            for(Election e: elections){
+                  if(e.getTitle().equals(name)){
+                        int i = elections.indexOf(e);
+                        if(e.getState() == State.WAITING){
+                              elections.set(i, newInfo);
+                              writeElectionFile();
+                              System.out.println("Switched info successfully");
+                              return true;
+                        }else{
+                              return false;
+                        }
                   }
-            }else{
-                  return false;
             }
-            return true;
+            return false;
       }
 
       
       @Override
-      public synchronized boolean switchUser(Voter oriVoter, Voter newInfo) throws RemoteException{
-            if(voterList.contains(oriVoter)){
-                  int i = voterList.indexOf(oriVoter);
-                  voterList.set(i, newInfo);
-                  writeElectionFile();
-                  System.out.println("Switched info successfully");
-            }else{
-                  return false;
+      public synchronized boolean switchUser(String cc_number, Voter newInfo) throws RemoteException{
+            for(Voter v: voterList){
+                  if(v.getCc_number().equals(cc_number)){
+                        int i = voterList.indexOf(v);
+                        voterList.set(i, newInfo);
+                        writeElectionFile();
+                        System.out.println("Switched voter's info successfully");
+                        return true;
+                  }
             }
-            return true;
+            return false;
       }
 
       public RMIServer() throws RemoteException{

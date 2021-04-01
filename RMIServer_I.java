@@ -198,7 +198,7 @@ public interface RMIServer_I extends Remote {
       public boolean addCandidate(String title,Candidates candidate) throws RemoteException;
       
       /** {@inheritDoc}
-       * @param original info Election
+       * @param name a string with the election's title
        * @param newInfo Election
        * 
        * switches to the new election info
@@ -206,10 +206,10 @@ public interface RMIServer_I extends Remote {
        * @return boolean if it was possible to switch
        * @throws RemoteException
        */
-      public boolean switchElection(Election oriElection, Election newInfo) throws RemoteException;
+      public boolean switchElection(String name, Election newInfo) throws RemoteException;
       
       /** {@inheritDoc}
-       * @param original info Voter
+       * @param cc_number a string with the voter's cc_number
        * @param newInfo Voter
        * 
        * Switches to the new User info
@@ -217,7 +217,7 @@ public interface RMIServer_I extends Remote {
        * @return boolean if it was possible to switch
        * @throws RemoteException
        */
-      public boolean switchUser(Voter oriVoter, Voter newInfo) throws RemoteException;
+      public boolean switchUser(String cc_number, Voter newInfo) throws RemoteException;
       
       /** {@inheritDoc}
        * @param table the table that you wish to add 

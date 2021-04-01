@@ -256,10 +256,11 @@ public class Election implements Serializable {
        * @return true if success, false otherwise
        */
       public boolean removeCandidateList(String candidateName){
-            Candidates candidates = searchCandidates(candidateName);
-            if(candidates != null){
-                  candidatesList.remove(candidates);
-                  return true;
+            for(Candidates c: candidatesList){
+                  if(c.getName().equals(candidateName)){
+                        candidatesList.remove(c);
+                        return true;
+                  }
             }
             return false;
       }
