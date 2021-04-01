@@ -41,45 +41,45 @@ public class Election implements Serializable {
             whiteVote = 0;
             nullVote = 0;
             this.state = State.WAITING;
-            new Thread(new Runnable(){
-                  @Override
-                  public void run(){
-                        try {
-                              
-                        
-                        while ( beggDate.getTimeInMillis() > Calendar.getInstance().getTimeInMillis()) {
-                              try {
-                                    Thread.sleep(1000);
-                              } catch (InterruptedException e) {
-                                    // TODO Auto-generated catch block
-                                    e.printStackTrace();
-                                    Thread.currentThread().interrupt();
-                              }
-                              
-                        }
-                        
-                        setState(State.OPEN);
-                        if(!candidatesList.isEmpty()){
-                              while (Calendar.getInstance().getTimeInMillis() > endDate.getTimeInMillis()) {
-                                    try {
-                                          Thread.sleep(1000);
-                                    } catch (InterruptedException e) {
-                                          e.printStackTrace();
-                                          Thread.currentThread().interrupt();
-                                    }
-                              }
-                        }
-                        setState(State.CLOSED);
-                        
-                        } catch (Exception e) {
-                              setState(State.CLOSED);
-                              Thread.currentThread().interrupt();
-                        }
-                  }
-            },"Something").start();
             
+            runThread();
       }
 
+      public void runThread(){
+            new Thread((Runnable) () -> {
+                  try {
+                        
+                  
+                  while ( beggDate.getTimeInMillis() > Calendar.getInstance().getTimeInMillis()) {
+                        try {
+                              Thread.sleep(1000);
+                        } catch (InterruptedException e1) {
+                              // TODO Auto-generated catch block
+                              e1.printStackTrace();
+                              Thread.currentThread().interrupt();
+                        }
+                        
+                  }
+                  
+                  setState(State.OPEN);
+                  if(!candidatesList.isEmpty()){
+                        while (Calendar.getInstance().getTimeInMillis() > endDate.getTimeInMillis()) {
+                              try {
+                                    Thread.sleep(1000);
+                              } catch (InterruptedException e2) {
+                                    e2.printStackTrace();
+                                    Thread.currentThread().interrupt();
+                              }
+                        }
+                  }
+                  setState(State.CLOSED);
+                  
+                  } catch (Exception e3) {
+                        setState(State.CLOSED);
+                        Thread.currentThread().interrupt();
+                  }
+            },"Something").start();
+      }
       /**
        * get all the tables associated with the election
        * @return a list of multicastServer

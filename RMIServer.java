@@ -165,7 +165,7 @@ public class RMIServer extends UnicastRemoteObject implements RMIServer_I{
             if(!servers.contains(multicastServer)){
                   MulticastServer serverAux=  searchTableDept(multicastServer.getQ().getDepartment());
 
-                  if(serverAux != null){
+                  if(serverAux == null){
                         servers.add(multicastServer);
                         writeMulticastServerFile();
                         String notif = "Mesa de Voto "+ multicastServer.getQ().getDepartment() + " ON"; 
@@ -501,7 +501,9 @@ public class RMIServer extends UnicastRemoteObject implements RMIServer_I{
             
             try(FileInputStream fis = new FileInputStream(electionFile); ObjectInputStream ois = new ObjectInputStream(fis)){
                   elections = (CopyOnWriteArrayList<Election>) ois.readObject();
-                  
+                  for (Election election : elections) {
+                        election.runThread();
+                  }
             }catch(FileNotFoundException e){
                   try {
                         File myObj = new File(electionFile);
@@ -794,6 +796,8 @@ public class RMIServer extends UnicastRemoteObject implements RMIServer_I{
             DatagramSocket aSocket = null;
             readConfig();
             try{
+                  System.getProperties().put("java.security.policy", "policy.all");
+		      System.setSecurityManager(new RMISecurityManager());
                   System.setProperty("java.rmi.server.hostname", ipDoServer);
                   rmiServer = new RMIServer();
                   LocateRegistry.createRegistry(port).rebind("RMIServer", rmiServer);
