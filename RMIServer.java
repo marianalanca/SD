@@ -116,6 +116,7 @@ public class RMIServer extends UnicastRemoteObject implements RMIServer_I{
             }
             return false;
       }
+      
       @Override
       public synchronized List<MulticastServer> getOnServers() throws RemoteException {
             return  onServers;
@@ -179,7 +180,6 @@ public class RMIServer extends UnicastRemoteObject implements RMIServer_I{
                   }else{
                         return serverAux;
                   }
-
             }
             return multicastServer;
 
@@ -189,7 +189,13 @@ public class RMIServer extends UnicastRemoteObject implements RMIServer_I{
       }
       @Override
       public synchronized void logoutMulticastServer(MulticastServer multicastServer) throws RemoteException{
-            onServers.remove(multicastServer);
+            for (MulticastServer server : onServers) {
+                  if(server.getQ().getDepartment().equals(multicastServer.getQ().getDepartment())){
+                        onServers.remove(server);
+                        break;
+                  }
+                  
+            }
             String notif = "Mesa de Voto "+ multicastServer.getQ().getDepartment() + " OFF"; 
             for (AdminConsole_I admin : admins) {
                   try{
