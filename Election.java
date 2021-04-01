@@ -7,6 +7,7 @@ import java.util.concurrent.CopyOnWriteArrayList;
 
 public class Election implements Serializable {
 
+      private static final long serialVersionUID = -5360950595778030024L;
       private Calendar beggDate;
       private Calendar endDate;
       private String title;

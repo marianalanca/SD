@@ -5,6 +5,10 @@ import java.util.Calendar;
 
 public class AlreadyVoted implements Serializable {
       
+      /**
+       *
+       */
+      private static final long serialVersionUID = 1962489307865058590L;
       Voter vote;
       Calendar timeOfVote;
       String local;
