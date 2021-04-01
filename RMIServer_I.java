@@ -172,14 +172,13 @@ public interface RMIServer_I extends Remote {
       
       /** {@inheritDoc}
        * Creates Candidate and adds it to the proper election
-       * @param members
        * @param name
        * @param title
        * @param type
        * @return
        * @throws RemoteException
        */
-      public boolean createCandidate(List<Voter> members, String name,String title,Type type) throws RemoteException;
+      public boolean createCandidate( String name,String title,Type type) throws RemoteException;
       
       /** {@inheritDoc}
        * @param title the title of the election

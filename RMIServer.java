@@ -605,17 +605,21 @@ public class RMIServer extends UnicastRemoteObject implements RMIServer_I{
       @Override
       public synchronized boolean addMembroToLista(Election election, String nome,Voter member) throws RemoteException{
             
-            int index = elections.indexOf(election);
-            System.out.println(index);
-            if(index != -1){
-                  boolean flag = elections.get(index).addMemberToLista(nome, member);
-                  writeElectionFile();
-
-                  
-                  System.out.println("Added member successfully");
-                  return flag;
+            for(Election e: elections){
+                  if(e.getTitle().equals(election.getTitle())){
+                        int index = elections.indexOf(e);
+                        for(Voter v: voterList){
+                              if(v.getUsername().equals(member.getUsername())){
+                                                
+                                    boolean flag = elections.get(index).addMemberToLista(nome, v);
+                                    writeElectionFile();
+      
+                                    System.out.println("Added member successfully");
+                                    return flag;
+                              }
+                        }
+                  }
             }
-
             return false;
       }
       
@@ -699,8 +703,8 @@ public class RMIServer extends UnicastRemoteObject implements RMIServer_I{
 
       
       @Override
-      public synchronized boolean createCandidate(List<Voter> members, String name,String title,Type type) throws RemoteException{
-            Candidates candidates = new Candidates(members, name,type);
+      public synchronized boolean createCandidate(String name,String title,Type type) throws RemoteException{
+            Candidates candidates = new Candidates(name,type);
             return addCandidate(title, candidates);
       }
 

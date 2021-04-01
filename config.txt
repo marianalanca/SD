@@ -2,4 +2,4 @@
 voterInformation
 electionInformation
 multicastInformation
-192.168.68.105
+localhost

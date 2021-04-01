@@ -306,14 +306,14 @@ public class AdminConsole extends UnicastRemoteObject implements AdminConsole_I{
         password = check_string();
 
         try{
-            rmi.createVoter(name, department, contact, address, cc_number, cc_expiring, password, role); 
-            System.out.println("\nSuccessfully created new voter");
+            if(rmi.createVoter(name, department, contact, address, cc_number, cc_expiring, password, role)==true)
+                System.out.println("\nSuccessfully created new voter");
         }
         catch(ConnectException e){
             try{
                 reconnect();
-                rmi.createVoter(name, department, contact, address, cc_number, cc_expiring, password, role); 
-                System.out.println("\nSuccessfully created new voter");
+                if(rmi.createVoter(name, department, contact, address, cc_number, cc_expiring, password, role)==true)
+                    System.out.println("\nSuccessfully created new voter");
             }
             catch(Exception excp){
                 System.out.println("Register_voter: connecting failed " + excp);
@@ -495,12 +495,12 @@ public class AdminConsole extends UnicastRemoteObject implements AdminConsole_I{
                 }
 
                 try{
-                    if(rmi.createCandidate(null, nameList, election.getTitle(), typeList)==true)
+                    if(rmi.createCandidate(nameList, election.getTitle(), typeList)==true)
                         System.out.println("Sucess creating new list.");
                 }
                 catch (ConnectException e){
                     reconnect();
-                    if(rmi.createCandidate(null, nameList, election.getTitle(), typeList)==true)
+                    if(rmi.createCandidate( nameList, election.getTitle(), typeList)==true)
                         System.out.println("Sucess creating new list.");
                 }
                 catch (Exception e){
@@ -591,7 +591,8 @@ public class AdminConsole extends UnicastRemoteObject implements AdminConsole_I{
 
                 }
                 catch(Exception e){
-                    System.out.println("Error adding member to list: " + e);
+                    System.out.println("Error adding/removing member to list: " + e );
+                    e.printStackTrace();
                 }
                 
             }
@@ -915,7 +916,7 @@ public class AdminConsole extends UnicastRemoteObject implements AdminConsole_I{
             Candidates cand;
             int option;
 
-            elections = rmi.getElections();
+            elections = rmi.stateElections(State.OPEN, null);
 
             if(elections.size() == 0){ 
                 System.out.println("List of elections is empty.");
