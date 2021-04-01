@@ -1,16 +1,8 @@
 import java.io.Serializable;
 import java.util.Calendar;
 
-public class Voter implements Serializable {
-    /**
-     * Represents the Voters/Users
-     * @param username - the username of the voter
-     * @param department - the department the voter that users participates
-     * @param address - the address of the voter
-     * @param cc_number - the user cc_number
-     * @param cc_expiring - the date of expiration
-     * @param password - the voters password
-     */
+public class Voter implements Serializable{
+
     public String username, department;
     public String contact, address, cc_number;
     public Calendar cc_expiring;
@@ -19,14 +11,14 @@ public class Voter implements Serializable {
 
     /**
      * Construtor Voter
-     * @param username
-     * @param department
-     * @param contact
-     * @param address
-     * @param cc_number
-     * @param cc_expiring
-     * @param password
-     * @param type
+     * @param username - the username of the voter
+     * @param department - the department the voter that users participates
+     * @param contact - the contact of the voter
+     * @param address  - the address of the voter
+     * @param cc_number - the user cc_number
+     * @param cc_expiring  - the date of expiration
+     * @param password  - the voters password
+     * @param type - the type of the voter
      */
     public Voter (String username, String department, String contact, String address, String cc_number, Calendar cc_expiring, String password, Type type) {
         this.username = username;
