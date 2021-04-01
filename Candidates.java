@@ -10,7 +10,7 @@ public class Candidates implements Serializable {
        * @param type - type of candidate
        */
       private static final long serialVersionUID = 8752409987302828808L;
-      private List<Voter> members = new CopyOnWriteArrayList<>();
+      private List<Voter> members;
       private int numberOfVotes;
       private String name;
       private Type type;
@@ -21,6 +21,7 @@ public class Candidates implements Serializable {
        * @param type
        */
       public Candidates(String name, Type type){
+            this.members = new CopyOnWriteArrayList<>();
             this.numberOfVotes = 0;
             this.name = name;
             this.type = type;
@@ -39,7 +40,10 @@ public class Candidates implements Serializable {
        * Adds a candidate
        */
       public void addCandidateList(Voter candidate){
-            members.add(candidate);
+            if(members == null){
+                  this.members = new CopyOnWriteArrayList<>();
+            }
+            this.members.add(candidate);
       }
 
       /**
