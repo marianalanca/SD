@@ -1,12 +1,12 @@
 // Existe um Multicast Server por cada mesa de voto que gerelocalmente os terminais de voto que lhe estão associados.  Permite aos membros da mesa realizar a funcionalidade 6 e realiza automaticamente a funcionalidade 5
 import java.util.List;
 import java.util.NoSuchElementException;
+import java.util.Random;
 import java.util.concurrent.CopyOnWriteArrayList;
 import java.net.*;
 import java.io.*;
 import java.util.Scanner;
 import java.rmi.*;
-import java.util.Date;
 
 public class MulticastServer extends Thread implements Serializable {
     private static final long serialVersionUID = 1L;
@@ -16,7 +16,7 @@ public class MulticastServer extends Thread implements Serializable {
 
 
     /**
-     * @param args
+     * @param args received from the console. It must contain the department value
      */
     public static void main(String[] args) {
 
@@ -60,12 +60,12 @@ public class MulticastServer extends Thread implements Serializable {
         this.q = q;
     }
     public void run() {
-        System.out.println("VOTING TABLE eVOTING "+q.getDepartment());
+        System.out.println("Voting Table eVoting "+q.getDepartment());
         Scanner keyboardScanner = new Scanner(System.in);
         try {
             login();
 
-            q.test(this); // DELETE
+            //q.test(this); // DELETE
             while (true) {
                 // Receives from the console requests for new connections
                 int option = 0;
@@ -84,7 +84,7 @@ public class MulticastServer extends Thread implements Serializable {
                     }
                 }else if (option == 3) {  // "Exit"
                     closeTerminals();
-                    //q.RMI.logoutMulticastServer(this);
+                    q.getRMI().logoutMulticastServer(this);
                     System.exit(0);
                 } else {
                     option = 0;
@@ -109,8 +109,8 @@ public class MulticastServer extends Thread implements Serializable {
                         voter = q.getRMI().searchVoter(readKeyboard);
                     }
                     // test if voter exists
-                    if((voter!=null && voter.department.equals(q.getDepartment()))){
-                        if (q.votingContains(voter)==null && q.requestContains(voter)==null && (q.getSearchingTerminal()==null || (q.getSearchingTerminal()!=null && !q.getSearchingTerminal().getUsername().equals(voter.getUsername())))) // MELHORAR!
+                    if((voter!=null && voter.department.equalsIgnoreCase(q.getDepartment()))){
+                        if (q.votingContains(voter)==null && q.requestContains(voter)==null && (q.getSearchingTerminal()==null || (q.getSearchingTerminal()!=null && !q.getSearchingTerminal().getUsername().equalsIgnoreCase(voter.getUsername())))) // MELHORAR!
                             q.addRequestBack(voter); // add to voting list
                         else System.out.println("The user has already been selected");
                     } else {
@@ -137,7 +137,7 @@ public class MulticastServer extends Thread implements Serializable {
     }
 
     /** 
-     * @return String
+     * @return String with the tableID
      * @throws RemoteException
      */
     public String getTableID() throws RemoteException{
@@ -145,7 +145,7 @@ public class MulticastServer extends Thread implements Serializable {
     }
 
     /** 
-     * @param tableID
+     * @param tableID with the new value for the tableID
      * @throws RemoteException
      */
     public void setTableID(String tableID) throws RemoteException{
@@ -153,7 +153,7 @@ public class MulticastServer extends Thread implements Serializable {
     }
 
     /** 
-     * @return List<Voter>
+     * @return List<Voter> of all the members in the table
      * @throws RemoteException
      */
     public List<Voter> getTableMembers() throws RemoteException{
@@ -168,7 +168,7 @@ public class MulticastServer extends Thread implements Serializable {
     }
 
     /** 
-     * @param voter
+     * @param voter to add to the list of table members
      * @throws RemoteException
      */
     public void addTableMembers(Voter voter) throws RemoteException{
@@ -176,7 +176,7 @@ public class MulticastServer extends Thread implements Serializable {
     }
 
     /** 
-     * @param voter
+     * @param voter to remove from the list of table members
      * @throws RemoteException
      */
     public void removeTableMembers(Voter voter) throws RemoteException{
@@ -184,7 +184,7 @@ public class MulticastServer extends Thread implements Serializable {
     }
     
     /** 
-     * @param tableMembers
+     * @param tableMembers the new value of the members of the table members
      * @throws RemoteException
      */
     public void setTableMembers(List<Voter> tableMembers) throws RemoteException{
@@ -192,7 +192,7 @@ public class MulticastServer extends Thread implements Serializable {
     }
     
     /** 
-     * @param q
+     * @param q the object containing important data to substitute the current serer data
      */
     public void setQ(ServerData q) {
         this.q = q;
@@ -204,12 +204,12 @@ public class MulticastServer extends Thread implements Serializable {
             q.getRMI().loginMulticastServer(this);
         }
         catch(Exception e){
-            System.out.println("reconnect and I are not friends :) " + e);
+            System.out.println("Failed to connect");
         }
     }
     
     /** 
-     * @throws RemoteException
+     * @throws RemoteException in case the access to the RMI fails
      */
     public void login() throws RemoteException{
         MulticastServer server = q.getRMI().loginMulticastServer(this);
@@ -223,7 +223,7 @@ public class MulticastServer extends Thread implements Serializable {
     }
 
     /**
-     * @throws IOException
+     * @throws IOException if the packet can not be sent
      */
     public void closeTerminals() throws IOException{
         MulticastSocket socket = new MulticastSocket(q.getPORT());  // create socket and bind it
@@ -231,7 +231,7 @@ public class MulticastServer extends Thread implements Serializable {
         socket.joinGroup(group);
 
         // send message to finish
-        byte[] buffer = (new Protocol().turnoff(new Date().getTime(), q.getDepartment())).getBytes();
+        byte[] buffer = (new Protocol().turnoff(Math.abs(new Random(System.currentTimeMillis()).nextLong()), q.getDepartment())).getBytes();
         DatagramPacket packet = new DatagramPacket(buffer, buffer.length, group, q.getPORT());
         socket.send(packet);
     }
@@ -264,21 +264,21 @@ class MulticastVote extends Thread implements Serializable {
                     packet = new DatagramPacket(buffer, buffer.length);
                     socket.receive(packet);
                     protocol = new Protocol().parse(new String(packet.getData(), 0, packet.getLength()));
-                } while (protocol==null || !(protocol!=null && protocol.type!=null && protocol.type.equals("vote") && protocol.department.equals(q.getDepartment())));
+                } while (protocol==null || !(protocol!=null && protocol.type!=null && protocol.type.equals("vote") && protocol.department.equalsIgnoreCase(q.getDepartment())));
 
                 if (protocol.candidate.equals("white")) {
                     protocol.candidate = "";
                 }
 
                 if (q.getRMI().voterVotes(protocol.username, protocol.election, protocol.candidate, q.getDepartment())) { // não encontra eleição?
-                    buffer = new Protocol().status(new Date().getTime(), protocol.id, q.getDepartment(), "off", "Vote submitted successfully").getBytes();
+                    buffer = new Protocol().status(Math.abs(new Random(System.currentTimeMillis()).nextLong()), protocol.id, q.getDepartment(), "off", "Vote submitted successfully").getBytes();
                 } else {
-                    buffer = new Protocol().status(new Date().getTime(), protocol.id, q.getDepartment(), "off", "The vote can not be submitted").getBytes();
+                    buffer = new Protocol().status(Math.abs(new Random(System.currentTimeMillis()).nextLong()), protocol.id, q.getDepartment(), "off", "The vote can not be submitted").getBytes();
                 }
                 packet = new DatagramPacket(buffer, buffer.length, groupACK, q.getPORT());
                 socketACK.send(packet);
 
-                q.removeVoter(protocol.id); 
+                q.removeVoter(protocol.id);
             }
         } catch (RemoteException e) {
             this.start();
@@ -339,7 +339,7 @@ class MulticastPool extends Thread implements Serializable {
             socket.setSoTimeout(2000); // in case it didn't receive a response in 2 seconds
 
             // send request for terminal
-            byte[] buffer = (new Protocol().request(new Date().getTime(),  q.getDepartment())).getBytes();
+            byte[] buffer = (new Protocol().request(Math.abs(new Random(System.currentTimeMillis()).nextLong()),  q.getDepartment())).getBytes();
             DatagramPacket packet = new DatagramPacket(buffer, buffer.length, group, q.getPORT());
             socket.send(packet);
 
@@ -349,7 +349,7 @@ class MulticastPool extends Thread implements Serializable {
                 packet = new DatagramPacket(buffer, buffer.length);
                 socket.receive(packet);
                 protocol = new Protocol().parse(new String(packet.getData(), 0, packet.getLength()));
-            } while (protocol==null || !(protocol!=null && protocol.type!=null && (protocol.type.equals("response"))  && protocol.department.equals(q.getDepartment()) && protocol.id!=null));
+            } while (protocol==null || !(protocol!=null && protocol.type!=null && (protocol.type.equals("response"))  && protocol.department.equalsIgnoreCase(q.getDepartment()) && protocol.id!=null));
             String id = protocol.id;
 
             // test if packet has already been received;  this is necessary since sometimes the client receives some packet that has already been received and starts unnecessarily
@@ -360,7 +360,7 @@ class MulticastPool extends Thread implements Serializable {
             }
 
             // sends accepted
-            buffer = (new Protocol().accepted(new Date().getTime(), id)).getBytes();
+            buffer = (new Protocol().accepted(Math.abs(new Random(System.currentTimeMillis()).nextLong()), id)).getBytes();
             packet = new DatagramPacket(buffer, buffer.length, group, q.getPORT());
             socket.send(packet);
 
@@ -369,7 +369,7 @@ class MulticastPool extends Thread implements Serializable {
             q.setSearchingTerminal(null);
 
             // send voter data to terminal
-            buffer = new Protocol().login(new Date().getTime(),  id, voter.username, voter.getPassword()).getBytes();
+            buffer = new Protocol().login(Math.abs(new Random(System.currentTimeMillis()).nextLong()),  id, voter.username, voter.getPassword()).getBytes();
             packet = new DatagramPacket(buffer, buffer.length, group, q.getPORT());
             socket.send(packet);
 
@@ -379,11 +379,7 @@ class MulticastPool extends Thread implements Serializable {
                 packet = new DatagramPacket(buffer, buffer.length);
                 socket.receive(packet);
                 protocol = new Protocol().parse(new String(packet.getData(), 0, packet.getLength()));
-            } while (protocol==null || !(protocol!=null && protocol.type!=null && (protocol.type.equals("ack"))  && protocol.department.equals(q.getDepartment()) && protocol.id!=null && protocol.id.equals(id)));
-
-            if (protocol.type.equals("crashed")) {
-                q.addRequestFront(voter);
-            }
+            } while (protocol==null || !(protocol!=null && protocol.type!=null && (protocol.type.equals("ack"))  && protocol.department.equalsIgnoreCase(q.getDepartment()) && protocol.id!=null && protocol.id.equals(id)));
 
         } catch (SocketTimeoutException e) {q.addRequestFront(voter);}
     }
@@ -414,14 +410,13 @@ class MulticastRequest extends Thread implements Serializable {
             socket.setSoTimeout(q.getTIMEOUT());
 
             while (true) {
-                // recebe info!
                 byte[] buffer = new byte[256];;
                 DatagramPacket packet = new DatagramPacket(buffer, buffer.length);
                 socket.receive(packet);
                 protocol = new Protocol().parse(new String(packet.getData(), 0, packet.getLength()));
 
                 if (protocol!=null) {
-                    if (protocol.department!=null && protocol.department.equals(q.getDepartment())) {
+                    if (protocol.department!=null && protocol.department.equalsIgnoreCase(q.getDepartment())) {
                         if (protocol.id!=null) {
                             voter = q.searchVoter(protocol.id);
                             if (voter!=null){
@@ -437,6 +432,7 @@ class MulticastRequest extends Thread implements Serializable {
                                     if (protocol.type.equals("crashed")) {
                                         crash(voter.getData());
                                         q.removeVoter(voter);
+                                        q.addRequestFront(voter.getData());
                                     } else if (protocol.type.equals("timeout")) {
                                         q.removeVoter(voter);
                                     }
@@ -475,7 +471,6 @@ class MulticastRequest extends Thread implements Serializable {
     public void status(String logged, TerminalVoter voter, MulticastSocket socket, InetAddress group) throws IOException{
         if (logged.equals("on")){ // receives logged in confirmation
             // sends candidates list
-            // fazer verificação do role com o candidate para só apresentar o que se quer
             List<Election> elections = q.getRMI().searchElectionbyDepRole(q.getDepartment(), voter.getData().getType());
             List<String> electionsNames = new CopyOnWriteArrayList<String>();
 
@@ -485,7 +480,7 @@ class MulticastRequest extends Thread implements Serializable {
             }
 
             // send candidates information
-            byte[] buffer = new Protocol().item_list(new Date().getTime(),  voter.getID(), electionsNames.size(), electionsNames).getBytes();
+            byte[] buffer = new Protocol().item_list(Math.abs(new Random(System.currentTimeMillis()).nextLong()),  voter.getID(), electionsNames.size(), electionsNames).getBytes();
             DatagramPacket packet = new DatagramPacket(buffer, buffer.length, group, q.getPORT());
             socket.send(packet);
 
@@ -500,7 +495,7 @@ class MulticastRequest extends Thread implements Serializable {
                 candidates.add(candidate.getName());
         }
         // send candidates information
-        byte[] buffer = new Protocol().item_list(new Date().getTime(), voter.getID(), candidates.size(), candidates).getBytes();
+        byte[] buffer = new Protocol().item_list(Math.abs(new Random(System.currentTimeMillis()).nextLong()), voter.getID(), candidates.size(), candidates).getBytes();
         DatagramPacket packet = new DatagramPacket(buffer, buffer.length, group, q.getPORT());
         socket.send(packet);
     }

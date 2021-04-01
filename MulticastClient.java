@@ -3,9 +3,9 @@ import java.net.SocketTimeoutException;
 import java.net.DatagramPacket;
 import java.net.InetAddress;
 import java.io.IOException;
-import java.util.Date;
 import java.util.List;
 import java.util.NoSuchElementException;
+import java.util.Random;
 import java.util.Scanner;
 import java.util.concurrent.CopyOnWriteArrayList;
 import java.util.concurrent.ExecutionException;
@@ -26,7 +26,7 @@ class Data{
     private List<Long> registeredAcks = new CopyOnWriteArrayList<Long>();
 
     public Data(String department) {
-        ID = Long.toString(new Date().getTime());
+        ID = Long.toString(Math.abs(new Random(System.currentTimeMillis()).nextLong()));
         this.department = department;
     }
 
@@ -107,6 +107,9 @@ class Data{
         return registeredAcks;
     }
 
+    /**
+     * @return String containing the terminal ID
+     */
     public String getID() {
         return ID;
     }
@@ -132,7 +135,7 @@ public class MulticastClient extends Thread {
                 try {
                     Thread.sleep(200);
                     System.out.println("\nThe terminal has crashed. Logging out ...");
-                    byte[] buffer = (new Protocol().crashed(new Date().getTime(), data.getID(), data.getDepartment())).getBytes();
+                    byte[] buffer = (new Protocol().crashed(Math.abs(new Random(System.currentTimeMillis()).nextLong()), data.getID(), data.getDepartment())).getBytes();
                     DatagramPacket packet = new DatagramPacket(buffer, buffer.length, data.group, data.getPORT());
                     data.socket.send(packet);
                 } catch (InterruptedException e) {
@@ -176,7 +179,6 @@ public class MulticastClient extends Thread {
         DatagramPacket packet;
         Protocol protocol;
         try {
-
             // receives request
             do {
                 buffer = new byte[256];
@@ -185,19 +187,17 @@ public class MulticastClient extends Thread {
                 protocol = new Protocol().parse(new String(packet.getData(), 0, packet.getLength()));
             } while (protocol==null || (protocol!=null && !protocol.type.equals("request")));
 
-            if (data.getRegisteredAcks().contains(protocol.msgId)) {
-                return;
-            } else {
-                data.getRegisteredAcks().add(protocol.msgId);
-            }
-
             if (protocol.department.equals(data.getDepartment())) {
                 // sends confirmation
-                buffer = (new Protocol().response(new Date().getTime(), data.getDepartment() ,data.getID())).getBytes();
+                buffer = (new Protocol().response(Math.abs(new Random(System.currentTimeMillis()).nextLong()), data.getDepartment() ,data.getID())).getBytes();
                 packet = new DatagramPacket(buffer, buffer.length, group, data.getPORT());
                 socket.send(packet);
 
-                System.out.println("response sent");
+                if (data.getRegisteredAcks().contains(protocol.msgId)) {
+                    return;
+                } else {
+                    data.getRegisteredAcks().add(protocol.msgId);
+                }
 
                 // receives ack
                 do {
@@ -232,11 +232,9 @@ public class MulticastClient extends Thread {
                     } while (protocol==null || protocol.id==null || (protocol!=null && !protocol.type.equals("login")));
 
                     // send ack telling it has received login
-                    buffer = (new Protocol().ack(new Date().getTime(), data.getID(), data.getDepartment())).getBytes();
+                    buffer = (new Protocol().ack(Math.abs(new Random(System.currentTimeMillis()).nextLong()), data.getID(), data.getDepartment())).getBytes();
                     packet = new DatagramPacket(buffer, buffer.length, group, data.getPORT());
                     socket.send(packet);
-
-                    System.out.println("Sent ack");
 
                     // autentication
                     data.setUsername(protocol.username);
@@ -263,7 +261,7 @@ public class MulticastClient extends Thread {
                                     if (password.equals(data.getPassword())) {
                                         passwordFlag = false;
                                         // send confirmation
-                                        buffer = (new Protocol().status(new Date().getTime(), data.getID(), data.getDepartment(), "on")).getBytes();
+                                        buffer = (new Protocol().status(Math.abs(new Random(System.currentTimeMillis()).nextLong()), data.getID(), data.getDepartment(), "on")).getBytes();
                                         packet = new DatagramPacket(buffer, buffer.length, group, data.getPORT());
                                         socket.send(packet);
                                         // wait for list of elections
@@ -278,8 +276,7 @@ public class MulticastClient extends Thread {
                                             }
                                         } while (protocol==null || (protocol!=null && protocol.id!=null && protocol.item_name!=null && !protocol.type.equals("item_list") && protocol.id.equals(data.getID())));
 
-                                        System.out.println("Select one of elections to vote:");
-                                        System.out.println("LIST OF Names");
+                                        System.out.println("List of Elections");
                                         for (int i=0;i<protocol.item_count;i++){
                                             System.out.println("\t"+(i+1)+") "+ protocol.item_name.get(i));
                                         }
@@ -288,7 +285,7 @@ public class MulticastClient extends Thread {
                                         do {
                                             System.out.print("Select one election from the list: ");
                                             selection = getIntTimeConsole(keyboardScanner, data.getTIMEOUT());
-                                            if (selection <= protocol.item_count && selection > 0) // HERE
+                                            if (selection <= protocol.item_count && selection > 0)
                                                 flag = false;
                                             else System.out.print("The option you've chosen is not possible. ");
                                         } while(flag);
@@ -296,7 +293,7 @@ public class MulticastClient extends Thread {
                                         String electionName = protocol.item_name.get(selection-1);
 
                                         // send request for the list of candidates
-                                        buffer = (new Protocol().election(new Date().getTime(), data.getID(), data.getDepartment(), electionName)).getBytes();
+                                        buffer = (new Protocol().election(Math.abs(new Random(System.currentTimeMillis()).nextLong()), data.getID(), data.getDepartment(), protocol.item_name.get(selection-1))).getBytes();
                                         packet = new DatagramPacket(buffer, buffer.length, group, data.getPORT());
                                         socket.send(packet);
                                         do {
@@ -309,8 +306,7 @@ public class MulticastClient extends Thread {
                                                 System.exit(0);
                                             }
                                         } while (protocol==null || (protocol!=null && protocol.id!=null && protocol.item_name!=null && !protocol.type.equals("item_list") && protocol.id.equals(data.getID())));
-
-                                        System.out.println("Select one of the candidates to vote:");
+    
                                         System.out.println("List of Candidates");
                                         for (int i=0;i<protocol.item_count;i++){
                                             System.out.println("\t"+(i+1)+") "+ protocol.item_name.get(i));
@@ -335,7 +331,7 @@ public class MulticastClient extends Thread {
                                             votedCantidate = protocol.item_name.get(selection-1);
 
                                         // send vote to MultiCast Server
-                                        buffer = (new Protocol().vote(new Date().getTime(), data.getID(), data.getDepartment(), data.getUsername(), electionName, votedCantidate)).getBytes();
+                                        buffer = (new Protocol().vote(Math.abs(new Random(System.currentTimeMillis()).nextLong()), data.getID(), data.getDepartment(), data.getUsername(), electionName, votedCantidate)).getBytes();
                                         packet = new DatagramPacket(buffer, buffer.length, groupResult, data.getRESULT_PORT());
                                         socketResult.send(packet);
                                         do {
@@ -358,7 +354,7 @@ public class MulticastClient extends Thread {
                         } while (usernameFlag);
                     } catch (TimeoutException e) {
                         System.out.println("The terminal has been idle for too long");
-                        buffer = (new Protocol().timeout(new Date().getTime(), data.getID(), data.getDepartment())).getBytes();
+                        buffer = (new Protocol().timeout(Math.abs(new Random(System.currentTimeMillis()).nextLong()), data.getID(), data.getDepartment())).getBytes(); // TO DO
                         packet = new DatagramPacket(buffer, buffer.length, group, data.getPORT());
                         socket.send(packet);
                         return;
@@ -400,6 +396,4 @@ public class MulticastClient extends Thread {
             return getIntTimeConsole(scanner, time);
         }
     }
-
-
 }

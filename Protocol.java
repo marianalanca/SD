@@ -34,8 +34,15 @@ public class Protocol implements Serializable {
 		return "type|login;msgID|"+msgId+";id|"+id+";username|"+username+";password|"+password;
 	}
 
-	public String ack(Long msgId, String id, String department){
-		return "type|ack;msgID|"+msgId+";id|"+id+";department|"+department;
+	
+	/** 
+	 * @param msgId id that identifies the message; In case this one is replicated, it is discarted
+	 * @param id of the terminal to which the information must be sent
+	 * @param department of the table and terminal where the voter is voting
+	 * @return String containing the protocol message with all the data received as param
+	 */
+	public String ack(long msgId, String id, String department){
+		return "type|ack;id|"+msgId+";id|"+id+";department|"+department;
 	}
 
 	/** 
@@ -115,6 +122,7 @@ public class Protocol implements Serializable {
 	 * @return String containing the protocol with all the data received as param
 	 */
 	public String response(Long msgId, String department, String id) {
+		System.out.println("PROTOCOL; ID: "+id);
 		return "type|response;msgID|"+msgId+";department|"+department+";id|"+id;
 	}
 

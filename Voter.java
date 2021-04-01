@@ -18,7 +18,7 @@ public class Voter implements Serializable {
     private Type type;
 
     /**
-     * 
+     * Construtor Voter
      * @param username
      * @param department
      * @param contact
@@ -40,8 +40,8 @@ public class Voter implements Serializable {
     }
 
     /**
-     * 
-     * @param username
+     * set the voter's username
+     * @param username a string with the voter's username
      */
     public void setUsername(String username){ this.username = username; }
 
@@ -91,9 +91,7 @@ public class Voter implements Serializable {
      * 
      * @return the voters username
      */
-    public String getUsername() {
-        return this.username;
-    }
+    public String getUsername() { return this.username; }
 
     /**
      * 
@@ -103,11 +101,21 @@ public class Voter implements Serializable {
     
     /**
      * 
+     * @return the voter's contact
+     */
+    public String getContact(){ return this.contact; }
+
+    /**
+     * 
+     * @return a string with the voter's address
+     */
+    public String getAddress(){ return this.address; }
+
+    /**
+     * 
      * @return the Cc_number
      */
-    public String getCc_number() {
-        return this.cc_number;
-    }
+    public String getCc_number() { return this.cc_number; }
 
     /**
      * 
@@ -119,16 +127,12 @@ public class Voter implements Serializable {
      * 
      * @return the Type
      */
-    public Type getType() {
-        return this.type;
-    }
+    public Type getType() { return this.type; }
 
     /**
      * 
      * @param type
      */
-    public void setType(Type type) {
-        this.type = type;
-    }
+    public void setType(Type type) { this.type = type; }
 
 }

@@ -1,5 +1,4 @@
 import java.io.*;
-import java.net.MalformedURLException;
 import java.rmi.*;
 import java.rmi.registry.LocateRegistry;
 import java.util.List;
@@ -203,7 +202,6 @@ public class ServerData implements Serializable{
         return registeredAcks;
     }
     
-    // TODO
     /** 
      * @param ackID 
      * @return boolean

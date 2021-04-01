@@ -19,7 +19,6 @@ import java.rmi.*;
 import java.rmi.registry.LocateRegistry;
 import java.rmi.server.ExportException;
 import java.rmi.server.UnicastRemoteObject;
-import java.util.ArrayList;
 import java.util.Calendar;
 import java.util.Iterator;
 import java.util.List;
@@ -118,6 +117,7 @@ public class RMIServer extends UnicastRemoteObject implements RMIServer_I{
             }
             return false;
       }
+      
       @Override
       public synchronized List<MulticastServer> getOnServers() throws RemoteException {
             return  onServers;
@@ -164,19 +164,26 @@ public class RMIServer extends UnicastRemoteObject implements RMIServer_I{
             }
 
 
+
             if(!servers.contains(multicastServer)){
-                  multicastServer.setTableID(UUID.randomUUID().toString());
-                  servers.add(multicastServer);
-                  writeMulticastServerFile();
-                  String notif = "Mesa de Voto "+ multicastServer.getTableID() + " ON"; 
-                  for (AdminConsole_I admin : admins) {
-                        try{
-                        admin.notify_state(notif);
-                        }catch(Exception e){
-                              admins.remove(admin);
+                  MulticastServer serverAux=  searchTableDept(multicastServer.getQ().getDepartment());
+
+                  if(serverAux != null){
+                        servers.add(multicastServer);
+                        writeMulticastServerFile();
+                        String notif = "Mesa de Voto "+ multicastServer.getQ().getDepartment() + " ON"; 
+                        for (AdminConsole_I admin : admins) {
+                              try{
+                                    admin.notify_state(notif);
+                              }catch(Exception e){
+                                    admins.remove(admin);
+                              }
                         }
+                        return null;
+                  }else{
+                        return serverAux;
                   }
-                  return null;
+                  
             }
             return multicastServer;
             
@@ -188,7 +195,7 @@ public class RMIServer extends UnicastRemoteObject implements RMIServer_I{
       @Override
       public synchronized void logoutMulticastServer(MulticastServer multicastServer) throws RemoteException{
             onServers.remove(multicastServer);
-            String notif = "Mesa de Voto "+ multicastServer.getTableID() + " OFF"; 
+            String notif = "Mesa de Voto "+ multicastServer.getQ().getDepartment() + " OFF"; 
             for (AdminConsole_I admin : admins) {
                   try{
                         admin.notify_state(notif);
@@ -257,11 +264,20 @@ public class RMIServer extends UnicastRemoteObject implements RMIServer_I{
       
       @Override
       public synchronized boolean addTableElection(MulticastServer table, Election election)throws RemoteException{
-            int index1 = elections.indexOf(election);
-            if(index1 != -1 && servers.contains(table) && (elections.get(index1).getDepartment().equals(table.getQ().getDepartment())|| elections.get(index1).getDepartment().isEmpty())){
-                  elections.get(index1).addTable(table);
-                  writeElectionFile();
-                  return true;
+            for(MulticastServer m: servers){
+                  if(m.getQ().getDepartment().equals(table.getQ().getDepartment())){
+                        for(Election e: elections){
+                              if(e.getTitle().equals(election.getTitle())){
+                                    int index1 = elections.indexOf(e);
+                                    if(elections.get(index1).getDepartment().equals(table.getQ().getDepartment())|| elections.get(index1).getDepartment().isEmpty()){
+                                          elections.get(index1).addTable(table);
+                                          writeElectionFile();
+                                          System.out.println("Added table with sucess");
+                                          return true;
+                                    }
+                              }
+                        }
+                  }
             }
             return false;
       }
@@ -269,11 +285,20 @@ public class RMIServer extends UnicastRemoteObject implements RMIServer_I{
       
       @Override
       public synchronized boolean removeTableElection(MulticastServer table, Election election)throws RemoteException{
-            int index1 = elections.indexOf(election);
-            if(index1 != -1 && servers.contains(table)){
-                  boolean flag = elections.get(index1).removeTable(table);
-                  writeElectionFile();
-                  return flag;
+            for(MulticastServer m: servers){
+                  if(m.getQ().getDepartment().equals(table.getQ().getDepartment())){
+                        for(Election e: elections){
+                              if(e.getTitle().equals(election.getTitle())){
+                                    int index1 = elections.indexOf(e);
+                                    if(elections.get(index1).getDepartment().equals(table.getQ().getDepartment())|| elections.get(index1).getDepartment().isEmpty()){
+                                          elections.get(index1).removeTable(table);
+                                          writeElectionFile();
+                                          System.out.println("Removed table with sucess");
+                                          return true;
+                                    }
+                              }
+                        }
+                  }
             }
             return false;
       }
@@ -325,7 +350,7 @@ public class RMIServer extends UnicastRemoteObject implements RMIServer_I{
             int index = onServers.indexOf(table);
             if(index != -1){
                   try{
-                  onServers.get(index).addTableMembers(member);
+                        onServers.get(index).addTableMembers(member);
                   }catch(Exception e){
                         onServers.remove(index);
                   }
@@ -336,13 +361,23 @@ public class RMIServer extends UnicastRemoteObject implements RMIServer_I{
       }
       
       @Override
-      public synchronized boolean removeVoterTable(MulticastServer table, Voter member) throws RemoteException{
+      public synchronized boolean removeVoterTable(MulticastServer table, Voter member/* String cc_number*/) throws RemoteException{
             int index = servers.indexOf(table);
             if(index != -1){
                   servers.get(index).removeTableMembers(member);
                   writeElectionFile();
                   return true;
             }
+            /*
+            if(index != -1){
+                  for(Voter v: voterList){
+                        if(v.getCc_number().equals(cc_number)){           
+                              servers.get(index).removeTableMembers(v);
+                              writeElectionFile();
+                              return true;
+                        }
+                  }
+            }*/
             return false;
       }
 
@@ -596,32 +631,39 @@ public class RMIServer extends UnicastRemoteObject implements RMIServer_I{
       @Override
       public synchronized boolean addMembroToLista(Election election, String nome,Voter member) throws RemoteException{
             
-            int index = elections.indexOf(election);
-            if(index != -1){
-                  boolean flag = elections.get(index).addMemberToLista(nome, member);
-                  writeElectionFile();
-
-                  
-                  System.out.println("Added member successfully");
-                  return flag;
+            for(Election e: elections){
+                  if(e.getTitle().equals(election.getTitle())){
+                        int index = elections.indexOf(e);
+                        for(Voter v: voterList){
+                              if(v.getUsername().equals(member.getUsername())){      
+                                    boolean flag = elections.get(index).addMemberToLista(nome, v);
+                                    writeElectionFile();
+      
+                                    System.out.println("Added member successfully");
+                                    return flag;
+                              }
+                        }
+                  }
             }
-
             return false;
       }
       
       @Override
       public synchronized boolean removeMembroToLista(Election election, String nome,Voter member) throws RemoteException{
-            
-            int index = elections.indexOf(election);
-            if(index != -1){
-                  
-                  boolean flag = elections.get(index).removeMemberToLista(nome, member);
-                  writeElectionFile();
-                  
-                  System.out.println("Removed member successfully");
-                  return flag;
+            for(Election e: elections){
+                  if(e.getTitle().equals(election.getTitle())){
+                        int index = elections.indexOf(e);
+                        for(Voter v: voterList){
+                              if(v.getUsername().equals(member.getUsername())){     
+                                    boolean flag = elections.get(index).removeMemberToLista(nome, v);
+                                    writeElectionFile();
+      
+                                    System.out.println("Removed member successfully");
+                                    return flag;
+                              }
+                        }
+                  }
             }
-
             return false;
       }
       
@@ -689,42 +731,45 @@ public class RMIServer extends UnicastRemoteObject implements RMIServer_I{
 
       
       @Override
-      public synchronized boolean createCandidate(List<Voter> members, String name,String title,Type type) throws RemoteException{
-            Candidates candidates = new Candidates(members, name,type);
+      public synchronized boolean createCandidate(String name,String title,Type type) throws RemoteException{
+            Candidates candidates = new Candidates(name,type);
             return addCandidate(title, candidates);
       }
 
 
       
       @Override
-      public synchronized boolean switchElection(Election oriElection, Election newInfo) throws RemoteException{
-            if(elections.contains(oriElection)){
-                  int i = elections.indexOf(oriElection);
-                  if(oriElection.getState() == State.WAITING){
-                        elections.set(i, newInfo);
-                        writeElectionFile();
-                        System.out.println("Switched info successfully");
-                  }else{
-                        return false;
+      public synchronized boolean switchElection(String name, Election newInfo) throws RemoteException{
+            
+            for(Election e: elections){
+                  if(e.getTitle().equals(name)){
+                        int i = elections.indexOf(e);
+                        if(e.getState() == State.WAITING){
+                              elections.set(i, newInfo);
+                              writeElectionFile();
+                              System.out.println("Switched info successfully");
+                              return true;
+                        }else{
+                              return false;
+                        }
                   }
-            }else{
-                  return false;
             }
-            return true;
+            return false;
       }
 
       
       @Override
-      public synchronized boolean switchUser(Voter oriVoter, Voter newInfo) throws RemoteException{
-            if(voterList.contains(oriVoter)){
-                  int i = voterList.indexOf(oriVoter);
-                  voterList.set(i, newInfo);
-                  writeElectionFile();
-                  System.out.println("Switched info successfully");
-            }else{
-                  return false;
+      public synchronized boolean switchUser(String cc_number, Voter newInfo) throws RemoteException{
+            for(Voter v: voterList){
+                  if(v.getCc_number().equals(cc_number)){
+                        int i = voterList.indexOf(v);
+                        voterList.set(i, newInfo);
+                        writeElectionFile();
+                        System.out.println("Switched voter's info successfully");
+                        return true;
+                  }
             }
-            return true;
+            return false;
       }
 
       public RMIServer() throws RemoteException{

@@ -111,6 +111,12 @@ public class Election implements Serializable {
       public void setDescription(String description) { this.description = description; }      
 
       /**
+       * get election's description
+       * @return description a string with the election's description
+       */
+      public String getDescription() { return this.description; }  
+      
+      /**
        * get election's begging date
        * @return election's begging date
        */
@@ -250,10 +256,11 @@ public class Election implements Serializable {
        * @return true if success, false otherwise
        */
       public boolean removeCandidateList(String candidateName){
-            Candidates candidates = searchCandidates(candidateName);
-            if(candidates != null){
-                  candidatesList.remove(candidates);
-                  return true;
+            for(Candidates c: candidatesList){
+                  if(c.getName().equals(candidateName)){
+                        candidatesList.remove(c);
+                        return true;
+                  }
             }
             return false;
       }
