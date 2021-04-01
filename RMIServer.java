@@ -160,15 +160,7 @@ public class RMIServer extends UnicastRemoteObject implements RMIServer_I{
                   }
 
                   onServers.add(multicastServer);
-            }
-
-            if(!servers.contains(multicastServer)){
-                  MulticastServer serverAux=  searchTableDept(multicastServer.getQ().getDepartment());
-
-                  if(serverAux == null){
-                        servers.add(multicastServer);
-                        writeMulticastServerFile();
-                        String notif = "Mesa de Voto "+ multicastServer.getQ().getDepartment() + " ON"; 
+                  String notif = "Mesa de Voto "+ multicastServer.getQ().getDepartment() + " ON"; 
                         for (AdminConsole_I admin : admins) {
                               try{
                                     admin.notify_state(notif);
@@ -176,6 +168,16 @@ public class RMIServer extends UnicastRemoteObject implements RMIServer_I{
                                     admins.remove(admin);
                               }
                         }
+            }
+            
+            if(!servers.contains(multicastServer)){
+                  MulticastServer serverAux=  searchTableDeptServer(multicastServer.getQ().getDepartment());
+                  
+                  if(serverAux == null){
+                        
+                        servers.add(multicastServer);
+                        writeMulticastServerFile();
+                        
                         return null;
                   }else{
                         return serverAux;
@@ -267,16 +269,26 @@ public class RMIServer extends UnicastRemoteObject implements RMIServer_I{
       
       @Override
       public synchronized boolean addTableElection(MulticastServer table, Election election)throws RemoteException{
+            boolean flag = false;
             for(MulticastServer m: servers){
                   if(m.getQ().getDepartment().equals(table.getQ().getDepartment())){
                         for(Election e: elections){
                               if(e.getTitle().equals(election.getTitle())){
                                     int index1 = elections.indexOf(e);
                                     if(elections.get(index1).getDepartment().equals(table.getQ().getDepartment())|| elections.get(index1).getDepartment().isEmpty()){
-                                          elections.get(index1).addTable(table);
-                                          writeElectionFile();
-                                          System.out.println("Added table with sucess");
-                                          return true;
+                                          
+                                          for (MulticastServer server : elections.get(index1).getTables()) {
+                                                if(!server.getQ().getDepartment().equals(table.getQ().getDepartment())){
+                                                    flag = true;  
+                                                }
+                                                
+                                          }
+                                          if(flag || elections.get(index1).getTables().isEmpty()){
+                                                elections.get(index1).addTable(table);
+                                                writeElectionFile();
+                                                System.out.println("Added table with sucess");
+                                                return true;
+                                          }
                                     }
                               }
                         }
@@ -329,21 +341,53 @@ public class RMIServer extends UnicastRemoteObject implements RMIServer_I{
             return null;
       }
 
+      public synchronized MulticastServer searchTableDeptServer(String department) throws RemoteException{
+            
+            List<MulticastServer> servers2 = getServers();
+            Iterator<MulticastServer> it = servers2.iterator();
+            while (it.hasNext()) {
+                  MulticastServer server = it.next();
+                  try {
+                        if(server.getQ().getDepartment().equals(department)){
+                              return server;
+                        }
+                  } catch (Exception e) {
+                        onServers.remove(server);
+                  }
+            }
+            /*for(MulticastServer server: servers){
+                  if(server.q.getDepartment().equals(department)){
+                        return server;
+                  }
+            }*/
+            return null;
+      }
+
       
       @Override
       public synchronized boolean addVoterTable(MulticastServer table, Voter member)  throws RemoteException{
-
+            boolean flag = true;
             for(MulticastServer m: servers){
                   if(m.getQ().getDepartment().equals(table.getQ().getDepartment())){
                         int index = servers.indexOf(m);
                         try{
-                              servers.get(index).addTableMembers(member);
-                              System.out.println("Added member to table with sucess");
+                              for (Voter voter : servers.get(index).getTableMembers()) {
+                                    if(voter.getCc_number().equals(member.getCc_number())){
+                                          flag = false;
+                                    }
+                              }
+                              if(flag){
+                                    servers.get(index).addTableMembers(member);
+                                    System.out.println("Added member to table with sucess");
+                                    writeElectionFile();
+                                    return true;
+                              }else{
+                                    return false;
+                              }
                         }catch(Exception e){
                               servers.remove(index);
                         }
-                        writeElectionFile();
-                        return true;
+                        
                   }
             }  
             return false;
