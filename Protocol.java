@@ -20,6 +20,7 @@ public class Protocol implements Serializable {
 		add("crashed");
 		add("timeout");
 		add("turnoff");
+		add("ack");
 	}};
 
 	/**
@@ -36,6 +37,16 @@ public class Protocol implements Serializable {
 	
 	/** 
 	 * @param msgId id that identifies the message; In case this one is replicated, it is discarted
+	 * @param id of the terminal to which the information must be sent
+	 * @param department of the table and terminal where the voter is voting
+	 * @return String containing the protocol message with all the data received as param
+	 */
+	public String ack(long msgId, String id, String department){
+		return "type|ack;id|"+msgId+";id|"+id+";department|"+department;
+	}
+
+	/** 
+	 * @param msgId id that identifies the message; In case this one is replicated, it is discarted
 	 * @param department of the table and terminal where the voter is voting
 	 * @return String containing the protocol with all the data received as param
 	 */
@@ -43,7 +54,6 @@ public class Protocol implements Serializable {
 		return "type|turnoff;msgID|"+msgId+";department|"+department;
 	}
 
-	
 	/** 
 	 * @param msgId id that identifies the message; In case this one is replicated, it is discarted
 	 * @param id of the terminal to which the information must be sent
@@ -55,7 +65,6 @@ public class Protocol implements Serializable {
 		return "type|election;msgID|"+msgId+";id|"+id+";department|"+department+";election|"+election;
 	}
 
-	
 	/** 
 	 * @param msgId id that identifies the message; In case this one is replicated, it is discarted
 	 * @param id of the terminal to which the information must be sent
@@ -172,7 +181,7 @@ public class Protocol implements Serializable {
 							msgId = Long.parseLong(token[1]);
 						break;
 					case "id":
-						if (type!=null && (type.equals("login") || type.equals("election")  || type.equals("vote") || type.equals("status") || type.equals("response")  || type.equals("accepted") || type.equals("item_list") || type.equals("crashed") || type.equals("timeout")))
+						if (type!=null && (type.equals("login") || type.equals("election")  || type.equals("vote") || type.equals("status") || type.equals("response")  || type.equals("accepted") || type.equals("item_list") || type.equals("crashed") || type.equals("timeout") || type.equals("ack")))
 						id = token[1];
 						else {
 							System.out.println("Wrong format");
@@ -188,7 +197,7 @@ public class Protocol implements Serializable {
 						}
 						break;
 					case "department":
-						if (type!=null && (type.equals("request") || type.equals("election")  || type.equals("vote") || type.equals("status") || type.equals("response")  || type.equals("crashed") || type.equals("timeout") || type.equals("turnoff")))
+						if (type!=null && (type.equals("request") || type.equals("election")  || type.equals("vote") || type.equals("status") || type.equals("response")  || type.equals("crashed") || type.equals("timeout") || type.equals("turnoff") || type.equals("ack")))
 							department = token[1];
 						else {
 							System.out.println("Wrong format");

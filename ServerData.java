@@ -19,9 +19,54 @@ public class ServerData implements Serializable{
     private RMIServer_I RMI;
     private List<Long> registeredAcks = new CopyOnWriteArrayList<Long>();
     private List<TerminalVoter> voting = new CopyOnWriteArrayList<TerminalVoter>();
+    private Voter searchingTerminal;
 
     public ServerData(String department) {
         this.department = department;
+        if (!connect(0)) {
+            System.exit(0);
+        }
+    }
+
+    public TerminalVoter votingContains(Voter voter) {
+        for (TerminalVoter terminalVoter: voting) {
+            if (terminalVoter.getData().getUsername().equals(voter.getUsername())) {
+                return terminalVoter;
+            }
+        }
+        return null;
+    }
+
+    public Voter requestContains(Voter voter) {
+        for (Voter request: requests) {
+            if (request.getUsername().equals(voter.getUsername())) {
+                return request;
+            }
+        }
+        return null;
+    }
+
+    public void setRequests(List<Voter> requests) {
+        this.requests = requests;
+    }
+
+    public void setVoting(List<TerminalVoter> voting) {
+        this.voting = voting;
+    }
+
+    public void setRegisteredAcks(List<Long> registeredAcks) {
+        this.registeredAcks = registeredAcks;
+    }
+
+    public Voter getSearchingTerminal() {
+        return searchingTerminal;
+    }
+
+    public void setSearchingTerminal(Voter searchingTerminal) {
+        this.searchingTerminal = searchingTerminal;
+    }
+
+    public boolean connect (int count) {
         try {
             // connection with RMI
             BufferedReader br = new BufferedReader(new FileReader("configRMI.txt"));
@@ -31,7 +76,15 @@ public class ServerData implements Serializable{
             } else {
                 System.exit(0);
             }
-            //RMI = (RMIServer_I) Naming.lookup("rmi://localhost:5001/RMIServer");
+            br.close();
+            return true;
+        } catch (ConnectException e) {
+            if (count>2)
+                connect(++count);
+            else {
+                System.out.println("The RMI Server is unreachable");
+                return false;
+            }
         } catch (RemoteException e) {
             System.out.println("The RMI Server is not connected. Connect it before starting the Multicast Server");
         } catch (NotBoundException e) {
@@ -39,12 +92,12 @@ public class ServerData implements Serializable{
         } catch (FileNotFoundException e) {
             System.out.println("Could not find the config data file. Correct it before starting the Multicast Server");
         } catch (Exception e) {
-			System.out.println("Exception in Multicast: " + e);
-			e.printStackTrace();
+			System.out.println("The RMI Server data is not correct. Correct it before starting the Multicast Server");
         }
+        return false;
     }
-
-    /**
+    
+    /** 
      * @param ola
      * @throws RemoteException
      */
@@ -121,14 +174,14 @@ public class ServerData implements Serializable{
 
 
     }
-
-    /**
+    
+    /** 
      * @return int with the value of the client Port
      */
     public int getPORT() {
         return PORT;
     }
-
+    
     /** 
      * @return int with the value of the port where the vote result is received
      */
@@ -168,8 +221,16 @@ public class ServerData implements Serializable{
             System.out.println(ack);
         }
     }
-    
-    /** 
+
+    public void addRequestFront (Voter voter) {
+        requests.add(0, voter);
+    }
+
+    public void addRequestBack (Voter voter) {
+        requests.add(voter);
+    }
+
+    /**
      * @return String containg the multicast address
      */
     public String getMULTICAST_ADDRESS() {

@@ -844,17 +844,25 @@ public class AdminConsole extends UnicastRemoteObject implements AdminConsole_I{
 
             tablesOff = rmi.getServers();
             tablesOn = rmi.getOnServers();
-
-            tablesOff.removeAll(tablesOn);
+            
 
             System.out.println("Tables On");
             for(int i = 0; i < tablesOn.size(); i++){
                 System.out.println(tablesOn.get(i).getTableID());
             }
-
+            boolean flag;
             System.out.println("\nTables Off");
             for(int i = 0; i < tablesOff.size(); i++){
-                System.out.println(tablesOff.get(i).getTableID());
+                flag = true;
+                for (MulticastServer multicastServer : tablesOn) {
+                    if(multicastServer.getTableID().equals(tablesOff.get(i).getTableID())){
+                        flag = false;
+                        break;
+                    }
+                }
+                if(flag){
+                    System.out.println(tablesOff.get(i).getTableID());
+                }
             }
             
         }catch(ConnectException e){
