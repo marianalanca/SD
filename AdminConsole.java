@@ -225,7 +225,7 @@ public class AdminConsole extends UnicastRemoteObject implements AdminConsole_I{
         System.out.print("\tDay:");
         day = check_number();
         System.out.print("\tMonth:");
-        month = check_number();
+        month = check_number() - 1;
         System.out.print("\tYear:");
         year = check_number();
         date_aux.set(year, month, day);
