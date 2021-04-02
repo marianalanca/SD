@@ -62,7 +62,7 @@ public class Election implements Serializable {
                   }
                   
                   setState(State.OPEN);
-                  if(!candidatesList.isEmpty()){
+                  if(candidatesList.size() > 0 ){
                         while (Calendar.getInstance().getTimeInMillis() > endDate.getTimeInMillis()) {
                               try {
                                     Thread.sleep(1000);
@@ -165,6 +165,7 @@ public class Election implements Serializable {
        * @return true if success, false otherwise
        */
       public boolean addMemberToLista(String nome, Voter member){
+
             for (Candidates candidates : candidatesList) {
                   if(candidates.getName().equals(nome)){
                         int index = candidatesList.indexOf(candidates);
@@ -347,23 +348,21 @@ public class Election implements Serializable {
        */
       public boolean vote(Voter vote, String name, String voteLocal){
 
-            if(this.getDepartment().equals(vote.getDepartment()) && this.getAllowedVoters().contains(vote.getType())){
+            if( this.getAllowedVoters().contains(vote.getType())){
                   Calendar timeOfVote = Calendar.getInstance();
                   Candidates candidates = searchCandidates(name);
                   AlreadyVoted voter = new AlreadyVoted(vote, timeOfVote, voteLocal);
                   Boolean isNotIn = addUsersVoted(voter);
-
+                  System.out.println(name);
                   if(Boolean.TRUE.equals(isNotIn)){
                         if(name.isEmpty()){
                               whiteVote++;
                         }else if(candidates == null){
                               nullVote++;     
-                        }else if(candidates.getType().equals(vote.getType())){
-                              candidates.addVote();
-                              return true;
                         }else{
-                              nullVote++; 
-                              return false;
+                              candidates.addVote();
+                              System.out.println(candidates.getNumberOfVotes());
+                              return true;
                         }
                         
                   }
