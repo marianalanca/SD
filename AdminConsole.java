@@ -1,8 +1,10 @@
 import java.io.BufferedReader;
+import java.io.FileInputStream;
 import java.io.FileReader;
 import java.io.IOException;
 import java.rmi.*;
 import java.util.List;
+import java.util.Properties;
 import java.util.Scanner;
 import java.util.Calendar;
 import java.util.concurrent.CopyOnWriteArrayList;
@@ -11,14 +13,12 @@ import java.rmi.registry.LocateRegistry;
 
 public class AdminConsole extends UnicastRemoteObject implements AdminConsole_I{   
 
-    //private static final long serialVersionUID = 1L;
-
     /**
      *
      */
     private static final long serialVersionUID = 1723520814373481188L;
     RMIServer_I rmi;
-    Scanner myObj  = new Scanner(System.in);
+    Scanner myObj;  
     String address;
     int port;
 
@@ -27,9 +27,9 @@ public class AdminConsole extends UnicastRemoteObject implements AdminConsole_I{
      * @param rmi interface RMIServer
      * @throws RemoteException
      */
-    private AdminConsole(/*RMIServer_I rmi*/) throws RemoteException {
+    private AdminConsole() throws RemoteException {
         super();
-        //his.rmi = rmi;
+        this.myObj = new Scanner(System.in); 
     }
 
     /**
@@ -48,7 +48,9 @@ public class AdminConsole extends UnicastRemoteObject implements AdminConsole_I{
         System.out.println("Consult:\n\t9. Local voted each voter");                             
         System.out.println("\t10. Show voters in real time");              
         System.out.println("\t11. See detailed results of past elections");  
-        System.out.println("Extra:\n\t12. Early vote\n");                                                   
+        System.out.println("\t12. List all elections"); 
+        System.out.println("\t13. List all voters"); 
+        System.out.println("Extra:\n\t14. Early vote\n");                                                  
         
         options_menu();
     }
@@ -104,6 +106,12 @@ public class AdminConsole extends UnicastRemoteObject implements AdminConsole_I{
                 see_results();
                 break;
             case 12:
+                list_elections();
+                break;
+            case 13:
+                list_voters();
+                break;
+            case 14:
                 early_vote();
                 break;
             default:
@@ -111,8 +119,6 @@ public class AdminConsole extends UnicastRemoteObject implements AdminConsole_I{
                 break;
         }
         
-        
-        //Runtime.getRuntime().exec("cls");
         menu();
         
     }
@@ -385,14 +391,14 @@ public class AdminConsole extends UnicastRemoteObject implements AdminConsole_I{
         }
 
         try{
-            rmi.createElection(electionName, description, dateB, dateE, department, electionType);
-            System.out.println("\nSuccessfully created new election");
+            if(rmi.createElection(electionName, description, dateB, dateE, department, electionType))
+                System.out.println("\nSuccessfully created new election");
         }
         catch(ConnectException e){
             try{
                 reconnect();
-                rmi.createElection(electionName, description, dateB, dateE, department, electionType);
-                System.out.println("\nSuccessfully created new election");
+                if(rmi.createElection(electionName, description, dateB, dateE, department, electionType))
+                    System.out.println("\nSuccessfully created new election");
             }
             catch(Exception excp){
                 System.out.println("Create_election: connecting failed" + excp);
@@ -726,7 +732,7 @@ public class AdminConsole extends UnicastRemoteObject implements AdminConsole_I{
             elections = rmi.stateElections(State.WAITING, null);
 
             if(elections.size() == 0){ 
-                System.out.println("List of elections is empty.");
+                System.out.println("List of waiting elections is empty.");
                 return; 
             }
 
@@ -915,18 +921,19 @@ public class AdminConsole extends UnicastRemoteObject implements AdminConsole_I{
     public void voters_real_time(){
         try{
 
-            List <Candidates> candidates;
             List <Election> elections;
             Election election;
-            Candidates cand;
             int option;
 
             elections = rmi.stateElections(State.OPEN, null);
 
             if(elections.size() == 0){ 
-                System.out.println("List of elections is empty.");
+                System.out.println("List of open elections is empty.");
                 return; 
             }
+
+            //Runtime rt = Runtime.getRuntime();
+            //rt.exec("cmd.exe /c start java -jar console.jar");
 
             printElection(elections);
 
@@ -966,14 +973,6 @@ public class AdminConsole extends UnicastRemoteObject implements AdminConsole_I{
                 }
             }).start();
 
-            /*
-            candidates = election.getCandidatesList();
-
-            for(int i = 0; i < candidates.size(); i++){
-                cand = candidates.get(i);
-                System.out.println(cand.getName() + ": " + cand.getNumberOfVotes());
-            }*/
-
         }catch(ConnectException e){
             reconnect();
             voters_real_time();
@@ -998,7 +997,7 @@ public class AdminConsole extends UnicastRemoteObject implements AdminConsole_I{
             elections = rmi.stateElections(State.CLOSED, null);
 
             if(elections.size() == 0){ 
-                System.out.println("List of elections is empty.");
+                System.out.println("List of closed elections is empty.");
                 return; 
             }
 
@@ -1036,6 +1035,7 @@ public class AdminConsole extends UnicastRemoteObject implements AdminConsole_I{
             List<Election> elections = new CopyOnWriteArrayList<>();
             String name, cand_name = null;
             Election election;
+            String option_aux;
             int option, size;
             Voter voter = null;
 
@@ -1058,7 +1058,7 @@ public class AdminConsole extends UnicastRemoteObject implements AdminConsole_I{
             elections = rmi.stateElections(State.WAITING, voter.getType());
 
             if(elections.size() == 0){ 
-                System.out.println("List of elections is empty.");
+                System.out.println("List of waiting elections is empty.");
                 return; 
             }
 
@@ -1072,7 +1072,20 @@ public class AdminConsole extends UnicastRemoteObject implements AdminConsole_I{
                 candidates = election.getCandidatesList();
                 size = printListInElection(candidates);
 
-                option = check_number();
+                option_aux = check_string();
+
+                if(option_aux.equals("")){
+                    election.setWhiteVote(election.getWhiteVote() + 1);
+                    return;
+                }
+
+                try{
+                    option = Integer.parseInt(option_aux);
+                }
+                catch(Exception e){
+                    election.setNullVote(election.getNullVote() + 1);
+                    return;
+                }
 
                 if(option >=0 && option < size){
                     cand_name = candidates.get(option).getName();
@@ -1080,11 +1093,15 @@ public class AdminConsole extends UnicastRemoteObject implements AdminConsole_I{
                 try{
                     if(rmi.voterVotesAdmin(name, election.getTitle(), cand_name, election.getDepartment()) )
                         System.out.println("Sucess early vote");
+                    else
+                        System.out.println("Error in early vote");
                 }
                 catch(ConnectException e){
                     reconnect();
                     if(rmi.voterVotesAdmin(name, election.getTitle(), cand_name, election.getDepartment()) )
                         System.out.println("Sucess early vote");
+                    else
+                        System.out.println("Error in early vote");
                 }
                 catch(Exception e){
                     System.out.println("Error in early vote: " + e);
@@ -1211,7 +1228,7 @@ public class AdminConsole extends UnicastRemoteObject implements AdminConsole_I{
     }
 
     /**
-     * Allows you to change the tables of an election:
+     * Allows you to change the tables of an election: <p>
      *  - Add new member to a table
      *  - Remove a member of a table
      * All changes are passed to the rmi server
@@ -1322,26 +1339,86 @@ public class AdminConsole extends UnicastRemoteObject implements AdminConsole_I{
 
     }
 
+    /**
+     * list all election, its type, its state and the begging and end date
+     */
+    public void list_elections(){
+        try{
+            List<Election> elections;
+
+            elections = rmi.getElections();
+
+            if(elections.size() == 0){
+                System.out.println("The list of elections is empty\n");
+                return;
+            }
+
+            for(Election e: elections){
+                if(e.getAllowedVoters().size() == 3){
+                    System.out.println(e.getTitle() + ": general consul - " + e.getState());
+                }
+                else{
+                    System.out.println(e.getTitle() + ": " + e.getAllowedVoters().get(0) + " - " + e.getState());
+                }
+                System.out.println("\tBegging date: " + e.getBeggDate().getTime() + "\n\tEnd date: " + e.getEndDate().getTime()  + "\n");
+            }
+        }
+        catch(ConnectException e){
+            reconnect();
+            list_elections();
+        }catch(Exception e){
+            System.out.println("List_elections: " + e);
+        }
+    }
+
+    public list_voters(){
+        try{
+            List<Voter> voters;
+
+            voters = rmi.getVoterList();
+
+            if(voters.size() == 0){
+                System.out.println("There is no voters in the database\n");
+                return;
+            }
+
+            System.out.println("List of voters:");
+
+            for(Voter v: voters){
+                System.out.println(v.getUsername() + " " + v.getCc_number);
+            }
+
+            System.out.println("\n");
+
+        }
+        catch(ConnectException e){
+            reconnect();
+            list_voters();
+        }catch(Exception e){
+            System.out.println("List_voters: " + e);
+        }
+    }
+
     public static void main(String args[]) {
 
-        try{
-
-            BufferedReader br = new BufferedReader(new FileReader("configRMI.txt")); 
+        try{ 
 
             AdminConsole admin = new AdminConsole();
             AdminConsole_I admin_I = (AdminConsole_I) admin;
             
-            String port_aux;
-            if ((admin.address = br.readLine())!=null && (port_aux = br.readLine())!=null) {
-                admin.port = Integer.parseInt(port_aux);
+            try{
+                Properties prop = new Properties();
+                String fileName = "config.properties";
+                
+                prop.load(new FileInputStream(fileName));
+                admin.port = Integer.parseInt(prop.getProperty("port"));
+                admin.address = prop.getProperty("ip");
                 admin.rmi = (RMIServer_I) LocateRegistry.getRegistry(admin.address, admin.port).lookup("RMIServer");
-            }
-            else{
-                System.out.println("Error in the file configRMI");
-                System.exit(-1);
-            }
 
-            br.close();
+            }catch(Exception e){
+                System.out.println("Error in the file config.properties: " + e);
+                System.exit(-1);   
+            }
 
             try{
                 admin.rmi.loginAdmin(admin_I);
