@@ -63,7 +63,7 @@ public class Election implements Serializable {
                   
                   setState(State.OPEN);
                   if(candidatesList.size() > 0 ){
-                        while (Calendar.getInstance().getTimeInMillis() > endDate.getTimeInMillis()) {
+                        while (Calendar.getInstance().getTimeInMillis() < endDate.getTimeInMillis()) {
                               try {
                                     Thread.sleep(1000);
                               } catch (InterruptedException e2) {
