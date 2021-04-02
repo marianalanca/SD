@@ -815,8 +815,6 @@ public class RMIServer extends UnicastRemoteObject implements RMIServer_I{
        * 
        */
       public static void readConfig(){
-            String result = "";
-	      
             try{
                   Properties prop = new Properties();
                   String fileName = "config.properties";
