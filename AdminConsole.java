@@ -1049,7 +1049,6 @@ public class AdminConsole extends UnicastRemoteObject implements AdminConsole_I{
             int option, size;
             Voter voter = null;
 
-
             System.out.print("Insert name: ");
             name = check_string();
 
@@ -1114,6 +1113,7 @@ public class AdminConsole extends UnicastRemoteObject implements AdminConsole_I{
                 }
                 catch(Exception e){
                     System.out.println("Error in early vote: " + e);
+                    e.printStackTrace();
                 }
 
             }

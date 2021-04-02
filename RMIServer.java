@@ -722,7 +722,7 @@ public class RMIServer extends UnicastRemoteObject implements RMIServer_I{
             for(Election election: elections){
                   if(election.getTitle().equals(title)){
                         
-                        if(voter != null && election != null && election.getState() == State.OPEN){
+                        if(voter != null && election.getState() == State.OPEN){
                               flag = election.vote(voter, candidateName, voteLocal);   
                               writeElectionFile();
                               System.out.println("Voter voted sucessfully");
@@ -739,15 +739,20 @@ public class RMIServer extends UnicastRemoteObject implements RMIServer_I{
       public synchronized boolean voterVotesAdmin(String username,String title, String candidateName, String voteLocal)  throws RemoteException{
             
             Voter voter = searchVoter(username);
-            boolean flag = false;
+            boolean flag;
 
             for(Election election: elections){
                   if(election.getTitle().equals(title)){
                         
-                        if(voter != null && election != null && election.getState() == State.WAITING){
-                              flag = election.vote(voter, candidateName, voteLocal);   
-                              writeElectionFile();
-                              System.out.println("Voter voted sucessfully");
+                        if(voter != null && election.getState() == State.WAITING){
+                              flag = election.vote(voter, candidateName, voteLocal);
+                              if(flag){
+                                    writeElectionFile();
+                                    System.out.println("Voter voted sucessfully");
+                              }
+                              else{
+                                    System.out.println("Error:impossible to vote");
+                              }
                               return flag;
                         }
                   }

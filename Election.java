@@ -349,25 +349,28 @@ public class Election implements Serializable {
       public boolean vote(Voter vote, String name, String voteLocal){
 
             if( this.getAllowedVoters().contains(vote.getType())){
+
                   Calendar timeOfVote = Calendar.getInstance();
-                  Candidates candidates = searchCandidates(name);
                   AlreadyVoted voter = new AlreadyVoted(vote, timeOfVote, voteLocal);
                   Boolean isNotIn = addUsersVoted(voter);
-                  System.out.println(name);
 
-                  if(Boolean.TRUE.equals(isNotIn)){
-                        if(name.isEmpty()){
-                              whiteVote++;
-                              return true;
-                        }else if(candidates == null){
-                              nullVote++;
-                              return true;     
-                        }else{
-                              candidates.addVote();
-                              System.out.println(candidates.getNumberOfVotes());
-                              return true;
+                  if(name == null){
+                        nullVote++;
+                        return true;  
+                  }
+                  else{
+                        Candidates candidates = searchCandidates(name);
+                        if(Boolean.TRUE.equals(isNotIn)){
+                              if(name.isEmpty()){
+                                    whiteVote++;
+                                    return true;
+                              }
+                              else{
+                                    candidates.addVote();
+                                    //System.out.println(candidates.getNumberOfVotes());
+                                    return true;
+                              }   
                         }
-                        
                   }
             }
             return false;
