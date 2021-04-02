@@ -16,7 +16,7 @@ public class Candidates implements Serializable {
       private Type type;
 
       /**
-       * 
+       * Construtor 
        * @param name - name of the candidate
        * @param type - type of candidate
        */

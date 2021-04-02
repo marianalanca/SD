@@ -1,12 +1,8 @@
-import java.io.BufferedReader;
 import java.io.FileInputStream;
-import java.io.FileReader;
-import java.io.IOException;
 import java.rmi.*;
 import java.util.List;
 import java.util.Properties;
 import java.util.Scanner;
-import java.util.concurrent.CopyOnWriteArrayList;
 import java.rmi.server.UnicastRemoteObject;
 import java.rmi.registry.LocateRegistry;
 
@@ -17,7 +13,7 @@ public class RealTime extends UnicastRemoteObject{
     int port;
 
     private RealTime() throws RemoteException {
-        super();
+
     }
 
     public void read(){
@@ -52,17 +48,40 @@ public class RealTime extends UnicastRemoteObject{
 
         try{
 
-            Scanner myObj;
+            Scanner myObj = new Scanner(System.in);
             List <Election> elections;
             Election election;
-            int option;
+            int option = -1, size;
+            String aux;
 
             elections = rmi.stateElections(State.OPEN, null);
 
-            if(elections.size() == 0){ 
+            size = elections.size();
+            if( size == 0){ 
                 System.out.println("List of open elections is empty.");
+                myObj.close();
                 return; 
             }
+
+            System.out.println("\nPick a election:");
+            for(int i =0; i < size ; i++){
+                System.out.println(i + ". " + elections.get(i).getTitle());
+            }
+
+            do{
+                aux = myObj.nextLine();
+                try{
+                    option = Integer.parseInt(aux);
+                    break;
+                }
+                catch(Exception e){
+                    System.out.print("Error in parse.\n Try again: ");
+                }
+            }while(option < 0 || option >= elections.size());
+    
+            election = elections.get(option);
+
+            myObj.close();
 
             (new Thread() {
                 public void run() {
@@ -81,11 +100,10 @@ public class RealTime extends UnicastRemoteObject{
                                 e.printStackTrace();
                             }
                         }
-
-                    } catch (IOException e) {
-                        // TODO Auto-generated catch block
-                        e.printStackTrace();
                     }
+                    catch (Exception e) {
+                        Thread.currentThread().interrupt();
+                  }
                 }
             }).start();
 
@@ -99,7 +117,7 @@ public class RealTime extends UnicastRemoteObject{
         }
         catch(ConnectException e){
             reconnect();
-            voters_real_time();
+            real_time();
         }
         catch (Exception e){
             System.out.println("Voters_real_time: " + e);
@@ -108,9 +126,13 @@ public class RealTime extends UnicastRemoteObject{
 
     public static void main(String args[]) {
 
-        RealTime real = new RealTime();
-        real.read();
-        real.real_time();
+        try {
+            RealTime real = new RealTime();
+            real.read();
+            real.real_time();
+        } catch (RemoteException e) {
+            e.printStackTrace();
+        }
 
     }
 }

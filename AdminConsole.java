@@ -1,6 +1,4 @@
-import java.io.BufferedReader;
 import java.io.FileInputStream;
-import java.io.FileReader;
 import java.io.IOException;
 import java.rmi.*;
 import java.util.List;
@@ -1371,7 +1369,7 @@ public class AdminConsole extends UnicastRemoteObject implements AdminConsole_I{
         }
     }
 
-    public list_voters(){
+    public void list_voters(){
         try{
             List<Voter> voters;
 
@@ -1385,7 +1383,7 @@ public class AdminConsole extends UnicastRemoteObject implements AdminConsole_I{
             System.out.println("List of voters:");
 
             for(Voter v: voters){
-                System.out.println(v.getUsername() + " " + v.getCc_number);
+                System.out.println(v.getUsername() + " " + v.getCc_number());
             }
 
             System.out.println("\n");
