@@ -720,15 +720,14 @@ public class RMIServer extends UnicastRemoteObject implements RMIServer_I{
             boolean flag = false;
 
             for(Election election: elections){
-                  if(election.getTitle().equals(title) && election.getState().equals(State.OPEN)){
+                  if(election.getTitle().equals(title)){
                         
                         if(voter != null && election != null && election.getState() == State.OPEN){
                               flag = election.vote(voter, candidateName, voteLocal);   
+                              writeElectionFile();
+                              System.out.println("Voter voted sucessfully");
+                              return flag;
                         }
-
-                        writeElectionFile();
-                        System.out.println("Voter voted sucessfully");
-                        return flag;
                   }
             }
 
@@ -743,15 +742,14 @@ public class RMIServer extends UnicastRemoteObject implements RMIServer_I{
             boolean flag = false;
 
             for(Election election: elections){
-                  if(election.getTitle().equals(title) && election.getState().equals(State.WAITING)){
+                  if(election.getTitle().equals(title)){
                         
-                        if(voter != null && election != null && election.getState() == State.OPEN){
+                        if(voter != null && election != null && election.getState() == State.WAITING){
                               flag = election.vote(voter, candidateName, voteLocal);   
+                              writeElectionFile();
+                              System.out.println("Voter voted sucessfully");
+                              return flag;
                         }
-
-                        writeElectionFile();
-                        System.out.println("Voter voted sucessfully");
-                        return flag;
                   }
             }
 
