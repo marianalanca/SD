@@ -1,4 +1,5 @@
 import java.io.FileInputStream;
+import java.io.IOException;
 import java.rmi.*;
 import java.util.Calendar;
 import java.util.List;
@@ -15,6 +16,19 @@ public class RealTime extends UnicastRemoteObject{
 
     private RealTime() throws RemoteException {
 
+    }
+
+    public static void clearConsole() {
+        try {
+            if (System.getProperty("os.name").contains("Windows")) {
+                new ProcessBuilder("cmd", "/c", "cls").inheritIO().start().waitFor();
+            }
+            else {
+                System.out.print("\033\143");
+            }
+        } catch (IOException | InterruptedException ex) {
+            
+        }
     }
 
     public void read(){
@@ -91,16 +105,23 @@ public class RealTime extends UnicastRemoteObject{
                             try {
                                 List<Candidates> candidates = election.getCandidatesList();
 
+                                clearConsole();
+
+                                System.out.println(election.getTitle() + ":\n");
+
                                 for(int i = 0; i < candidates.size(); i++){
                                     Candidates cand = candidates.get(i);
-                                    System.out.println(cand.getName() + ": " + cand.getNumberOfVotes());
+                                    System.out.println(cand.getName() + ":" + cand.getNumberOfVotes());
                                 }
+
+                                System.out.println("Null votes: " + election.getNullVote());
+                                System.out.println("White votes: " + election.getWhiteVote());
 
                                 if(election.getEndDate().before(Calendar.getInstance())){
                                     Thread.currentThread().interrupt();
                                 }
 
-                                Thread.sleep(1000);
+                                Thread.sleep(2000);
                                 
                             } catch (InterruptedException e) {
                                 // TODO Auto-generated catch block
@@ -110,7 +131,7 @@ public class RealTime extends UnicastRemoteObject{
                     }
                     catch (Exception e) {
                         Thread.currentThread().interrupt();
-                  }
+                    }
                 }
             }).start();
 
@@ -130,9 +151,9 @@ public class RealTime extends UnicastRemoteObject{
             RealTime real = new RealTime();
             real.read();
             real.real_time();
-            System.exit(0);
         } catch (RemoteException e) {
             e.printStackTrace();
+            System.exit(0);
         }
 
     }
