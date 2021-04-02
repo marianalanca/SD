@@ -76,7 +76,6 @@ public class Protocol implements Serializable {
 	 * @return String containing the protocol with all the data received as param
 	 */
 	public String leave(String id, String department) {
-		System.out.println("here");
 		return "type|leave;msgID|"+Math.abs(new Random(System.currentTimeMillis()).nextLong())+";id|"+id+";department|"+department;
 	}
 
@@ -152,7 +151,7 @@ public class Protocol implements Serializable {
 	 * @return String containing the protocol with all the data received as param
 	 */
 	public String item_list(String id, int item_count, List<String> item_name) {
-		String result = "type|item_list;msgID|"+Math.abs(new Random(System.currentTimeMillis()).nextLong())+";item_count|"+item_count;
+		String result = "type|item_list;msgID|"+Math.abs(new Random(System.currentTimeMillis()).nextLong())+";id|"+id+";item_count|"+item_count;
 		for (int i=0;i<item_name.size();i++){
 			result = result.concat(";item_"+i+"_name|"+item_name.get(i));
 		}

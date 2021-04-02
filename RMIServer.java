@@ -717,28 +717,17 @@ public class RMIServer extends UnicastRemoteObject implements RMIServer_I{
       public synchronized boolean voterVotes(String username,String title, String candidateName, String voteLocal)  throws RemoteException{
             
             Voter voter = searchVoter(username);
-            boolean flag = true;
+            boolean flag = false;
 
             for(Election election: elections){
                   if(election.getTitle().equals(title)){
                         
-                        if(candidateName == null){
-                              election.setNullVote(election.getNullVote() + 1);
-                              flag = true;
-                        }
-
-                        if(candidateName.equals("")){
-                              election.setWhiteVote(election.getWhiteVote() + 1);
-                              flag = true;
-                        }
-                        
                         if(voter != null && election != null && election.getState() == State.OPEN){
                               flag = election.vote(voter, candidateName, voteLocal);   
+                              writeElectionFile();
+                              System.out.println("Voter voted sucessfully");
+                              return flag;
                         }
-
-                        writeElectionFile();
-                        System.out.println("Voter voted sucessfully");
-                        return flag;
                   }
             }
 
@@ -750,15 +739,20 @@ public class RMIServer extends UnicastRemoteObject implements RMIServer_I{
       public synchronized boolean voterVotesAdmin(String username,String title, String candidateName, String voteLocal)  throws RemoteException{
             
             Voter voter = searchVoter(username);
-            Election election = searchElection(title);
-            
-            if(voter != null && election != null && election.getState() != State.CLOSED){
-                  boolean flag =election.vote(voter, candidateName, voteLocal);
-                  writeElectionFile();
-                  System.out.println("Voter voted sucessfully");
-                  return flag;
-                  
+            boolean flag = false;
+
+            for(Election election: elections){
+                  if(election.getTitle().equals(title)){
+                        
+                        if(voter != null && election != null && election.getState() == State.WAITING){
+                              flag = election.vote(voter, candidateName, voteLocal);   
+                              writeElectionFile();
+                              System.out.println("Voter voted sucessfully");
+                              return flag;
+                        }
+                  }
             }
+
             return false;
       }
       
