@@ -13,7 +13,6 @@ public class MulticastServer extends Thread implements Serializable {
     private ServerData q;
     private List<Voter> tableMembers = new CopyOnWriteArrayList<Voter>();
 
-
     /**
      * @param args received from the console. It must contain the department value
      */
@@ -64,12 +63,11 @@ public class MulticastServer extends Thread implements Serializable {
         try {
             login();
 
-            //q.test(this); // DELETE
             while (true) {
                 // Receives from the console requests for new connections
                 int option = 0;
                 do {
-                    System.out.println("0. Check members of list\n1. Autenticate\n2. Exit");
+                    System.out.println("\n0. Check members of list\n1. Autenticate\n2. Exit");
                     try {
                         option = Integer.valueOf(keyboardScanner.nextLine());
                     } catch (NumberFormatException e) {
@@ -77,9 +75,13 @@ public class MulticastServer extends Thread implements Serializable {
                     }
                 } while (option < 0 || option > 2);
                 if (option == 0) {
-                    System.out.println("List of table members");
-                    for (Voter member: tableMembers) {
-                        System.out.println('\t'+member.getUsername());
+                    if (tableMembers.size()==0) {
+                        System.out.println("This table does not contain members yet.");
+                    } else{
+                        System.out.println("List of table members");
+                        for (Voter member: tableMembers) {
+                            System.out.println('\t'+member.getUsername());
+                        }
                     }
                 }else if (option == 2) {  // "Exit"
                     closeTerminals();
@@ -89,7 +91,7 @@ public class MulticastServer extends Thread implements Serializable {
                     option = 0;
                     Voter voter;
                     do {
-                        System.out.println("Autenticate by:\n0. Citizen Card\n1. Name ");
+                        System.out.println("\nAutenticate by:\n0. Citizen Card\n1. Name ");
                         try {
                             option = Integer.valueOf(keyboardScanner.nextLine());
                         } catch (NumberFormatException e) {

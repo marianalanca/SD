@@ -2,6 +2,7 @@ import java.net.MulticastSocket;
 import java.net.SocketTimeoutException;
 import java.net.DatagramPacket;
 import java.net.InetAddress;
+import java.io.FileInputStream;
 import java.io.IOException;
 import java.util.List;
 import java.util.NoSuchElementException;
@@ -12,11 +13,12 @@ import java.util.concurrent.ExecutionException;
 import java.util.concurrent.FutureTask;
 import java.util.concurrent.TimeUnit;
 import java.util.concurrent.TimeoutException;
+import java.util.Properties;
 
 class Data{
-    private String MULTICAST_ADDRESS = "224.0.224.0";
-    private int PORT = 4321;  // Client Port
-    private int RESULT_PORT = 4322;  // RESULT Port
+    private String MULTICAST_ADDRESS;
+    private int PORT;  // Client Port
+    private int RESULT_PORT;  // RESULT Port
     private String department, username, password;
     private String ID;
     private int TIMEOUT = 120;
@@ -28,6 +30,18 @@ class Data{
     public Data(String department) {
         ID = Long.toString(Math.abs(new Random(System.currentTimeMillis()).nextLong()));
         this.department = department;
+        try{
+            Properties prop = new Properties();
+            String fileName = "config.properties";
+            prop.load(new FileInputStream(fileName));
+            MULTICAST_ADDRESS = prop.getProperty("multicast_adress");
+            PORT = Integer.parseInt(prop.getProperty("multicast_port"));
+            PORT = Integer.parseInt(prop.getProperty("results_port"));
+      }catch(Exception e){ // standard values
+            MULTICAST_ADDRESS = "224.0.224.0";
+            PORT = 4321;
+            RESULT_PORT = 4322;
+      }
     }
 
     /**
