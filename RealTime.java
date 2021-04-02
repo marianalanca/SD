@@ -1,5 +1,6 @@
 import java.io.FileInputStream;
 import java.rmi.*;
+import java.util.Calendar;
 import java.util.List;
 import java.util.Properties;
 import java.util.Scanner;
@@ -94,7 +95,13 @@ public class RealTime extends UnicastRemoteObject{
                                     Candidates cand = candidates.get(i);
                                     System.out.println(cand.getName() + ": " + cand.getNumberOfVotes());
                                 }
+
+                                if(election.getEndDate().before(Calendar.getInstance())){
+                                    Thread.currentThread().interrupt();
+                                }
+
                                 Thread.sleep(1000);
+                                
                             } catch (InterruptedException e) {
                                 // TODO Auto-generated catch block
                                 e.printStackTrace();
@@ -107,13 +114,6 @@ public class RealTime extends UnicastRemoteObject{
                 }
             }).start();
 
-            /*
-            candidates = election.getCandidatesList();
-
-            for(int i = 0; i < candidates.size(); i++){
-                cand = candidates.get(i);
-                System.out.println(cand.getName() + ": " + cand.getNumberOfVotes());
-            }*/
         }
         catch(ConnectException e){
             reconnect();
@@ -130,6 +130,7 @@ public class RealTime extends UnicastRemoteObject{
             RealTime real = new RealTime();
             real.read();
             real.real_time();
+            System.exit(0);
         } catch (RemoteException e) {
             e.printStackTrace();
         }

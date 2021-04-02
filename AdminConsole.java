@@ -960,9 +960,6 @@ public class AdminConsole extends UnicastRemoteObject implements AdminConsole_I{
                 return; 
             }
 
-            //Runtime rt = Runtime.getRuntime();
-            //rt.exec("cmd.exe /c start java -jar console.jar");
-
             printElection(elections);
 
             option = check_number();
@@ -975,31 +972,6 @@ public class AdminConsole extends UnicastRemoteObject implements AdminConsole_I{
             election = elections.get(option);
             System.out.println("\nElection " + election.getTitle() + ":");
 
-            (new Thread() {
-                public void run() {
-                    try {
-                        Runtime.getRuntime().exec("cmd /c start cmd.exe");
-                        while(true){
-                            try {
-                                List<Candidates> candidates = election.getCandidatesList();
-
-                                for(int i = 0; i < candidates.size(); i++){
-                                    Candidates cand = candidates.get(i);
-                                    System.out.println(cand.getName() + ": " + cand.getNumberOfVotes());
-                                }
-                                Thread.sleep(1000);
-                            } catch (InterruptedException e) {
-                                // TODO Auto-generated catch block
-                                e.printStackTrace();
-                            }
-                        }
-
-                    } catch (IOException e) {
-                        // TODO Auto-generated catch block
-                        e.printStackTrace();
-                    }
-                }
-            }).start();
 
         }catch(ConnectException e){
             reconnect();
@@ -1118,14 +1090,14 @@ public class AdminConsole extends UnicastRemoteObject implements AdminConsole_I{
                 }
 
                 try{
-                    if(rmi.voterVotesAdmin(name, election.getTitle(), cand_name, election.getDepartment()) )
+                    if(rmi.voterVotesAdmin(name, election.getTitle(), cand_name, "Administration console"))
                         System.out.println("Sucess early vote");
                     else
                         System.out.println("Error in early vote");
                 }
                 catch(ConnectException e){
                     reconnect();
-                    if(rmi.voterVotesAdmin(name, election.getTitle(), cand_name, election.getDepartment()) )
+                    if(rmi.voterVotesAdmin(name, election.getTitle(), cand_name, "Administration console"))
                         System.out.println("Sucess early vote");
                     else
                         System.out.println("Error in early vote");
