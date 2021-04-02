@@ -34,7 +34,7 @@ public class AdminConsole extends UnicastRemoteObject implements AdminConsole_I{
      * prints all the features available on the administration console
      */
     public void menu(){
-        System.out.println("\n0. Exit"); 
+        System.out.println("\n\t0. Exit"); 
         System.out.println("Voter:\n\t1. Register voter"); 
         System.out.println("\t2. Change voter's personal data");                       
         System.out.println("Election:\n\t3. Create elections");   
@@ -490,12 +490,15 @@ public class AdminConsole extends UnicastRemoteObject implements AdminConsole_I{
                 System.out.println (election.getTitle() + " -  " + election.getAllowedVoters().get(0));
             }
 
-            System.out.println ("1. Create a new list\n2. Delete a existing list"); 
+            System.out.println ("0. Exit\n1. Create a new list\n2. Delete a existing list"); 
             System.out.println ("3. Insert a candidate in a list\n4. Delete a candidate in a list");         
             
             option = check_number();
 
-            if(option == 1){
+            if(option == 0){
+                return;
+            }
+            else if(option == 1){
 
                 System.out.print("Insert list's name: ");
                 nameList = check_string();
@@ -671,12 +674,16 @@ public class AdminConsole extends UnicastRemoteObject implements AdminConsole_I{
 
             election = elections.get(option);
 
-            System.out.println("1. Add table to election\n2. Remove table to election");
+            System.out.println("0. Exit\n1. Add table to election\n2. Remove table to election");
             option = check_number();
 
-            while(option < 1 || option > 2){
+            while(option < 0 || option > 2){
                 System.out.print("Inavalid option. Try again: ");
                 option = check_number();
+            }
+
+            if(option == 0){
+                return;
             }
 
             System.out.print("Insert table's department: ");
@@ -764,11 +771,14 @@ public class AdminConsole extends UnicastRemoteObject implements AdminConsole_I{
 
                 election = elections.get(option);
 
-                System.out.println("Change "+ election.getTitle() +" properties\n1.Change title\n2.Change description\n3.Beginning date\n4.End date");
+                System.out.println("Change "+ election.getTitle() +" properties\n0. Exit\n1.Change title\n2.Change description\n3.Beginning date\n4.End date");
 
                 option = check_number();
-                
-                if(option == 1){
+
+                if(option == 0){
+                    return;
+                }
+                else if(option == 1){
                     System.out.print("Insert new title: ");
                     aux = check_string();
                     new_election = new Election(aux, election.getDescription(), election.getBeggDate(), election.getEndDate(), election.getDepartment(), election.getAllowedVoters());
@@ -1151,6 +1161,7 @@ public class AdminConsole extends UnicastRemoteObject implements AdminConsole_I{
 
             new_voter = new Voter(voter.getUsername(), voter.getDepartment(), voter.getContact(), voter.getAddress(), voter.getCc_number(), voter.getCc_expiring(), voter.getPassword(), voter.getType());
             
+            System.out.println("0. Exit");
             System.out.println("1. Change name");
             System.out.println("2. Change role");
             System.out.println("3. Change department");
@@ -1163,6 +1174,8 @@ public class AdminConsole extends UnicastRemoteObject implements AdminConsole_I{
             option = check_number();
 
             switch(option){
+                case 0:
+                    return;
                 case 1:
                     System.out.print(voter.getUsername() + "\nEnter new name: ");
                     new_voter.setUsername(check_string());
@@ -1370,6 +1383,9 @@ public class AdminConsole extends UnicastRemoteObject implements AdminConsole_I{
         }
     }
 
+    /**
+     * prints the list of all voters in the database (name and cc_number)
+     */
     public void list_voters(){
         try{
             List<Voter> voters;
@@ -1377,7 +1393,7 @@ public class AdminConsole extends UnicastRemoteObject implements AdminConsole_I{
             voters = rmi.getVoterList();
 
             if(voters.size() == 0){
-                System.out.println("There is no voters in the database\n");
+                System.out.println("There are no voters in the database\n");
                 return;
             }
 
