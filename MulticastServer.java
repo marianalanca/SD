@@ -13,7 +13,6 @@ public class MulticastServer extends Thread implements Serializable {
     private ServerData q;
     private List<Voter> tableMembers = new CopyOnWriteArrayList<Voter>();
 
-
     /**
      * @param args received from the console. It must contain the department value
      */
@@ -64,12 +63,11 @@ public class MulticastServer extends Thread implements Serializable {
         try {
             login();
 
-            //q.test(this); // DELETE
             while (true) {
                 // Receives from the console requests for new connections
                 int option = 0;
                 do {
-                    System.out.println("0. Check members of list\n1. Autenticate\n2. Exit");
+                    System.out.println("\n0. Check members of list\n1. Autenticate\n2. Exit");
                     try {
                         option = Integer.valueOf(keyboardScanner.nextLine());
                     } catch (NumberFormatException e) {
@@ -77,9 +75,13 @@ public class MulticastServer extends Thread implements Serializable {
                     }
                 } while (option < 0 || option > 2);
                 if (option == 0) {
-                    System.out.println("List of table members");
-                    for (Voter member: tableMembers) {
-                        System.out.println('\t'+member.getUsername());
+                    if (tableMembers.size()==0) {
+                        System.out.println("This table does not contain members yet.");
+                    } else{
+                        System.out.println("List of table members");
+                        for (Voter member: tableMembers) {
+                            System.out.println('\t'+member.getUsername());
+                        }
                     }
                 }else if (option == 2) {  // "Exit"
                     closeTerminals();
@@ -89,7 +91,7 @@ public class MulticastServer extends Thread implements Serializable {
                     option = 0;
                     Voter voter;
                     do {
-                        System.out.println("Autenticate by:\n0. Citizen Card\n1. Name ");
+                        System.out.println("\nAutenticate by:\n0. Citizen Card\n1. Name ");
                         try {
                             option = Integer.valueOf(keyboardScanner.nextLine());
                         } catch (NumberFormatException e) {
@@ -212,7 +214,7 @@ public class MulticastServer extends Thread implements Serializable {
         socket.joinGroup(group);
 
         // send message to finish
-        byte[] buffer = (new Protocol().turnoff(Math.abs(new Random(System.currentTimeMillis()).nextLong()), q.getDepartment())).getBytes();
+        byte[] buffer = (new Protocol().turnoff(q.getDepartment())).getBytes();
         DatagramPacket packet = new DatagramPacket(buffer, buffer.length, group, q.getPORT());
         socket.send(packet);
     }
@@ -256,9 +258,9 @@ class MulticastVote extends Thread implements Serializable {
                 }
 
                 if (q.getRMI().voterVotes(protocol.username, protocol.election, protocol.candidate, q.getDepartment())) { // não encontra eleição?
-                    buffer = new Protocol().status(Math.abs(new Random(System.currentTimeMillis()).nextLong()), protocol.id, q.getDepartment(), "off", "Vote submitted successfully").getBytes();
+                    buffer = new Protocol().status(protocol.id, q.getDepartment(), "off", "Vote submitted successfully").getBytes();
                 } else {
-                    buffer = new Protocol().status(Math.abs(new Random(System.currentTimeMillis()).nextLong()), protocol.id, q.getDepartment(), "off", "The vote can not be submitted").getBytes();
+                    buffer = new Protocol().status(protocol.id, q.getDepartment(), "off", "The vote can not be submitted").getBytes();
                 }
                 packet = new DatagramPacket(buffer, buffer.length, groupACK, q.getPORT());
                 socketACK.send(packet);
@@ -324,7 +326,7 @@ class MulticastPool extends Thread implements Serializable {
             socket.setSoTimeout(2000); // in case it didn't receive a response in 2 seconds
 
             // send request for terminal
-            byte[] buffer = (new Protocol().request(Math.abs(new Random(System.currentTimeMillis()).nextLong()),  q.getDepartment())).getBytes();
+            byte[] buffer = (new Protocol().request( q.getDepartment())).getBytes();
             DatagramPacket packet = new DatagramPacket(buffer, buffer.length, group, q.getPORT());
             socket.send(packet);
 
@@ -345,7 +347,7 @@ class MulticastPool extends Thread implements Serializable {
             }
 
             // sends accepted
-            buffer = (new Protocol().accepted(Math.abs(new Random(System.currentTimeMillis()).nextLong()), id)).getBytes();
+            buffer = (new Protocol().accepted(id)).getBytes();
             packet = new DatagramPacket(buffer, buffer.length, group, q.getPORT());
             socket.send(packet);
 
@@ -354,7 +356,7 @@ class MulticastPool extends Thread implements Serializable {
             q.setSearchingTerminal(null);
 
             // send voter data to terminal
-            buffer = new Protocol().login(Math.abs(new Random(System.currentTimeMillis()).nextLong()),  id, voter.username, voter.getPassword()).getBytes();
+            buffer = new Protocol().login( id, voter.username, voter.getPassword()).getBytes();
             packet = new DatagramPacket(buffer, buffer.length, group, q.getPORT());
             socket.send(packet);
 
@@ -418,7 +420,7 @@ class MulticastRequest extends Thread implements Serializable {
                                         crash(voter.getData());
                                         q.removeVoter(voter);
                                         q.addRequestFront(voter.getData());
-                                    } else if (protocol.type.equals("timeout")) {
+                                    } else if (protocol.type.equals("leave")) {
                                         q.removeVoter(voter);
                                     }
                                 }
@@ -465,7 +467,7 @@ class MulticastRequest extends Thread implements Serializable {
             }
 
             // send candidates information
-            byte[] buffer = new Protocol().item_list(Math.abs(new Random(System.currentTimeMillis()).nextLong()),  voter.getID(), electionsNames.size(), electionsNames).getBytes();
+            byte[] buffer = new Protocol().item_list(voter.getID(), electionsNames.size(), electionsNames).getBytes();
             DatagramPacket packet = new DatagramPacket(buffer, buffer.length, group, q.getPORT());
             socket.send(packet);
 
@@ -480,7 +482,7 @@ class MulticastRequest extends Thread implements Serializable {
                 candidates.add(candidate.getName());
         }
         // send candidates information
-        byte[] buffer = new Protocol().item_list(Math.abs(new Random(System.currentTimeMillis()).nextLong()), voter.getID(), candidates.size(), candidates).getBytes();
+        byte[] buffer = new Protocol().item_list(voter.getID(), candidates.size(), candidates).getBytes();
         DatagramPacket packet = new DatagramPacket(buffer, buffer.length, group, q.getPORT());
         socket.send(packet);
     }
