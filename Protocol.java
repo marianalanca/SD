@@ -13,18 +13,18 @@ public class Protocol implements Serializable {
 	public int item_count;
 	public Long msgId;
 	public List<String> types = new CopyOnWriteArrayList<String>(){{
-		add("login");
-		add("election");
-		add("request");
-		add("vote");
-		add("status");
-		add("response");
 		add("accepted");
-		add("item_list");
+		add("ack");
 		add("crashed");
+		add("election");
+		add("item_list");
+		add("login");
+		add("request");
+		add("response");
+		add("status");
 		add("timeout");
 		add("turnoff");
-		add("ack");
+		add("vote");
 	}};
 
 	/**

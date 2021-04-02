@@ -3,15 +3,16 @@ import java.rmi.*;
 import java.rmi.registry.LocateRegistry;
 import java.util.List;
 import java.util.concurrent.CopyOnWriteArrayList;
+import java.util.Properties;
 
 public class ServerData implements Serializable{
     /**
      *
      */
     private static final long serialVersionUID = 1L;
-    private String MULTICAST_ADDRESS = "224.0.224.0";
-    private int PORT = 4321;
-    private int RESULT_PORT = 4322;  // RESULT Port
+    private String MULTICAST_ADDRESS;
+    private int PORT;
+    private int RESULT_PORT;  // RESULT Port
     private String department;
     private List<Voter> requests = new CopyOnWriteArrayList<Voter>(); // stores all voting members in case a terminal fails
     private int TIMEOUT = 120000;
@@ -22,6 +23,20 @@ public class ServerData implements Serializable{
 
     public ServerData(String department) {
         this.department = department;
+
+        try{
+            Properties prop = new Properties();
+            String fileName = "config.properties";
+            prop.load(new FileInputStream(fileName));
+            MULTICAST_ADDRESS = prop.getProperty("multicast_adress");
+            PORT = Integer.parseInt(prop.getProperty("multicast_port"));
+            PORT = Integer.parseInt(prop.getProperty("results_port"));
+      }catch(Exception e){ // standard values
+            MULTICAST_ADDRESS = "224.0.224.0";
+            PORT = 4321;
+            RESULT_PORT = 4322;
+      }
+
         if (!connect(0)) {
             System.exit(0);
         }
