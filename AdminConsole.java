@@ -917,6 +917,13 @@ public class AdminConsole extends UnicastRemoteObject implements AdminConsole_I{
      * prints the number of voters who have voted so far at each polling station for a chosen election
      */
     public void voters_real_time(){
+        try {
+            Runtime rt = Runtime.getRuntime();
+            rt.exec("cmd.exe /c start java -jar realtime.jar");
+        } catch (IOException e) {
+            e.printStackTrace();
+        }
+        /*
         try{
 
             List <Election> elections;
@@ -977,7 +984,7 @@ public class AdminConsole extends UnicastRemoteObject implements AdminConsole_I{
         }
         catch (Exception e){
             System.out.println("Voters_real_time: " + e);
-        }
+        }*/
 
     }
 
@@ -1088,6 +1095,7 @@ public class AdminConsole extends UnicastRemoteObject implements AdminConsole_I{
                 if(option >=0 && option < size){
                     cand_name = candidates.get(option).getName();
                 }
+                
                 try{
                     if(rmi.voterVotesAdmin(name, election.getTitle(), cand_name, election.getDepartment()) )
                         System.out.println("Sucess early vote");
