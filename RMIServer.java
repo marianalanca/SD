@@ -8,6 +8,7 @@ import java.io.FileInputStream;
 import java.io.FileNotFoundException;
 import java.io.FileOutputStream;
 import java.io.IOException;
+import java.io.InputStream;
 import java.io.ObjectInputStream;
 import java.io.ObjectOutputStream;
 import java.net.DatagramPacket;
@@ -23,6 +24,7 @@ import java.util.Calendar;
 import java.util.Iterator;
 import java.util.List;
 import java.util.ListIterator;
+import java.util.Properties;
 import java.util.Scanner;
 import java.util.concurrent.CopyOnWriteArrayList;
 
@@ -813,7 +815,27 @@ public class RMIServer extends UnicastRemoteObject implements RMIServer_I{
        * 
        */
       public static void readConfig(){
-            
+            String result = "";
+	      
+            try{
+                  Properties prop = new Properties();
+                  String fileName = "config.properties";
+                  
+                  prop.load(new FileInputStream(fileName));
+                  port = Integer.parseInt(prop.getProperty("port"));
+                  voterFile = prop.getProperty("voterFile");
+                  electionFile = prop.getProperty("electionFile");
+                  tableFile = prop.getProperty("tableFile");
+                  ipDoServer = prop.getProperty("ip");
+            }catch(Exception e){
+                  System.out.println("Problem");
+                  port = 5001;
+                  voterFile = "voterInformation";
+                  electionFile = "electionInformation";
+                  tableFile = "multicastInformation";
+
+            }
+            /*
             try {
                   File myObj = new File("config.txt");
                   Scanner myRScanner = new Scanner(myObj);
@@ -829,7 +851,7 @@ public class RMIServer extends UnicastRemoteObject implements RMIServer_I{
                   electionFile = "electionInformation";
                   tableFile = "multicastInformation";
 
-            }
+            }*/
       }
 
 
