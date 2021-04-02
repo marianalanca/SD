@@ -21,7 +21,7 @@ public class MulticastServer extends Thread implements Serializable {
         // recebe departamento da consola?
         if (args.length == 0 || args.length > 3) {
             System.out.println("java MulticastServer department");
-            System.exit(0); // termina
+            System.exit(0);
         }
 
         ServerData q = new ServerData(args[0]);
@@ -254,11 +254,13 @@ class MulticastVote extends Thread implements Serializable {
                     System.out.println(protocol.type);
                 } while (protocol==null || !(protocol!=null && protocol.type!=null && protocol.type.equals("vote") && protocol.department.equalsIgnoreCase(q.getDepartment())));
 
-                System.out.println("Received vote "+protocol.candidate);
-
                 if (protocol.candidate.equalsIgnoreCase("White")) {
                     protocol.candidate = "";
                 }
+
+                System.out.println("Received vote "+protocol.candidate);
+                System.out.println(protocol.candidate.isEmpty());
+                System.out.println(protocol.candidate.isBlank());
 
                 if (q.getRMI().voterVotes(protocol.username, protocol.election, protocol.candidate, q.getDepartment())) { // não encontra eleição?
                     buffer = new Protocol().status(protocol.id, q.getDepartment(), "off", "Vote submitted successfully").getBytes();

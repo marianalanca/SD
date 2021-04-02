@@ -216,7 +216,7 @@ public class MulticastClient extends Thread {
                     socket.receive(packet);
                     protocol = new Protocol().parse(new String(packet.getData(), 0, packet.getLength()));
                     if (protocol!=null && protocol.type.equals("turnoff") && protocol.department.equals(data.getDepartment())){
-                        System.out.print("\nThe table has exited. ");
+                        System.out.println("\nThe table has exited. ");
                         return;
                         //System.exit(0);
                     }
@@ -233,11 +233,11 @@ public class MulticastClient extends Thread {
                         socket.receive(packet);
                         protocol = new Protocol().parse(new String(packet.getData(), 0, packet.getLength()));
                         if (protocol!=null && protocol.type.equals("turnoff") && protocol.department.equals(data.getDepartment())){
-                            System.out.print("\nThe table has exited. ");
+                            System.out.println("\nThe table has exited. ");
                             return;
                             //System.exit(0);
                         }
-                    } while (protocol==null || protocol.id==null || (protocol!=null && !protocol.type.equals("login")));
+                    } while (protocol==null || !(protocol!=null && protocol.id!=null && protocol.type.equals("login")));
 
                     // send ack telling it has received login
                     buffer = (new Protocol().ack(data.getID(), data.getDepartment())).getBytes();
@@ -281,10 +281,10 @@ public class MulticastClient extends Thread {
                                                     socket.receive(packet);
                                                     protocol = new Protocol().parse(new String(packet.getData(), 0, packet.getLength()));
                                                     if (protocol!=null && protocol.type.equals("turnoff") && protocol.department.equals(data.getDepartment())){
-                                                        System.out.print("\nThe table has exited. ");
+                                                        System.out.println("\nThe table has exited. ");
                                                         return;
                                                     }
-                                                } while (protocol==null  || data.getRegisteredAcks().contains(protocol.msgId) || (protocol!=null && protocol.id!=null && protocol.item_name!=null && !protocol.type.equals("item_list") && protocol.id.equals(data.getID())));
+                                                } while (protocol==null  || data.getRegisteredAcks().contains(protocol.msgId) || !(protocol!=null && protocol.id!=null && protocol.item_name!=null && protocol.type.equals("item_list") && protocol.id.equals(data.getID())));
 
                                                 data.getRegisteredAcks().add(protocol.msgId);
 
@@ -321,15 +321,14 @@ public class MulticastClient extends Thread {
                                                         socket.receive(packet);
                                                         protocol = new Protocol().parse(new String(packet.getData(), 0, packet.getLength()));
                                                         if (protocol!=null && protocol.type.equals("turnoff") && protocol.department.equals(data.getDepartment())){
-                                                            System.out.print("\nThe table has exited. ");
+                                                            System.out.println("\nThe table has exited. ");
                                                             //System.exit(0);
                                                             // HERE
                                                             return;
                                                         }
-                                                    } while (protocol==null || data.getRegisteredAcks().contains(protocol.msgId) || (protocol!=null && protocol.id!=null && protocol.item_name!=null && !protocol.type.equals("item_list") && protocol.id.equals(data.getID())));
+                                                    } while (protocol==null || data.getRegisteredAcks().contains(protocol.msgId) || !(protocol!=null && protocol.id!=null && protocol.item_name!=null && protocol.type.equals("item_list") && protocol.id.equals(data.getID())));
 
                                                     data.getRegisteredAcks().add(protocol.msgId);
-                
                                                     if (protocol.item_count==0){
                                                         System.out.println("There are no candidates available");
                                                         buffer = (new Protocol().leave(data.getID(), data.getDepartment())).getBytes();
