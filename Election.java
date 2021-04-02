@@ -354,6 +354,7 @@ public class Election implements Serializable {
                   AlreadyVoted voter = new AlreadyVoted(vote, timeOfVote, voteLocal);
                   Boolean isNotIn = addUsersVoted(voter);
                   System.out.println(name);
+                  
                   if(Boolean.TRUE.equals(isNotIn)){
                         if(name.isEmpty()){
                               whiteVote++;
