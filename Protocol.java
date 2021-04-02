@@ -1,5 +1,6 @@
 import java.io.*;
 import java.util.List;
+import java.util.Random;
 import java.util.concurrent.CopyOnWriteArrayList;
 
 public class Protocol implements Serializable {
@@ -18,11 +19,11 @@ public class Protocol implements Serializable {
 		add("crashed");
 		add("election");
 		add("item_list");
+		add("leave");
 		add("login");
 		add("request");
 		add("response");
 		add("status");
-		add("timeout");
 		add("turnoff");
 		add("vote");
 	}};
@@ -34,19 +35,18 @@ public class Protocol implements Serializable {
 	 * @param password of the user that wants to login
 	 * @return String containing the protocol with all the data received as param
 	 */
-	public String login(Long msgId, String id, String username, String password) {
-		return "type|login;msgID|"+msgId+";id|"+id+";username|"+username+";password|"+password;
+	public String login(String id, String username, String password) {
+		return "type|login;msgID|"+Math.abs(new Random(System.currentTimeMillis()).nextLong())+";id|"+id+";username|"+username+";password|"+password;
 	}
 
-	
 	/** 
 	 * @param msgId id that identifies the message; In case this one is replicated, it is discarted
 	 * @param id of the terminal to which the information must be sent
 	 * @param department of the table and terminal where the voter is voting
 	 * @return String containing the protocol message with all the data received as param
 	 */
-	public String ack(long msgId, String id, String department){
-		return "type|ack;msgID|"+msgId+";id|"+id+";department|"+department;
+	public String ack(String id, String department){
+		return "type|ack;msgID|"+Math.abs(new Random(System.currentTimeMillis()).nextLong())+";id|"+id+";department|"+department;
 	}
 
 	/** 
@@ -54,8 +54,8 @@ public class Protocol implements Serializable {
 	 * @param department of the table and terminal where the voter is voting
 	 * @return String containing the protocol with all the data received as param
 	 */
-	public String turnoff(Long msgId, String department) {
-		return "type|turnoff;msgID|"+msgId+";department|"+department;
+	public String turnoff(String department) {
+		return "type|turnoff;msgID|"+Math.abs(new Random(System.currentTimeMillis()).nextLong())+";department|"+department;
 	}
 
 	/** 
@@ -65,8 +65,8 @@ public class Protocol implements Serializable {
 	 * @param election that the user chose
 	 * @return String containing the protocol with all the data received as param
 	 */
-	public String election(Long msgId, String id, String department, String election) {
-		return "type|election;msgID|"+msgId+";id|"+id+";department|"+department+";election|"+election;
+	public String election(String id, String department, String election) {
+		return "type|election;msgID|"+Math.abs(new Random(System.currentTimeMillis()).nextLong())+";id|"+id+";department|"+department+";election|"+election;
 	}
 
 	/** 
@@ -75,8 +75,8 @@ public class Protocol implements Serializable {
 	 * @param department of the table and terminal where the voter is voting
 	 * @return String containing the protocol with all the data received as param
 	 */
-	public String timeout(Long msgId, String id, String department) {
-		return "type|timeout;msgID|"+msgId+";id|"+id+";department|"+department;
+	public String leave(String id, String department) {
+		return "type|leave;msgID|"+Math.abs(new Random(System.currentTimeMillis()).nextLong())+";id|"+id+";department|"+department;
 	}
 
 	/**
@@ -84,8 +84,8 @@ public class Protocol implements Serializable {
 	 * @param department of the table and terminal where the voter is voting
 	 * @return String containing the protocol with all the data received as param
 	 */
-	public String request(Long msgId, String department) {
-		return "type|request;msgID|"+msgId+";department|"+department;
+	public String request(String department) {
+		return "type|request;msgID|"+Math.abs(new Random(System.currentTimeMillis()).nextLong())+";department|"+department;
 	}
 
 	/**
@@ -97,8 +97,8 @@ public class Protocol implements Serializable {
 	 * @param candidate in which the voter wants to vote
 	 * @return String containing the protocol with all the data received as param
 	 */
-	public String vote(Long msgId, String id, String department, String username, String election, String candidate) {
-		return "type|vote;msgID|"+msgId+";id|"+id+";department|"+department+";username|"+username+";election|"+election+";candidate|"+candidate;
+	public String vote(String id, String department, String username, String election, String candidate) {
+		return "type|vote;msgID|"+Math.abs(new Random(System.currentTimeMillis()).nextLong())+";id|"+id+";department|"+department+";username|"+username+";election|"+election+";candidate|"+candidate;
 	}
 
 	/** 
@@ -109,8 +109,8 @@ public class Protocol implements Serializable {
 	 * @param msg is some message that is to be sent
 	 * @return String containing the protocol with all the data received as param
 	 */
-	public String status(Long msgId, String id, String department, String logged, String msg) {
-		return "type|status;msgID|"+msgId+";id|"+id+";department|"+department+";logged|"+logged+";msg|"+msg;
+	public String status(String id, String department, String logged, String msg) {
+		return "type|status;msgID|"+Math.abs(new Random(System.currentTimeMillis()).nextLong())+";id|"+id+";department|"+department+";logged|"+logged+";msg|"+msg;
 	}
 
 	/** 
@@ -120,8 +120,8 @@ public class Protocol implements Serializable {
 	 * @param logged contains the value of the status (on/off)
 	 * @return String containing the protocol with all the data received as param
 	 */
-	public String status(Long msgId, String id, String department, String logged) {
-		return "type|status;msgID|"+msgId+";id|"+id+";department|"+department+";logged|"+logged;
+	public String status(String id, String department, String logged) {
+		return "type|status;msgID|"+Math.abs(new Random(System.currentTimeMillis()).nextLong())+";id|"+id+";department|"+department+";logged|"+logged;
 	}
 
 	/** 
@@ -130,8 +130,8 @@ public class Protocol implements Serializable {
 	 * @param id of the terminal to which the information must be sent
 	 * @return String containing the protocol with all the data received as param
 	 */
-	public String response(Long msgId, String department, String id) {
-		return "type|response;msgID|"+msgId+";department|"+department+";id|"+id;
+	public String response(String department, String id) {
+		return "type|response;msgID|"+Math.abs(new Random(System.currentTimeMillis()).nextLong())+";department|"+department+";id|"+id;
 	}
 
 	/** 
@@ -139,8 +139,8 @@ public class Protocol implements Serializable {
 	 * @param id of the terminal to which the information must be sent
 	 * @return String containing the protocol with all the data received as param
 	 */
-	public String accepted(Long msgId, String id) {
-		return "type|accepted;msgID|"+msgId+";id|"+id;
+	public String accepted(String id) {
+		return "type|accepted;msgID|"+Math.abs(new Random(System.currentTimeMillis()).nextLong())+";id|"+id;
 	}
 
 	/** 
@@ -150,8 +150,8 @@ public class Protocol implements Serializable {
 	 * @param item_name contains the list to be passed in the protocol
 	 * @return String containing the protocol with all the data received as param
 	 */
-	public String item_list(Long msgId, String id, int item_count, List<String> item_name) {
-		String result = "type|item_list;msgID|"+msgId+";item_count|"+item_count;
+	public String item_list(String id, int item_count, List<String> item_name) {
+		String result = "type|item_list;msgID|"+Math.abs(new Random(System.currentTimeMillis()).nextLong())+";item_count|"+item_count;
 		for (int i=0;i<item_name.size();i++){
 			result = result.concat(";item_"+i+"_name|"+item_name.get(i));
 		}
@@ -164,8 +164,8 @@ public class Protocol implements Serializable {
 	 * @param department of the table and terminal where the voter is voting
 	 * @return String containing the protocol with all the data received as param
 	 */
-	public String crashed(Long msgId, String id, String department) {
-		return "type|crashed;msgID|"+msgId+";id|"+id+";department|"+department;
+	public String crashed(String id, String department) {
+		return "type|crashed;msgID|"+Math.abs(new Random(System.currentTimeMillis()).nextLong())+";id|"+id+";department|"+department;
 	}
 
 	/**
@@ -189,7 +189,7 @@ public class Protocol implements Serializable {
 							msgId = Long.parseLong(token[1]);
 						break;
 					case "id":
-						if (type!=null && (type.equals("login") || type.equals("election")  || type.equals("vote") || type.equals("status") || type.equals("response")  || type.equals("accepted") || type.equals("item_list") || type.equals("crashed") || type.equals("timeout") || type.equals("ack")))
+						if (type!=null && (type.equals("login") || type.equals("election")  || type.equals("vote") || type.equals("status") || type.equals("response")  || type.equals("accepted") || type.equals("item_list") || type.equals("crashed") || type.equals("leave") || type.equals("ack")))
 						id = token[1];
 						else {
 							System.out.println("Wrong format");
@@ -205,7 +205,7 @@ public class Protocol implements Serializable {
 						}
 						break;
 					case "department":
-						if (type!=null && (type.equals("request") || type.equals("election")  || type.equals("vote") || type.equals("status") || type.equals("response")  || type.equals("crashed") || type.equals("timeout") || type.equals("turnoff") || type.equals("ack")))
+						if (type!=null && (type.equals("request") || type.equals("election")  || type.equals("vote") || type.equals("status") || type.equals("response")  || type.equals("crashed") || type.equals("leave") || type.equals("turnoff") || type.equals("ack")))
 							department = token[1];
 						else {
 							System.out.println("Wrong format");
