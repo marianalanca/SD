@@ -174,6 +174,7 @@ public class MulticastClient extends Thread {
                 data.socketResult.joinGroup(data.groupResult);
 
                 while (true) {
+                    System.out.println("im back");
                     vote(data.socket, data.group, keyboardScanner, data.socketResult, data.groupResult);
                 }
             } catch (Exception e) {
@@ -311,10 +312,10 @@ public class MulticastClient extends Thread {
                                                 else System.out.print("The option you've chosen is not possible. ");
                                             } while(flag);
 
-                                            String electionName = protocol.item_name.get(selection-1);
+                                            String electionName = protocol.item_name.get(selection);
 
                                             // send request for the list of candidates
-                                            buffer = (new Protocol().election(data.getID(), data.getDepartment(), protocol.item_name.get(selection-1))).getBytes();
+                                            buffer = (new Protocol().election(data.getID(), data.getDepartment(), electionName)).getBytes();
                                             packet = new DatagramPacket(buffer, buffer.length, group, data.getPORT());
                                             socket.send(packet);
                                             do {
@@ -330,7 +331,6 @@ public class MulticastClient extends Thread {
         
                                             if (protocol.item_count==0){
                                                 System.out.println("There are no candidates available");
-                                                // HERE
                                                 buffer = (new Protocol().leave(data.getID(), data.getDepartment())).getBytes();
                                                 packet = new DatagramPacket(buffer, buffer.length, group, data.getPORT());
                                                 socket.send(packet);
@@ -382,6 +382,7 @@ public class MulticastClient extends Thread {
                                     System.out.println("Wrong username");
                                 }
                         } while (usernameFlag);
+                        System.out.println("sai");
                     } catch (TimeoutException e) {
                         System.out.println("The terminal has been idle for too long");
                         buffer = (new Protocol().leave(data.getID(), data.getDepartment())).getBytes();
@@ -389,11 +390,13 @@ public class MulticastClient extends Thread {
                         socket.send(packet);
                         return;
                     } catch (Exception e) {
+                        e.printStackTrace();
                         System.exit(0);
                     }
                 }
             }
         } catch (SocketTimeoutException e) {}
+        System.out.println("???");
     }
 
     public String getTimeConsole(Scanner scanner, int time) throws NoSuchElementException, ExecutionException, InterruptedException, TimeoutException {

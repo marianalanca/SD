@@ -341,6 +341,7 @@ class MulticastPool extends Thread implements Serializable {
 
             // test if packet has already been received;  this is necessary since sometimes the client receives some packet that has already been received and starts unnecessarily
             if (q.getRegisteredAcks().contains(protocol.msgId)) {
+                System.out.println("bye");
                 return;
             } else {
                 q.getRegisteredAcks().add(protocol.msgId);
@@ -403,6 +404,7 @@ class MulticastRequest extends Thread implements Serializable {
                 protocol = new Protocol().parse(new String(packet.getData(), 0, packet.getLength()));
 
                 if (protocol!=null) {
+                    System.out.println(protocol.type);
                     if (protocol.department!=null && protocol.department.equalsIgnoreCase(q.getDepartment())) {
                         if (protocol.id!=null) {
                             voter = q.searchVoter(protocol.id);
@@ -462,9 +464,10 @@ class MulticastRequest extends Thread implements Serializable {
             List<String> electionsNames = new CopyOnWriteArrayList<String>();
 
             // adds elections names in a list to send to client
-            for (Election election: elections) {
+            // HERE
+            /*for (Election election: elections) {
                 electionsNames.add(election.getTitle());
-            }
+            }*/
 
             // send candidates information
             byte[] buffer = new Protocol().item_list(voter.getID(), electionsNames.size(), electionsNames).getBytes();
@@ -478,6 +481,7 @@ class MulticastRequest extends Thread implements Serializable {
         // sends candidates list
         List<String> candidates = new CopyOnWriteArrayList<String>();
         for (Candidates candidate: q.getRMI().searchElection(election).getCandidatesList()) {
+            System.out.println(candidate.getName());
             if (candidate.getType().equals(voter.getData().getType()))
                 candidates.add(candidate.getName());
         }
@@ -486,5 +490,4 @@ class MulticastRequest extends Thread implements Serializable {
         DatagramPacket packet = new DatagramPacket(buffer, buffer.length, group, q.getPORT());
         socket.send(packet);
     }
-
 }
