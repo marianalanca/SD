@@ -76,7 +76,6 @@ public class Protocol implements Serializable {
 	 * @return String containing the protocol with all the data received as param
 	 */
 	public String leave(String id, String department) {
-		System.out.println("here");
 		return "type|leave;msgID|"+Math.abs(new Random(System.currentTimeMillis()).nextLong())+";id|"+id+";department|"+department;
 	}
 

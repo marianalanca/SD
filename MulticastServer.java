@@ -251,9 +251,12 @@ class MulticastVote extends Thread implements Serializable {
                     packet = new DatagramPacket(buffer, buffer.length);
                     socket.receive(packet);
                     protocol = new Protocol().parse(new String(packet.getData(), 0, packet.getLength()));
+                    System.out.println(protocol.type);
                 } while (protocol==null || !(protocol!=null && protocol.type!=null && protocol.type.equals("vote") && protocol.department.equalsIgnoreCase(q.getDepartment())));
 
-                if (protocol.candidate.equals("white")) {
+                System.out.println("Received vote "+protocol.candidate);
+
+                if (protocol.candidate.equalsIgnoreCase("White")) {
                     protocol.candidate = "";
                 }
 
@@ -336,16 +339,11 @@ class MulticastPool extends Thread implements Serializable {
                 packet = new DatagramPacket(buffer, buffer.length);
                 socket.receive(packet);
                 protocol = new Protocol().parse(new String(packet.getData(), 0, packet.getLength()));
-            } while (protocol==null || !(protocol!=null && protocol.type!=null && (protocol.type.equals("response"))  && protocol.department.equalsIgnoreCase(q.getDepartment()) && protocol.id!=null));
+            } while (protocol==null || !(protocol!=null && protocol.type!=null && (protocol.type.equals("response"))  && protocol.department.equalsIgnoreCase(q.getDepartment()) && protocol.id!=null && !q.getRegisteredAcks().contains(protocol.msgId)));
             String id = protocol.id;
 
             // test if packet has already been received;  this is necessary since sometimes the client receives some packet that has already been received and starts unnecessarily
-            if (q.getRegisteredAcks().contains(protocol.msgId)) {
-                System.out.println("bye");
-                return;
-            } else {
-                q.getRegisteredAcks().add(protocol.msgId);
-            }
+            q.getRegisteredAcks().add(protocol.msgId);
 
             // sends accepted
             buffer = (new Protocol().accepted(id)).getBytes();
@@ -463,11 +461,12 @@ class MulticastRequest extends Thread implements Serializable {
             List<Election> elections = q.getRMI().searchElectionbyDepRole(q.getDepartment(), voter.getData().getType());
             List<String> electionsNames = new CopyOnWriteArrayList<String>();
 
+            System.out.println(elections.size());
+
             // adds elections names in a list to send to client
-            // HERE
-            /*for (Election election: elections) {
+            for (Election election: elections) {
                 electionsNames.add(election.getTitle());
-            }*/
+            }
 
             // send candidates information
             byte[] buffer = new Protocol().item_list(voter.getID(), electionsNames.size(), electionsNames).getBytes();

@@ -30,7 +30,7 @@ public class ServerData implements Serializable{
             prop.load(new FileInputStream(fileName));
             MULTICAST_ADDRESS = prop.getProperty("multicast_adress");
             PORT = Integer.parseInt(prop.getProperty("multicast_port"));
-            PORT = Integer.parseInt(prop.getProperty("results_port"));
+            RESULT_PORT = Integer.parseInt(prop.getProperty("results_port"));
       }catch(Exception e){ // standard values
             MULTICAST_ADDRESS = "224.0.224.0";
             PORT = 4321;
