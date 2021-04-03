@@ -1,5 +1,4 @@
 import java.net.MulticastSocket;
-import java.net.Socket;
 import java.net.SocketTimeoutException;
 import java.net.DatagramPacket;
 import java.net.InetAddress;
@@ -155,10 +154,8 @@ public class MulticastClient extends Thread {
                     data.socket.send(packet);
                 } catch (InterruptedException e) {
                     Thread.currentThread().interrupt();
-                    e.printStackTrace();
                 } catch (IOException e) {
                     System.out.println("Your request has been lost. Please try again.");
-                    e.printStackTrace();
                 }
             }
         });
@@ -178,10 +175,8 @@ public class MulticastClient extends Thread {
                     vote(data.socket, data.group, keyboardScanner, data.socketResult, data.groupResult);
                 }
             } catch (Exception e) {
-                e.printStackTrace();
             }
         }  catch (IOException e) {
-            e.printStackTrace();
         } finally {
             data.socket.close();
             data.socketResult.close();
@@ -195,6 +190,7 @@ public class MulticastClient extends Thread {
         Protocol protocol;
         try {
             // receives request
+            socket.setSoTimeout(2000);
             do {
                 buffer = new byte[256];
                 packet = new DatagramPacket(buffer, buffer.length);
@@ -206,7 +202,6 @@ public class MulticastClient extends Thread {
 
             if (protocol.department.equals(data.getDepartment())) {
                 // sends confirmation
-                //System.out.println("department correct");
                 buffer = (new Protocol().response(data.getDepartment() ,data.getID())).getBytes();
                 packet = new DatagramPacket(buffer, buffer.length, group, data.getPORT());
                 socket.send(packet);
@@ -245,6 +240,8 @@ public class MulticastClient extends Thread {
                     buffer = (new Protocol().ack(data.getID(), data.getDepartment())).getBytes();
                     packet = new DatagramPacket(buffer, buffer.length, group, data.getPORT());
                     socket.send(packet);
+
+                    socket.setSoTimeout(10000); // waits for 10 seconds
 
                     // autentication
                     data.setUsername(protocol.username);
@@ -394,8 +391,8 @@ public class MulticastClient extends Thread {
                         packet = new DatagramPacket(buffer, buffer.length, group, data.getPORT());
                         socket.send(packet);
                         return;
+                    } catch (SocketTimeoutException e) { System.out.println("Something went wrong");
                     } catch (Exception e) {
-                        e.printStackTrace(); // HERE
                         System.exit(0);
                     }
                 }
