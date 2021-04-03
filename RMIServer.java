@@ -379,7 +379,7 @@ public class RMIServer extends UnicastRemoteObject implements RMIServer_I{
                   if(flag){
                         server.addTableMembers(member);
                         System.out.println("Added member to table with sucess");
-                        writeElectionFile();
+                        writeMulticastServerFile();
                         return true;
                   }else{
                         return false;
