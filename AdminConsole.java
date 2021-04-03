@@ -1410,10 +1410,13 @@ public class AdminConsole extends UnicastRemoteObject implements AdminConsole_I{
 
     public static void main(String args[]) {
 
+        AdminConsole admin =  null;
+        AdminConsole_I admin_I = (AdminConsole_I) admin;
+
         try{ 
 
-            AdminConsole admin = new AdminConsole();
-            AdminConsole_I admin_I = (AdminConsole_I) admin;
+            admin = new AdminConsole();
+            admin_I = (AdminConsole_I) admin;
             
             try{
                 Properties prop = new Properties();
@@ -1445,6 +1448,11 @@ public class AdminConsole extends UnicastRemoteObject implements AdminConsole_I{
 
         }
         catch (Exception e){
+            try {
+                if(admin_I != null)
+                    admin.rmi.logoutAdmin(admin_I);
+            } catch (RemoteException e1) {
+            }
             System.out.println("Main: " + e);
         }
 
