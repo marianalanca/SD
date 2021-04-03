@@ -827,7 +827,7 @@ public class RMIServer extends UnicastRemoteObject implements RMIServer_I{
                   if(v.getCc_number().equals(cc_number)){
                         int i = voterList.indexOf(v);
                         voterList.set(i, newInfo);
-                        writeElectionFile();
+                        writeVoterFile();
                         System.out.println("Switched voter's info successfully");
                         return true;
                   }
