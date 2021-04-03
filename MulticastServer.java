@@ -35,10 +35,9 @@ public class MulticastServer extends Thread implements Serializable {
                         q.addRequestFront(q.getSearchingTerminal());
                     }
                     q.getRMI().updateServerData(q.getDepartment(), q);
-                } catch (InterruptedException e) {
-                    Thread.currentThread().interrupt();
-                    e.printStackTrace();
                 } catch (Exception e) {
+                    Thread.currentThread().interrupt();
+                    System.out.println("Could not logout");
                 }
             }
         });
@@ -117,22 +116,21 @@ public class MulticastServer extends Thread implements Serializable {
                             q.addRequestBack(voter); // add to voting list
                         else System.out.println("The user has already been selected");
                     } else {
-                        System.out.println("Data inserted is not valid");
+                        System.out.println("Inserted data is not valid");
                     }
                 }
             }
         } catch (RemoteException e){
             try{
                 reconnect();
-                this.start();
+                run();
             } catch(Exception excp){
-                System.out.println("MultiCast Server: connecting failed " + excp);
+                System.out.println("MultiCast Server: connecting failed");
             }
         }catch(NoSuchElementException e){
             System.out.print("Invalid operation. ");
         } catch (Exception e) {
-			System.out.println("Exception in Multicast: " + e);
-			e.printStackTrace();
+			System.out.println("Ups something went wrong");
         } finally {
             keyboardScanner.close();
             System.exit(0);
@@ -255,6 +253,8 @@ class MulticastVote extends Thread implements Serializable {
                     protocol = new Protocol().parse(new String(packet.getData(), 0, packet.getLength()));
                 } while (protocol==null || !(protocol!=null && protocol.type!=null && protocol.type.equals("vote") && protocol.department.equalsIgnoreCase(q.getDepartment())));
 
+                q.removeVoter(protocol.id);
+
                 if (protocol.candidate.equalsIgnoreCase("White")) {
                     protocol.candidate = "";
                 }
@@ -266,16 +266,15 @@ class MulticastVote extends Thread implements Serializable {
                 }
                 packet = new DatagramPacket(buffer, buffer.length, groupACK, q.getPORT());
                 socketACK.send(packet);
-
-                q.removeVoter(protocol.id);
             }
         } catch (RemoteException e) {
-            this.start();
+            run();
         } catch (IOException e) {
             System.out.println("Couldn't contact with terminal");
         } catch (Exception e) {
-			System.out.println("Exception in Multicast: " + e);
-			e.printStackTrace();
+			System.out.println("Ups something went wrong");
+            // send message saying something went wrong??
+            e.printStackTrace();
         } finally {
             socket.close();
         }
@@ -310,12 +309,13 @@ class MulticastPool extends Thread implements Serializable {
                 }
             }
         } catch (RemoteException e) {
-            this.start();
+            run();
         } catch (IOException e) {
-            e.printStackTrace();
+            System.out.println("Could not open UDP connection");
+            System.exit(0);
         } catch (Exception e) {
-			System.out.println("Exception in main: " + e);
-			e.printStackTrace();
+            System.out.println("Ups something went wrong");
+            System.exit(0);
         } finally {
             socket.close();
         }
@@ -340,8 +340,6 @@ class MulticastPool extends Thread implements Serializable {
                 protocol = new Protocol().parse(new String(packet.getData(), 0, packet.getLength()));
             } while (protocol==null || !(protocol!=null && protocol.type!=null && (protocol.type.equals("response"))  && protocol.department.equalsIgnoreCase(q.getDepartment()) && protocol.id!=null && !q.getRegisteredAcks().contains(protocol.msgId)));
             String id = protocol.id;
-
-            System.out.println(protocol.type);
 
             // test if packet has already been received;  this is necessary since sometimes the client receives some packet that has already been received and starts unnecessarily
             q.getRegisteredAcks().add(protocol.msgId);
@@ -430,15 +428,13 @@ class MulticastRequest extends Thread implements Serializable {
             }
         } catch (SocketTimeoutException e) {
         } catch (RemoteException e) {
-            this.start();
+            run();
         }catch (NullPointerException e) {
             System.out.println("Ups. Guess something went wrong. Try again");
-            e.printStackTrace();
         } catch (IOException e) {
             System.out.println("Couldn't contact with terminal");
         } catch (Exception e) {
 			System.out.println("Exception in main: " + e);
-			e.printStackTrace();
         } finally {
             socket.close();
         }
