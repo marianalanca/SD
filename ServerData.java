@@ -15,7 +15,6 @@ public class ServerData implements Serializable{
     private int RESULT_PORT;  // RESULT Port
     private String department;
     private List<Voter> requests = new CopyOnWriteArrayList<Voter>(); // stores all voting members in case a terminal fails
-    private int TIMEOUT = 120000;
     private RMIServer_I RMI;
     private List<Long> registeredAcks = new CopyOnWriteArrayList<Long>();
     private List<TerminalVoter> voting = new CopyOnWriteArrayList<TerminalVoter>();
@@ -183,13 +182,6 @@ public class ServerData implements Serializable{
      */
     public void setRMI(RMIServer_I rMI) {
         RMI = rMI;
-    }
-    
-    /** 
-     * @return int with the value of the messages timeout
-     */
-    public int getTIMEOUT() {
-        return TIMEOUT;
     }
     
     /** 

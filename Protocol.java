@@ -10,7 +10,7 @@ public class Protocol implements Serializable {
 	private static final long serialVersionUID = 1L;
 	public String type, id, department;
 	public List<String> item_name = new CopyOnWriteArrayList<String>();
-	public String username, password, logged, msg, candidate, election;
+	public String username, password, logged, msg, candidate, election, key;
 	public int item_count;
 	public Long msgId;
 	public List<String> types = new CopyOnWriteArrayList<String>(){{
@@ -150,11 +150,12 @@ public class Protocol implements Serializable {
 	 * @param item_name contains the list to be passed in the protocol
 	 * @return String containing the protocol with all the data received as param
 	 */
-	public String item_list(String id, int item_count, List<String> item_name) {
+	public String item_list(String id, int item_count, List<String> item_name, String key) {
 		String result = "type|item_list;msgID|"+Math.abs(new Random(System.currentTimeMillis()).nextLong())+";id|"+id+";item_count|"+item_count;
 		for (int i=0;i<item_name.size();i++){
 			result = result.concat(";item_"+i+"_name|"+item_name.get(i));
 		}
+		result = result.concat(";key|"+key);
 		return result;
 	}
 
@@ -199,6 +200,14 @@ public class Protocol implements Serializable {
 					case "username":
 						if (type.equals("login") || type.equals("vote")){
 							username = token[1];}
+						else {
+							System.out.println("Wrong format");
+							return null;
+						}
+						break;
+					case "key":
+						if (type.equals("item_list")){
+							key = token[1];}
 						else {
 							System.out.println("Wrong format");
 							return null;
