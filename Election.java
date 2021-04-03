@@ -382,14 +382,11 @@ public class Election implements Serializable {
                                     candidates.addVote();
                                     //System.out.println(candidates.getNumberOfVotes());
                                     return true;
-                              }   
+                              }
                         }
                   }
             }
             return false;
-            
-
-            
       }
 
       /**
