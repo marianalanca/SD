@@ -341,6 +341,8 @@ class MulticastPool extends Thread implements Serializable {
             } while (protocol==null || !(protocol!=null && protocol.type!=null && (protocol.type.equals("response"))  && protocol.department.equalsIgnoreCase(q.getDepartment()) && protocol.id!=null && !q.getRegisteredAcks().contains(protocol.msgId)));
             String id = protocol.id;
 
+            System.out.println(protocol.type);
+
             // test if packet has already been received;  this is necessary since sometimes the client receives some packet that has already been received and starts unnecessarily
             q.getRegisteredAcks().add(protocol.msgId);
 

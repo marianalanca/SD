@@ -415,14 +415,11 @@ public class Election implements Serializable {
                                     addHash(voteLocal);
                                     //System.out.println(candidates.getNumberOfVotes());
                                     return true;
-                              }   
+                              }
                         }
                   }
             }
             return false;
-            
-
-            
       }
 
       /**

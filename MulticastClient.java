@@ -206,6 +206,7 @@ public class MulticastClient extends Thread {
 
             if (protocol.department.equals(data.getDepartment())) {
                 // sends confirmation
+                //System.out.println("department correct");
                 buffer = (new Protocol().response(data.getDepartment() ,data.getID())).getBytes();
                 packet = new DatagramPacket(buffer, buffer.length, group, data.getPORT());
                 socket.send(packet);
@@ -219,9 +220,10 @@ public class MulticastClient extends Thread {
                     if (protocol!=null && protocol.type.equals("turnoff") && protocol.department.equals(data.getDepartment())){
                         System.out.println("\nThe table has exited. ");
                         return;
-                        //System.exit(0);
                     }
                 } while (protocol==null || !(protocol!=null && protocol.type.equals("accepted") && !data.getRegisteredAcks().contains(protocol.msgId)));
+
+                System.out.print("");
 
                 data.getRegisteredAcks().add(protocol.msgId);
 
@@ -236,7 +238,6 @@ public class MulticastClient extends Thread {
                         if (protocol!=null && protocol.type.equals("turnoff") && protocol.department.equals(data.getDepartment())){
                             System.out.println("\nThe table has exited. ");
                             return;
-                            //System.exit(0);
                         }
                     } while (protocol==null || !(protocol!=null && protocol.id!=null && protocol.type.equals("login")));
 
@@ -292,8 +293,8 @@ public class MulticastClient extends Thread {
                                                     buffer = (new Protocol().leave(data.getID(), data.getDepartment())).getBytes();
                                                     packet = new DatagramPacket(buffer, buffer.length, group, data.getPORT());
                                                     socket.send(packet);
+                                                    return;
                                                 } else {
-                                                    // pôr aqui o resto!
                                                     System.out.println("List of Elections");
                                                     for (int i=0;i<protocol.item_count;i++){
                                                         System.out.println("\t"+i+". "+ protocol.item_name.get(i));
@@ -325,11 +326,12 @@ public class MulticastClient extends Thread {
                                                         }
                                                     } while (protocol==null || !(protocol!=null && protocol.id!=null && protocol.item_name!=null && protocol.type.equals("item_list") && protocol.key!=null && protocol.key.equals("candidate") && protocol.id.equals(data.getID())));
 
-                                                    if (protocol.item_count==0){
+                                                    if (protocol.item_count==0){ 
                                                         System.out.println("There are no candidates available");
                                                         buffer = (new Protocol().leave(data.getID(), data.getDepartment())).getBytes();
                                                         packet = new DatagramPacket(buffer, buffer.length, group, data.getPORT());
                                                         socket.send(packet);
+                                                        return;
                                                     } else {
                                                         System.out.println("List of Candidates");
                                                         for (int i=0;i<protocol.item_count;i++){
@@ -370,18 +372,18 @@ public class MulticastClient extends Thread {
                                                         }
                                                     }
                                                 }
-                                                } else {
-                                                    System.out.println("Wrong password");
-                                                }
                                             } else {
-                                                failedLogin(group, socket);
-                                                return;
+                                                System.out.println("Wrong password");
                                             }
-                                        } while (passwordFlag);
+                                        } else { // in case failed to insert password
+                                            failedLogin(group, socket);
+                                            return;
+                                        }
+                                    } while (passwordFlag);
                                 } else {
                                     System.out.println("Wrong username");
                                 }
-                            } else {
+                            } else { // in case failed to insert login
                                 failedLogin(group, socket);
                                 return;
                             }
@@ -393,7 +395,7 @@ public class MulticastClient extends Thread {
                         socket.send(packet);
                         return;
                     } catch (Exception e) {
-                        e.printStackTrace();
+                        e.printStackTrace(); // HERE
                         System.exit(0);
                     }
                 }
