@@ -95,6 +95,10 @@ public class Election implements Serializable {
                   return;
             }
 
+            if(voterPerTable == null){
+                  voterPerTable = new HashMap<String, Integer>();
+            }
+
             for (String i : voterPerTable.keySet()) {
                   if(i.equals(nameTable)){
                         votes = voterPerTable.get(i) + 1;
