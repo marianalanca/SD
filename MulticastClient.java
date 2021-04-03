@@ -1,4 +1,5 @@
 import java.net.MulticastSocket;
+import java.net.Socket;
 import java.net.SocketTimeoutException;
 import java.net.DatagramPacket;
 import java.net.InetAddress;
@@ -284,9 +285,7 @@ public class MulticastClient extends Thread {
                                                         System.out.println("\nThe table has exited. ");
                                                         return;
                                                     }
-                                                } while (protocol==null  || data.getRegisteredAcks().contains(protocol.msgId) || !(protocol!=null && protocol.id!=null && protocol.item_name!=null && protocol.type.equals("item_list") && protocol.id.equals(data.getID())));
-
-                                                data.getRegisteredAcks().add(protocol.msgId);
+                                                } while (protocol==null || !(protocol!=null && protocol.id!=null && protocol.item_name!=null && protocol.type.equals("item_list") && protocol.key!=null && protocol.key.equals("election") && protocol.id.equals(data.getID())));
 
                                                 if (protocol.item_count==0) {
                                                     System.out.println("There are no elections available at the moment");
@@ -322,13 +321,10 @@ public class MulticastClient extends Thread {
                                                         protocol = new Protocol().parse(new String(packet.getData(), 0, packet.getLength()));
                                                         if (protocol!=null && protocol.type.equals("turnoff") && protocol.department.equals(data.getDepartment())){
                                                             System.out.println("\nThe table has exited. ");
-                                                            //System.exit(0);
-                                                            // HERE
                                                             return;
                                                         }
-                                                    } while (protocol==null || data.getRegisteredAcks().contains(protocol.msgId) || !(protocol!=null && protocol.id!=null && protocol.item_name!=null && protocol.type.equals("item_list") && protocol.id.equals(data.getID())));
+                                                    } while (protocol==null || !(protocol!=null && protocol.id!=null && protocol.item_name!=null && protocol.type.equals("item_list") && protocol.key!=null && protocol.key.equals("candidate") && protocol.id.equals(data.getID())));
 
-                                                    data.getRegisteredAcks().add(protocol.msgId);
                                                     if (protocol.item_count==0){
                                                         System.out.println("There are no candidates available");
                                                         buffer = (new Protocol().leave(data.getID(), data.getDepartment())).getBytes();
@@ -378,11 +374,7 @@ public class MulticastClient extends Thread {
                                                     System.out.println("Wrong password");
                                                 }
                                             } else {
-                                                System.out.println("You have failed to login");
-                                                System.out.println("The terminal has been idle for too long");
-                                                buffer = (new Protocol().leave(data.getID(), data.getDepartment())).getBytes();
-                                                packet = new DatagramPacket(buffer, buffer.length, group, data.getPORT());
-                                                socket.send(packet);
+                                                failedLogin(group, socket);
                                                 return;
                                             }
                                         } while (passwordFlag);
@@ -390,11 +382,7 @@ public class MulticastClient extends Thread {
                                     System.out.println("Wrong username");
                                 }
                             } else {
-                                System.out.println("You have failed to login");
-                                System.out.println("The terminal has been idle for too long");
-                                buffer = (new Protocol().leave(data.getID(), data.getDepartment())).getBytes();
-                                packet = new DatagramPacket(buffer, buffer.length, group, data.getPORT());
-                                socket.send(packet);
+                                failedLogin(group, socket);
                                 return;
                             }
                         } while (usernameFlag);
@@ -405,11 +393,19 @@ public class MulticastClient extends Thread {
                         socket.send(packet);
                         return;
                     } catch (Exception e) {
+                        e.printStackTrace();
                         System.exit(0);
                     }
                 }
             }
         } catch (SocketTimeoutException e) {}
+    }
+
+    public void failedLogin(InetAddress group, MulticastSocket socket) throws IOException {
+        System.out.println("You have failed to login");
+        byte[] buffer = (new Protocol().leave(data.getID(), data.getDepartment())).getBytes();
+        DatagramPacket packet = new DatagramPacket(buffer, buffer.length, group, data.getPORT());
+        socket.send(packet);
     }
 
     public String getTimeConsole(Scanner scanner, int time) throws NoSuchElementException, ExecutionException, InterruptedException, TimeoutException {
@@ -418,8 +414,10 @@ public class MulticastClient extends Thread {
         FutureTask<String> task = new FutureTask<>(() -> {
             try {
                 return scanner.nextLine();
-            } catch (Exception e) {
+            } catch (NoSuchElementException e) {
                 return "error";
+            } catch (Exception e) {
+                return "";
             }
         });
 
