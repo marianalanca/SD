@@ -10,7 +10,7 @@ public class Protocol implements Serializable {
 	private static final long serialVersionUID = 1L;
 	public String type, id, department;
 	public List<String> item_name = new CopyOnWriteArrayList<String>();
-	public String username, password, logged, msg, candidate, election;
+	public String username, password, logged, msg, candidate, election, key;
 	public int item_count;
 	public Long msgId;
 	public List<String> types = new CopyOnWriteArrayList<String>(){{
@@ -36,7 +36,7 @@ public class Protocol implements Serializable {
 	 * @return String containing the protocol with all the data received as param
 	 */
 	public String login(String id, String username, String password) {
-		return "type|login;msgID|"+Math.abs(new Random(System.currentTimeMillis()).nextLong())+";id|"+id+";username|"+username+";password|"+password;
+		return "type|login;id|"+id+";username|"+username+";password|"+password;
 	}
 
 	/** 
@@ -46,7 +46,7 @@ public class Protocol implements Serializable {
 	 * @return String containing the protocol message with all the data received as param
 	 */
 	public String ack(String id, String department){
-		return "type|ack;msgID|"+Math.abs(new Random(System.currentTimeMillis()).nextLong())+";id|"+id+";department|"+department;
+		return "type|ack;id|"+id+";department|"+department;
 	}
 
 	/** 
@@ -55,7 +55,7 @@ public class Protocol implements Serializable {
 	 * @return String containing the protocol with all the data received as param
 	 */
 	public String turnoff(String department) {
-		return "type|turnoff;msgID|"+Math.abs(new Random(System.currentTimeMillis()).nextLong())+";department|"+department;
+		return "type|turnoff;department|"+department;
 	}
 
 	/** 
@@ -66,7 +66,7 @@ public class Protocol implements Serializable {
 	 * @return String containing the protocol with all the data received as param
 	 */
 	public String election(String id, String department, String election) {
-		return "type|election;msgID|"+Math.abs(new Random(System.currentTimeMillis()).nextLong())+";id|"+id+";department|"+department+";election|"+election;
+		return "type|election;id|"+id+";department|"+department+";election|"+election;
 	}
 
 	/** 
@@ -76,7 +76,7 @@ public class Protocol implements Serializable {
 	 * @return String containing the protocol with all the data received as param
 	 */
 	public String leave(String id, String department) {
-		return "type|leave;msgID|"+Math.abs(new Random(System.currentTimeMillis()).nextLong())+";id|"+id+";department|"+department;
+		return "type|leave;id|"+id+";department|"+department;
 	}
 
 	/**
@@ -98,7 +98,7 @@ public class Protocol implements Serializable {
 	 * @return String containing the protocol with all the data received as param
 	 */
 	public String vote(String id, String department, String username, String election, String candidate) {
-		return "type|vote;msgID|"+Math.abs(new Random(System.currentTimeMillis()).nextLong())+";id|"+id+";department|"+department+";username|"+username+";election|"+election+";candidate|"+candidate;
+		return "type|vote;id|"+id+";department|"+department+";username|"+username+";election|"+election+";candidate|"+candidate;
 	}
 
 	/** 
@@ -110,7 +110,7 @@ public class Protocol implements Serializable {
 	 * @return String containing the protocol with all the data received as param
 	 */
 	public String status(String id, String department, String logged, String msg) {
-		return "type|status;msgID|"+Math.abs(new Random(System.currentTimeMillis()).nextLong())+";id|"+id+";department|"+department+";logged|"+logged+";msg|"+msg;
+		return "type|status;id|"+id+";department|"+department+";logged|"+logged+";msg|"+msg;
 	}
 
 	/** 
@@ -121,7 +121,7 @@ public class Protocol implements Serializable {
 	 * @return String containing the protocol with all the data received as param
 	 */
 	public String status(String id, String department, String logged) {
-		return "type|status;msgID|"+Math.abs(new Random(System.currentTimeMillis()).nextLong())+";id|"+id+";department|"+department+";logged|"+logged;
+		return "type|status;id|"+id+";department|"+department+";logged|"+logged;
 	}
 
 	/** 
@@ -150,11 +150,12 @@ public class Protocol implements Serializable {
 	 * @param item_name contains the list to be passed in the protocol
 	 * @return String containing the protocol with all the data received as param
 	 */
-	public String item_list(String id, int item_count, List<String> item_name) {
-		String result = "type|item_list;msgID|"+Math.abs(new Random(System.currentTimeMillis()).nextLong())+";id|"+id+";item_count|"+item_count;
+	public String item_list(String id, int item_count, List<String> item_name, String key) {
+		String result = "type|item_list;id|"+id+";item_count|"+item_count;
 		for (int i=0;i<item_name.size();i++){
 			result = result.concat(";item_"+i+"_name|"+item_name.get(i));
 		}
+		result = result.concat(";key|"+key);
 		return result;
 	}
 
@@ -165,7 +166,7 @@ public class Protocol implements Serializable {
 	 * @return String containing the protocol with all the data received as param
 	 */
 	public String crashed(String id, String department) {
-		return "type|crashed;msgID|"+Math.abs(new Random(System.currentTimeMillis()).nextLong())+";id|"+id+";department|"+department;
+		return "type|crashed;id|"+id+";department|"+department;
 	}
 
 	/**
@@ -185,12 +186,12 @@ public class Protocol implements Serializable {
 							type = token[1];
 						break;
 					case "msgID":
-						if (types.contains(type))
+						if (type.equals("response") || type.equals("request") || type.equals("accepted"))
 							msgId = Long.parseLong(token[1]);
 						break;
 					case "id":
 						if (type!=null && (type.equals("login") || type.equals("election")  || type.equals("vote") || type.equals("status") || type.equals("response")  || type.equals("accepted") || type.equals("item_list") || type.equals("crashed") || type.equals("leave") || type.equals("ack")))
-						id = token[1];
+							id = token[1];
 						else {
 							System.out.println("Wrong format");
 							return null;
@@ -199,6 +200,14 @@ public class Protocol implements Serializable {
 					case "username":
 						if (type.equals("login") || type.equals("vote")){
 							username = token[1];}
+						else {
+							System.out.println("Wrong format");
+							return null;
+						}
+						break;
+					case "key":
+						if (type.equals("item_list")){
+							key = token[1];}
 						else {
 							System.out.println("Wrong format");
 							return null;

@@ -44,7 +44,9 @@ public class Election implements Serializable {
             
             runThread();
       }
-
+      /**
+       * It creates a thread that will take care of the State of the function
+       */
       public void runThread(){
             new Thread((Runnable) () -> {
                   try {
@@ -79,6 +81,17 @@ public class Election implements Serializable {
                         Thread.currentThread().interrupt();
                   }
             },"Something").start();
+      }
+
+
+
+      public boolean voterInAlreadyVoter(Voter voter) {
+            for (AlreadyVoted voted : usersVoted) {
+                  if(voted.getVote().getCc_number().equals(voter.getCc_number())){
+                        return true;
+                  }
+            }
+            return false;
       }
       /**
        * get all the tables associated with the election
@@ -303,7 +316,7 @@ public class Election implements Serializable {
        */
       public Boolean addUsersVoted(AlreadyVoted voter){
             for (AlreadyVoted vote : usersVoted) {
-                  if(vote.getVote().equals(voter.vote)){
+                  if(vote.getVote().getCc_number().equals(voter.getVote().getCc_number())){
                         return false;
                   }
             }
