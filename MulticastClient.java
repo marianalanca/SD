@@ -393,6 +393,7 @@ public class MulticastClient extends Thread {
                         socket.send(packet);
                         return;
                     } catch (Exception e) {
+                        e.printStackTrace();
                         System.exit(0);
                     }
                 }
@@ -413,8 +414,10 @@ public class MulticastClient extends Thread {
         FutureTask<String> task = new FutureTask<>(() -> {
             try {
                 return scanner.nextLine();
-            } catch (Exception e) {
+            } catch (NoSuchElementException e) {
                 return "error";
+            } catch (Exception e) {
+                return "";
             }
         });
 
