@@ -369,29 +369,35 @@ public class RMIServer extends UnicastRemoteObject implements RMIServer_I{
       @Override
       public synchronized boolean addVoterTable(MulticastServer table, Voter member)  throws RemoteException{
             boolean flag = true;
+            MulticastServer server = searchTableDept(table.getQ().getDepartment());
+            if(server!=null){
+                  for (Voter voter : server.getTableMembers()) {
+                        if(voter.getCc_number().equals(member.getCc_number())){
+                              flag = false;
+                        }
+                  }
+                  if(flag){
+                        server.addTableMembers(member);
+                        System.out.println("Added member to table with sucess");
+                        writeElectionFile();
+                        return true;
+                  }else{
+                        return false;
+                  }
+
+            }/*
             for(MulticastServer m: servers){
                   if(m.getQ().getDepartment().equals(table.getQ().getDepartment())){
                         int index = servers.indexOf(m);
                         try{
-                              for (Voter voter : servers.get(index).getTableMembers()) {
-                                    if(voter.getCc_number().equals(member.getCc_number())){
-                                          flag = false;
-                                    }
-                              }
-                              if(flag){
-                                    servers.get(index).addTableMembers(member);
-                                    System.out.println("Added member to table with sucess");
-                                    writeElectionFile();
-                                    return true;
-                              }else{
-                                    return false;
-                              }
+                              
+                              
                         }catch(Exception e){
                               servers.remove(index);
                         }
                         
                   }
-            }  
+            }  */
             return false;
       }
       
@@ -597,7 +603,16 @@ public class RMIServer extends UnicastRemoteObject implements RMIServer_I{
 
       }
 
-      
+      @Override 
+      public synchronized List<Voter> getRMITableMembers(String department) throws RemoteException{
+            MulticastServer table = searchTableDept(department);
+            if(table != null){
+                  return table.getTableMembers();
+            }else{
+                  return new CopyOnWriteArrayList<>();
+            }
+      }
+
       @Override
       public synchronized List<Voter> getVoterList() throws RemoteException {
             return this.voterList;

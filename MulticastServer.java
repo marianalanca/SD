@@ -75,6 +75,7 @@ public class MulticastServer extends Thread implements Serializable {
                     }
                 } while (option < 0 || option > 2);
                 if (option == 0) {
+                    tableMembers = this.getQ().getRMI().getRMITableMembers(this.getQ().getDepartment());
                     if (tableMembers.size()==0) {
                         System.out.println("This table does not contain members yet.");
                     } else{
@@ -156,6 +157,7 @@ public class MulticastServer extends Thread implements Serializable {
      * @throws RemoteException Remote Problem
      */
     public void addTableMembers(Voter voter) throws RemoteException{
+        System.out.println("Here");
         tableMembers.add(voter);
     }
 
