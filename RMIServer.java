@@ -483,7 +483,7 @@ public class RMIServer extends UnicastRemoteObject implements RMIServer_I{
       /**
        * Writes an object file of the election 
        */
-      public void writeElectionFile(){
+      public synchronized void writeElectionFile(){
             
             try(FileOutputStream fos = new FileOutputStream(electionFile); ObjectOutputStream oos = new ObjectOutputStream(fos)){
                   oos.writeObject(elections);
@@ -497,7 +497,7 @@ public class RMIServer extends UnicastRemoteObject implements RMIServer_I{
       /**
        * Writes an object file about the elections
        */
-      public void writeVoterFile(){
+      public synchronized void writeVoterFile(){
             
             try(FileOutputStream fos = new FileOutputStream(voterFile); ObjectOutputStream oos = new ObjectOutputStream(fos)){
                   oos.writeObject(voterList);
@@ -509,7 +509,7 @@ public class RMIServer extends UnicastRemoteObject implements RMIServer_I{
       /**
        * Writes an object file about the tables
        */
-      public void writeMulticastServerFile(){
+      public synchronized void writeMulticastServerFile(){
             try(FileOutputStream fos = new FileOutputStream(tableFile); ObjectOutputStream oos = new ObjectOutputStream(fos)){
                   oos.writeObject(servers);
             }catch(Exception ex){
