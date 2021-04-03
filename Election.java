@@ -1,5 +1,5 @@
-
 import java.util.List;
+import java.util.HashMap;
 import java.util.Calendar;
 import java.io.Serializable;
 import java.util.concurrent.CopyOnWriteArrayList;
@@ -11,12 +11,13 @@ public class Election implements Serializable {
       private Calendar beggDate;
       private Calendar endDate;
       private String title;
+      private String department;
       private String description;
       private List<Type> allowedVoters = new CopyOnWriteArrayList<>();
-      private String department;
       private List<Candidates> candidatesList = new CopyOnWriteArrayList<>();
       private List<AlreadyVoted> usersVoted = new CopyOnWriteArrayList<>();
       private List<MulticastServer> tables = new CopyOnWriteArrayList<>();
+      private HashMap<String, Integer> voterPerTable = new HashMap<String, Integer>();
       private int whiteVote;
       private int nullVote;
       private State state;
@@ -83,8 +84,34 @@ public class Election implements Serializable {
             },"Something").start();
       }
 
+      /**
+       * adds votes to a table in the election
+       * @param nameTable a string with the name of the table
+       */
+      public void addHash(String nameTable){
+            int votes;
 
+            if(nameTable.equals("Administration console")){
+                  return;
+            }
 
+            for (String i : voterPerTable.keySet()) {
+                  if(i.equals(nameTable)){
+                        votes = voterPerTable.get(i) + 1;
+                        voterPerTable.put(nameTable, votes);
+                        return;
+                  }
+            }
+
+            voterPerTable.put(nameTable, 0);
+
+      }
+
+      /**
+       * adds a voter to the list a voters
+       * @param voter a voter
+       * @return true in sucess, false otherwise
+       */
       public boolean voterInAlreadyVoter(Voter voter) {
             for (AlreadyVoted voted : usersVoted) {
                   if(voted.getVote().getCc_number().equals(voter.getCc_number())){
@@ -93,6 +120,7 @@ public class Election implements Serializable {
             }
             return false;
       }
+
       /**
        * get all the tables associated with the election
        * @return a list of multicastServer
@@ -232,6 +260,7 @@ public class Election implements Serializable {
       public boolean addTable(MulticastServer server){
             if(!tables.contains(server)){
                   tables.add(server);
+                  addHash(server.getName());
                   return true;
             }
             return false;
@@ -245,6 +274,7 @@ public class Election implements Serializable {
       public boolean removeTable(MulticastServer server){
             if(tables.contains(server)){
                   tables.remove(server);
+                  voterPerTable.remove(server.getName());
                   return true;
             }
             return false;
@@ -369,6 +399,7 @@ public class Election implements Serializable {
 
                   if(Boolean.TRUE.equals(isNotIn) && name == null){
                         nullVote++;
+                        addHash(voteLocal);
                         return true;  
                   }
                   else{
@@ -376,10 +407,12 @@ public class Election implements Serializable {
                         if(Boolean.TRUE.equals(isNotIn)){
                               if(name.isEmpty()){
                                     whiteVote++;
+                                    addHash(voteLocal);
                                     return true;
                               }
                               else{
                                     candidates.addVote();
+                                    addHash(voteLocal);
                                     //System.out.println(candidates.getNumberOfVotes());
                                     return true;
                               }   
@@ -415,6 +448,12 @@ public class Election implements Serializable {
        * @param nullVote a integer with the number of null votes
        */
       public void setNullVote(int nullVote) { this.nullVote = nullVote; }
+
+      /**
+       * get the hasmap that contains the voters per table
+       * @return a hashmap
+       */
+      public HashMap<String, Integer> getVotesPerTable(){ return voterPerTable; }
 
       public static void main(String[] args) {
             System.out.println("Created");

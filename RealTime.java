@@ -1,8 +1,9 @@
 import java.io.FileInputStream;
 import java.io.IOException;
 import java.rmi.*;
-import java.util.Calendar;
 import java.util.List;
+import java.util.HashMap;
+import java.util.Calendar;
 import java.util.Properties;
 import java.util.Scanner;
 import java.rmi.server.UnicastRemoteObject;
@@ -103,19 +104,34 @@ public class RealTime extends UnicastRemoteObject{
                     try {
                         while(true){
                             try {
+                                int total = 0, votes;
                                 List<Candidates> candidates = election.getCandidatesList();
+                                HashMap<String, Integer> perTable = election.getVotesPerTable();
 
                                 clearConsole();
 
-                                System.out.println(election.getTitle() + ":\n");
+                                System.out.println(election.getTitle() + "\n\nVotes per candidate:");
 
                                 for(int i = 0; i < candidates.size(); i++){
                                     Candidates cand = candidates.get(i);
-                                    System.out.println(cand.getName() + ":" + cand.getNumberOfVotes());
+                                    votes= cand.getNumberOfVotes();
+                                    total += votes;
+                                    System.out.println(cand.getName() + ":" + votes);
                                 }
 
-                                System.out.println("Null votes: " + election.getNullVote());
-                                System.out.println("White votes: " + election.getWhiteVote());
+                                votes = election.getNullVote();
+                                total += votes;
+                                System.out.println("Null votes: " + votes);
+                                votes = election.getWhiteVote();
+                                total += votes;
+                                System.out.println("White votes: " + votes);
+
+                                System.out.print("\nTotal of votes: " + total + "\n\nVotes per tables:");
+
+                                for(String i: perTable.keySet()){
+                                    System.out.println(i + ": " + perTable.get(i));
+
+                                }
 
                                 if(election.getEndDate().before(Calendar.getInstance())){
                                     Thread.currentThread().interrupt();
