@@ -445,6 +445,30 @@ public class AdminConsole extends UnicastRemoteObject implements AdminConsole_I{
     }
 
     /**
+     * search table in list of all servers
+     */
+    public MulticastServer searchTable( String dept){
+
+        try{
+            for(MulticastServer table: rmi.getServers()){
+                if(table.getQ().getDepartment().equalsIgnoreCase(dept)){
+                    return table;
+                }
+            }
+        }
+        catch(ConnectException e){
+            reconnect();
+            searchTable(dept);
+        }
+        catch(Exception e){
+
+        }
+        
+
+        return null;
+    }
+
+    /**
      * Allows you to change the properties of the lists of an election:
      *  - Create a new list
      *  - Delete a existing list
@@ -688,7 +712,7 @@ public class AdminConsole extends UnicastRemoteObject implements AdminConsole_I{
 
             System.out.print("Insert table's department: ");
             dep = check_string();
-            table =  rmi.searchTableDept(dep);
+            table =  searchTable(dep);
 
             while(table == null){
                 System.out.print("Press ENTER if you want to exit.\nInvalid id. Try again: ");
@@ -696,7 +720,7 @@ public class AdminConsole extends UnicastRemoteObject implements AdminConsole_I{
 
                 if(dep.equals("")){ return; }
 
-                table =  rmi.searchTableDept(dep);
+                table =  searchTable(dep);
 
             }
 
@@ -955,41 +979,6 @@ public class AdminConsole extends UnicastRemoteObject implements AdminConsole_I{
         } catch (IOException e) {
             e.printStackTrace();
         }
-        /*
-        try{
-
-            List <Election> elections;
-            Election election;
-            int option;
-
-            elections = rmi.stateElections(State.OPEN, null);
-
-            if(elections.size() == 0){ 
-                System.out.println("List of open elections is empty.");
-                return; 
-            }
-
-            printElection(elections);
-
-            option = check_number();
-
-            while(option < 0 || option > elections.size()){
-                System.out.println ("Invalid option. Try again");
-                option = check_number();
-            }
-
-            election = elections.get(option);
-            System.out.println("\nElection " + election.getTitle() + ":");
-
-
-        }catch(ConnectException e){
-            reconnect();
-            voters_real_time();
-        }
-        catch (Exception e){
-            System.out.println("Voters_real_time: " + e);
-        }*/
-
     }
 
     /**
@@ -1256,12 +1245,15 @@ public class AdminConsole extends UnicastRemoteObject implements AdminConsole_I{
                 return;
             }
 
-            table =  rmi.searchTableDept(dep);
+            table =  searchTable(dep);
 
             while(table == null){
-                System.out.print("Invalid department. Try again: ");
+                System.out.print("Press ENTER if you want to exit.\nInvalid department. Try again: ");
                 dep = check_string();
-                table =  rmi.searchTableDept(dep);
+                if(dep.equals("")){
+                    return;
+                }
+                table =  searchTable(dep);
             }
 
             members = table.getTableMembers();
@@ -1313,10 +1305,14 @@ public class AdminConsole extends UnicastRemoteObject implements AdminConsole_I{
                 if(option == 1){
                     if(rmi.addVoterTable(table, voter))
                         System.out.println("Sucess adding member to table");
+                    else
+                        System.out.println("Error adding member to table");
                 }
                 else{
                     if (rmi.removeVoterTable(table, voter))
                         System.out.println("Sucess removing member from table");
+                    else
+                        System.out.println("Error removing member to table");
                 }
             }
             catch(ConnectException e){
