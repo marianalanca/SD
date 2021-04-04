@@ -803,17 +803,19 @@ public class RMIServer extends UnicastRemoteObject implements RMIServer_I{
       
       @Override
       public synchronized boolean switchElection(String name, Election newInfo) throws RemoteException{
-            
-            for(Election e: elections){
-                  if(e.getTitle().equals(name)){
-                        int i = elections.indexOf(e);
-                        if(e.getState() == State.WAITING){
-                              elections.set(i, newInfo);
-                              writeElectionFile();
-                              System.out.println("Switched info successfully");
-                              return true;
-                        }else{
-                              return false;
+            Election server = searchElection(newInfo.getTitle());
+            if(server == null){
+                  for(Election e: elections){
+                        if(e.getTitle().equals(name)){
+                              int i = elections.indexOf(e);
+                              if(e.getState() == State.WAITING){
+                                    elections.set(i, newInfo);
+                                    writeElectionFile();
+                                    System.out.println("Switched info successfully");
+                                    return true;
+                              }else{
+                                    return false;
+                              }
                         }
                   }
             }
@@ -827,7 +829,7 @@ public class RMIServer extends UnicastRemoteObject implements RMIServer_I{
                   if(v.getCc_number().equals(cc_number)){
                         int i = voterList.indexOf(v);
                         voterList.set(i, newInfo);
-                        writeElectionFile();
+                        writeVoterFile();
                         System.out.println("Switched voter's info successfully");
                         return true;
                   }
