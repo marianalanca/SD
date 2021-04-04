@@ -111,7 +111,7 @@ public class RMIServer extends UnicastRemoteObject implements RMIServer_I{
       @Override
       public synchronized boolean updateServerData(String department, ServerData update) throws RemoteException{
             for (MulticastServer server : onServers) {
-                  if(server.getQ().getDepartment().equals(department)){
+                  if(server.getQ().getDepartment().equalsIgnoreCase(department)){
                         server.setQ(update);
                         return true;
                   }
@@ -194,7 +194,7 @@ public class RMIServer extends UnicastRemoteObject implements RMIServer_I{
       @Override
       public synchronized void logoutMulticastServer(MulticastServer multicastServer) throws RemoteException{
             for (MulticastServer server : onServers) {
-                  if(server.getQ().getDepartment().equals(multicastServer.getQ().getDepartment())){
+                  if(server.getQ().getDepartment().equalsIgnoreCase(multicastServer.getQ().getDepartment())){
                         onServers.remove(server);
                         break;
                   }
@@ -260,7 +260,7 @@ public class RMIServer extends UnicastRemoteObject implements RMIServer_I{
             List<Election> res = new CopyOnWriteArrayList<>();
             for(Election election: elections){
                   for (MulticastServer table: election.getTables()) {
-                        if (table.getQ().getDepartment().equals(department)  && election.getAllowedVoters().contains(role) && election.getState()==State.OPEN) {
+                        if (table.getQ().getDepartment().equalsIgnoreCase(department)  && election.getAllowedVoters().contains(role) && election.getState()==State.OPEN) {
                               res.add(election);
                         }
                   }
@@ -273,14 +273,14 @@ public class RMIServer extends UnicastRemoteObject implements RMIServer_I{
       public synchronized boolean addTableElection(MulticastServer table, Election election)throws RemoteException{
             boolean flag = false;
             for(MulticastServer m: servers){
-                  if(m.getQ().getDepartment().equals(table.getQ().getDepartment())){
+                  if(m.getQ().getDepartment().equalsIgnoreCase(table.getQ().getDepartment())){
                         for(Election e: elections){
                               if(e.getTitle().equals(election.getTitle())){
                                     int index1 = elections.indexOf(e);
-                                    if(elections.get(index1).getDepartment().equals(table.getQ().getDepartment())|| elections.get(index1).getDepartment().isEmpty()){
+                                    if(elections.get(index1).getDepartment().equalsIgnoreCase(table.getQ().getDepartment())|| elections.get(index1).getDepartment().isEmpty()){
                                           
                                           for (MulticastServer server : elections.get(index1).getTables()) {
-                                                if(!server.getQ().getDepartment().equals(table.getQ().getDepartment())){
+                                                if(!server.getQ().getDepartment().equalsIgnoreCase(table.getQ().getDepartment())){
                                                     flag = true;  
                                                 }
                                                 
@@ -307,7 +307,7 @@ public class RMIServer extends UnicastRemoteObject implements RMIServer_I{
                         for(Election e: elections){
                               if(e.getTitle().equals(election.getTitle())){
                                     int index1 = elections.indexOf(e);
-                                    if(elections.get(index1).getDepartment().equals(table.getQ().getDepartment())|| elections.get(index1).getDepartment().isEmpty()){
+                                    if(elections.get(index1).getDepartment().equalsIgnoreCase(table.getQ().getDepartment())|| elections.get(index1).getDepartment().isEmpty()){
                                           elections.get(index1).removeTable(table);
                                           writeElectionFile();
                                           System.out.println("Removed table with sucess");
@@ -328,7 +328,7 @@ public class RMIServer extends UnicastRemoteObject implements RMIServer_I{
             while (it.hasNext()) {
                   MulticastServer server = it.next();
                   try {
-                        if(server.getQ().getDepartment().equals(department)){
+                        if(server.getQ().getDepartment().equalsIgnoreCase(department)){
                               return server;
                         }
                   } catch (Exception e) {
@@ -404,7 +404,7 @@ public class RMIServer extends UnicastRemoteObject implements RMIServer_I{
       @Override
       public synchronized boolean removeVoterTable(MulticastServer table, Voter member) throws RemoteException{
             for(MulticastServer m: servers){
-                  if(m.getQ().getDepartment().equals(table.getQ().getDepartment())){
+                  if(m.getQ().getDepartment().equalsIgnoreCase(table.getQ().getDepartment())){
                         int index = servers.indexOf(m);
                         try{
                               servers.get(index).removeTableMembers(member);
