@@ -19,7 +19,7 @@ public class ServerData implements Serializable{
     private List<Long> registeredAcks = new CopyOnWriteArrayList<Long>();
     private List<TerminalVoter> voting = new CopyOnWriteArrayList<TerminalVoter>();
     private Voter searchingTerminal;
-
+    String address, port;
     public ServerData(String department) {
         this.department = department;
 
