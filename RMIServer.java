@@ -1,15 +1,14 @@
-<<<<<<< HEAD
-=======
 // É o servidor central (replicado) que armazena todos os dados da aplicação, suportando por essa razão todas as operações necessárias através demétodos remotos usando Java RMI
 import java.io.BufferedInputStream;
 import java.io.ByteArrayInputStream;
-import java.io.FileOutputStream;
-import java.io.FileInputStream;
 import java.io.DataInputStream;
 import java.io.EOFException;
 import java.io.File;
+import java.io.FileInputStream;
 import java.io.FileNotFoundException;
+import java.io.FileOutputStream;
 import java.io.IOException;
+import java.io.InputStream;
 import java.io.ObjectInputStream;
 import java.io.ObjectOutputStream;
 import java.net.DatagramPacket;
@@ -21,11 +20,12 @@ import java.rmi.*;
 import java.rmi.registry.LocateRegistry;
 import java.rmi.server.ExportException;
 import java.rmi.server.UnicastRemoteObject;
-import java.util.List;
 import java.util.Calendar;
 import java.util.Iterator;
-import java.util.Properties;
+import java.util.List;
 import java.util.ListIterator;
+import java.util.Properties;
+import java.util.Scanner;
 import java.util.concurrent.CopyOnWriteArrayList;
 
 
@@ -369,14 +369,7 @@ public class RMIServer extends UnicastRemoteObject implements RMIServer_I{
       @Override
       public synchronized boolean addVoterTable(MulticastServer table, Voter member)  throws RemoteException{
             boolean flag = true;
-            MulticastServer server = null;
-
-            for(MulticastServer s: servers){
-                  if(s.getQ().getDepartment().equalsIgnoreCase(table.getQ().getDepartment())){
-                      server = s;
-                  }
-            }
-
+            MulticastServer server = searchTableDept(table.getQ().getDepartment());
             if(server!=null){
                   for (Voter voter : server.getTableMembers()) {
                         if(voter.getCc_number().equals(member.getCc_number())){
@@ -388,10 +381,23 @@ public class RMIServer extends UnicastRemoteObject implements RMIServer_I{
                         System.out.println("Added member to table with sucess");
                         writeMulticastServerFile();
                         return true;
+                  }else{
+                        return false;
                   }
-            }
 
-            System.out.println("Error adding member to table");
+            }/*
+            for(MulticastServer m: servers){
+                  if(m.getQ().getDepartment().equals(table.getQ().getDepartment())){
+                        int index = servers.indexOf(m);
+                        try{
+                              
+                              
+                        }catch(Exception e){
+                              servers.remove(index);
+                        }
+                        
+                  }
+            }  */
             return false;
       }
       
@@ -977,4 +983,3 @@ public class RMIServer extends UnicastRemoteObject implements RMIServer_I{
       }
 
 }
->>>>>>> c317fe5d465228302916334aa5a0b749c40dbf0c
