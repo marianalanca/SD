@@ -82,14 +82,11 @@ public class ServerData implements Serializable{
     public boolean connect (int count) {
         try {
             // connection with RMI
-            BufferedReader br = new BufferedReader(new FileReader("configRMI.txt"));
-            String address, port;
-            if ((address = br.readLine())!=null && (port = br.readLine())!=null) {
-                RMI = (RMIServer_I) LocateRegistry.getRegistry(address,Integer.parseInt(port)).lookup("RMIServer");
-            } else {
-                System.exit(0);
-            }
-            br.close();
+
+            Properties prop = new Properties();
+            String fileName = "config.properties";
+            prop.load(new FileInputStream(fileName));
+            RMI = (RMIServer_I) LocateRegistry.getRegistry(prop.getProperty("ip"),Integer.parseInt(prop.getProperty("port"))).lookup("RMIServer");
             return true;
         } catch (ConnectException e) {
             if (count>2)
