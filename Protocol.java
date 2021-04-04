@@ -29,7 +29,6 @@ public class Protocol implements Serializable {
 	}};
 
 	/**
-	 * @param msgId id that identifies the message; In case this one is replicated, it is discarted
 	 * @param id of the terminal to which the information must be sent
 	 * @param username of the user that wants to login
 	 * @param password of the user that wants to login
@@ -40,7 +39,6 @@ public class Protocol implements Serializable {
 	}
 
 	/** 
-	 * @param msgId id that identifies the message; In case this one is replicated, it is discarted
 	 * @param id of the terminal to which the information must be sent
 	 * @param department of the table and terminal where the voter is voting
 	 * @return String containing the protocol message with all the data received as param
@@ -50,7 +48,6 @@ public class Protocol implements Serializable {
 	}
 
 	/** 
-	 * @param msgId id that identifies the message; In case this one is replicated, it is discarted
 	 * @param department of the table and terminal where the voter is voting
 	 * @return String containing the protocol with all the data received as param
 	 */
@@ -59,7 +56,6 @@ public class Protocol implements Serializable {
 	}
 
 	/** 
-	 * @param msgId id that identifies the message; In case this one is replicated, it is discarted
 	 * @param id of the terminal to which the information must be sent
 	 * @param department of the table and terminal where the voter is voting
 	 * @param election that the user chose
@@ -70,7 +66,6 @@ public class Protocol implements Serializable {
 	}
 
 	/** 
-	 * @param msgId id that identifies the message; In case this one is replicated, it is discarted
 	 * @param id of the terminal to which the information must be sent
 	 * @param department of the table and terminal where the voter is voting
 	 * @return String containing the protocol with all the data received as param
@@ -80,7 +75,6 @@ public class Protocol implements Serializable {
 	}
 
 	/**
-	 * @param msgId id that identifies the message; In case this one is replicated, it is discarted
 	 * @param department of the table and terminal where the voter is voting
 	 * @return String containing the protocol with all the data received as param
 	 */
@@ -89,7 +83,6 @@ public class Protocol implements Serializable {
 	}
 
 	/**
-	 * @param msgId id that identifies the message; In case this one is replicated, it is discarted
 	 * @param id of the terminal to which the information must be sent
 	 * @param department of the table and terminal where the voter is voting
 	 * @param username of the user that wants to vote
@@ -102,7 +95,6 @@ public class Protocol implements Serializable {
 	}
 
 	/** 
-	 * @param msgId id that identifies the message; In case this one is replicated, it is discarted
 	 * @param id of the terminal to which the information must be sent
 	 * @param department of the table and terminal where the voter is voting
 	 * @param logged contains the value of the status (on/off)
@@ -114,7 +106,6 @@ public class Protocol implements Serializable {
 	}
 
 	/** 
-	 * @param msgId id that identifies the message; In case this one is replicated, it is discarted
 	 * @param id of the terminal to which the information must be sent
 	 * @param department of the table and terminal where the voter is voting
 	 * @param logged contains the value of the status (on/off)
@@ -125,7 +116,6 @@ public class Protocol implements Serializable {
 	}
 
 	/** 
-	 * @param msgId id that identifies the message; In case this one is replicated, it is discarted
 	 * @param department of the table and terminal where the voter is voting
 	 * @param id of the terminal to which the information must be sent
 	 * @return String containing the protocol with all the data received as param
@@ -135,7 +125,6 @@ public class Protocol implements Serializable {
 	}
 
 	/** 
-	 * @param msgId id that identifies the message; In case this one is replicated, it is discarted
 	 * @param id of the terminal to which the information must be sent
 	 * @return String containing the protocol with all the data received as param
 	 */
@@ -144,10 +133,10 @@ public class Protocol implements Serializable {
 	}
 
 	/** 
-	 * @param msgId id that identifies the message; In case this one is replicated, it is discarted
 	 * @param id of the terminal to which the information must be sent
 	 * @param item_count contains the size of the list to be passed
 	 * @param item_name contains the list to be passed in the protocol
+	 * @param key indicates the type of content that is being passed
 	 * @return String containing the protocol with all the data received as param
 	 */
 	public String item_list(String id, int item_count, List<String> item_name, String key) {
@@ -159,8 +148,7 @@ public class Protocol implements Serializable {
 		return result;
 	}
 
-	/** 
-	 * @param msgId id that identifies the message; In case this one is replicated, it is discarted
+	/**
 	 * @param id of the terminal to which the information must be sent
 	 * @param department of the table and terminal where the voter is voting
 	 * @return String containing the protocol with all the data received as param

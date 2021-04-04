@@ -12,7 +12,7 @@ public interface RMIServer_I extends Remote {
       /**
        * Helps obtaining the TableMembers
        * @param department the department you wish to find
-       * @return List<Voters> if the department exists or null if empty
+       * @return List if the department exists or null if empty
        * @throws RemoteException Remote Proble
        */
       public List<Voter> getRMITableMembers(String department) throws RemoteException;

@@ -446,6 +446,8 @@ public class AdminConsole extends UnicastRemoteObject implements AdminConsole_I{
 
     /**
      * search table in list of all servers
+     * @param dept a string with the table department
+     * @return the table with the specified department
      */
     public MulticastServer searchTable( String dept){
 
